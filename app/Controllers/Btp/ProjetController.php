@@ -37,6 +37,30 @@ final class ProjetController extends BaseController
         if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
         $this->view('btp/devis_nouveau',$this->context('Nouveau devis','devis-nouveau')+['projetsBtp'=>$this->service()->list(100)]);
     }
+    public function quoteEditor(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        $service=new \App\Services\Btp\OfferDraftService(Database::getConnection());
+        $project=$service->project((int)$id);
+        if(!$project){http_response_code(404);exit('Projet introuvable');}
+        $error=$_SESSION['btp_offer_error']??null;unset($_SESSION['btp_offer_error']);
+        $this->view('btp/devis_editeur',$this->context('Éditeur de devis et planning','devis-nouveau')+['projectBtp'=>$project,'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+    }
+    public function quoteSave(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        try{
+            (new \App\Services\Btp\OfferDraftService(Database::getConnection()))->save((int)$id,$_POST,isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);
+            $this->redirect('/btp/devis');
+        }catch(\Throwable $e){
+            error_log('[BTP offer] '.$e->getMessage());
+            $_SESSION['btp_offer_error']=$e instanceof InvalidArgumentException?$e->getMessage():'Enregistrement impossible.';
+            $this->redirect('/btp/devis/projet/'.(int)$id);
+        }
+    }
     public function dashboard(): void
     {
         AuthMiddleware::check();

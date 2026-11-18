@@ -40,6 +40,7 @@ class MigrationRunner
         $this->createBtpCrmProjectLink();
         $this->createBtpTechnicalDossier();
         $this->createBtpDocuments();
+        $this->createBtpOfferDrafts();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
@@ -100,6 +101,55 @@ class MigrationRunner
             KEY idx_btp_documents_project (projet_id,created_at),
             CONSTRAINT fk_btp_documents_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
             CONSTRAINT fk_btp_documents_author FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function createBtpOfferDrafts(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_offer_drafts (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            revision INT UNSIGNED NOT NULL,
+            title VARCHAR(180) NOT NULL,
+            issue_date DATE NOT NULL,
+            validity_date DATE NULL,
+            delivery_days INT UNSIGNED NULL,
+            correspondent VARCHAR(180) NULL,
+            terms TEXT NULL,
+            vat_enabled TINYINT(1) NOT NULL DEFAULT 1,
+            discount_amount DECIMAL(18,2) NOT NULL DEFAULT 0,
+            total_ht DECIMAL(18,2) NOT NULL,
+            vat_amount DECIMAL(18,2) NOT NULL,
+            total_ttc DECIMAL(18,2) NOT NULL,
+            status ENUM('brouillon','soumis_dt','valide_dt','soumis_dg','valide_dg','transmis_client','accepte_client','refuse') NOT NULL DEFAULT 'brouillon',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_offer_revision(projet_id,revision),
+            KEY idx_btp_offer_project(projet_id),
+            CONSTRAINT fk_btp_offer_project FOREIGN KEY(projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_offer_user FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_offer_lines (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            offer_id BIGINT UNSIGNED NOT NULL,
+            line_order INT UNSIGNED NOT NULL,
+            description VARCHAR(500) NOT NULL,
+            unit VARCHAR(30) NOT NULL,
+            quantity DECIMAL(16,3) NOT NULL,
+            unit_price DECIMAL(18,2) NOT NULL,
+            line_total DECIMAL(18,2) NOT NULL,
+            KEY idx_btp_offer_line(offer_id,line_order),
+            CONSTRAINT fk_btp_offer_line_offer FOREIGN KEY(offer_id) REFERENCES btp_offer_drafts(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_offer_planning (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            offer_id BIGINT UNSIGNED NOT NULL,
+            task_order INT UNSIGNED NOT NULL,
+            label VARCHAR(250) NOT NULL,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            KEY idx_btp_offer_planning(offer_id,task_order),
+            CONSTRAINT fk_btp_offer_planning_offer FOREIGN KEY(offer_id) REFERENCES btp_offer_drafts(id) ON DELETE RESTRICT
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     }
 
