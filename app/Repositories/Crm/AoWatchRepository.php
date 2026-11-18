@@ -100,7 +100,7 @@ final class AoWatchRepository
 
     public function setStatus(int $id,string $status):void
     {
-        if(!in_array($status,self::statuses(),true))throw new \DomainException('Statut AO non reconnu.');
+        if(!in_array($status,self::statuses(),true)||$status==='converti_crm')throw new \DomainException('Statut AO non autorisé pour une modification manuelle.');
         $q=$this->pdo->prepare('UPDATE crm_ao_notices SET statut_interne=:status WHERE id=:id AND crm_opportunity_id IS NULL');
         $q->execute(['status'=>$status,'id'=>$id]);
         if($q->rowCount()===0){

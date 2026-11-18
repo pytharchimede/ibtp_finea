@@ -127,7 +127,9 @@ class SigomapAoAdapter implements AoSourceAdapterInterface
                 $curl = curl_init($url);
                 curl_setopt_array($curl, [
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_FOLLOWLOCATION => false,
+                    CURLOPT_SSL_VERIFYPEER => true,
+                    CURLOPT_SSL_VERIFYHOST => 2,
                     CURLOPT_CONNECTTIMEOUT => 8,
                     CURLOPT_TIMEOUT => 25,
                     CURLOPT_USERAGENT => 'FINEA-AO-Watch/1.0 (+public procurement monitoring)',
