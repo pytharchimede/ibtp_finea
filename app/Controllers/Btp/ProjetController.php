@@ -38,7 +38,7 @@ final class ProjetController extends BaseController
         $project=$service->project((int)$id);
         if(!$project){http_response_code(404);exit('Projet introuvable');}
         $error=$_SESSION['btp_planning_error']??null;unset($_SESSION['btp_planning_error']);
-        $this->view('btp/planning_editeur',$this->context('Nouveau planning prévisionnel','plannings')+['projectBtp'=>$project,'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+        $this->view('btp/planning_editeur',$this->context('Nouveau planning prévisionnel','plannings')+['projectBtp'=>$project,'projectPlanningsBtp'=>(new \App\Services\Btp\PlanningService(Database::getConnection()))->forProject((int)$id),'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
     }
     public function planningSave(string $id): void
     {

@@ -10,6 +10,11 @@ final class PlanningService
     {
         return $this->pdo->query("SELECT pl.id,pl.projet_id,pl.revision,pl.title,pl.status,pl.created_at,p.reference,p.intitule,p.client_nom,COUNT(t.id) AS tasks_count,MIN(t.start_date) AS starts,MAX(t.end_date) AS ends FROM btp_project_plannings pl JOIN btp_projets p ON p.id=pl.projet_id LEFT JOIN btp_project_planning_tasks t ON t.planning_id=pl.id GROUP BY pl.id,pl.projet_id,pl.revision,pl.title,pl.status,pl.created_at,p.reference,p.intitule,p.client_nom ORDER BY pl.created_at DESC,pl.id DESC LIMIT 500")->fetchAll(PDO::FETCH_ASSOC);
     }
+    public function forProject(int $id): array
+    {
+        $q=$this->pdo->prepare("SELECT pl.id,pl.title,pl.revision,pl.created_at,COUNT(t.id) AS task_count,MIN(t.start_date) AS starts,MAX(t.end_date) AS ends FROM btp_project_plannings pl LEFT JOIN btp_project_planning_tasks t ON t.planning_id=pl.id WHERE pl.projet_id=? GROUP BY pl.id,pl.title,pl.revision,pl.created_at ORDER BY pl.revision DESC");
+        $q->execute([$id]);return $q->fetchAll(PDO::FETCH_ASSOC);
+    }
     public function save(int $projectId,array $data,?int $actor): int
     {
         $title=trim((string)($data['title']??''));
