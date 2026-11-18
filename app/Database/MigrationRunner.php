@@ -42,6 +42,7 @@ class MigrationRunner
         $this->createBtpDocuments();
         $this->createBtpOfferDrafts();
         $this->upgradeBtpOfferEditor();
+        $this->createBtpChantierStarts();
         $this->createBtpStandalonePlannings();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
@@ -130,6 +131,24 @@ class MigrationRunner
         $this->addColumnIfMissing('btp_offer_lines','group_name','VARCHAR(180) NULL');
     }
 
+    private function createBtpChantierStarts(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_chantier_starts (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL UNIQUE,
+            code VARCHAR(40) NOT NULL UNIQUE,
+            nom VARCHAR(180) NOT NULL,
+            devis_id BIGINT UNSIGNED NOT NULL,
+            planning_id BIGINT UNSIGNED NOT NULL,
+            status VARCHAR(30) NOT NULL DEFAULT 'preparation',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            FOREIGN KEY(devis_id) REFERENCES btp_offer_drafts(id) ON DELETE RESTRICT,
+            FOREIGN KEY(planning_id) REFERENCES btp_project_plannings(id) ON DELETE RESTRICT,
+            FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
     private function createBtpStandalonePlannings(): void
     {
         $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_project_plannings (

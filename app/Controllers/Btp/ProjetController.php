@@ -23,6 +23,30 @@ final class ProjetController extends BaseController
             'moduleTheme'=>$module,'activeModule'=>$active,'moduleNavigation'=>$module['navigation'],
             'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css','css/components/btp-workspace.css']];
     }
+    public function chantierIndex(): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
+        $s=new \App\Services\Btp\ChantierStartService(Database::getConnection());
+        $this->view('btp/chantiers_liste',$this->context('Chantiers','chantiers')+['chantiersBtp'=>$s->list(),'projetsBtp'=>$s->projects()]);
+    }
+    public function chantierWizard(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        $s=new \App\Services\Btp\ChantierStartService(Database::getConnection());
+        $d=$s->dossier((int)$id);if(!$d){http_response_code(404);exit('Projet introuvable');}
+        $error=$_SESSION['btp_chantier_error']??null;unset($_SESSION['btp_chantier_error']);
+        $this->view('btp/chantier_wizard',$this->context('Préparation du chantier','chantiers')+['dossierBtp'=>$d,'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+    }
+    public function chantierStart(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        try{(new \App\Services\Btp\ChantierStartService(Database::getConnection()))->start((int)$id,$_POST,isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);$this->redirect('/btp/chantiers');}
+        catch(\Throwable $e){error_log('[BTP chantier] '.$e->getMessage());$_SESSION['btp_chantier_error']=$e instanceof \DomainException?$e->getMessage():'Création impossible.';$this->redirect('/btp/chantiers/projet/'.(int)$id);}
+    }
     public function planningIndex(): void
     {
         AuthMiddleware::check();
