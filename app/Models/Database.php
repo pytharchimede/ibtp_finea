@@ -39,7 +39,8 @@ class Database
 
             return self::$connection;
         } catch (PDOException $e) {
-            die('Erreur de connexion à la base de données.');
+            error_log('[FINEA DB] ' . $e->getMessage());
+            throw new \RuntimeException('Erreur de connexion à la base de données. Vérifiez les paramètres DB_* et le service MySQL.', 0, $e);
         }
     }
 }

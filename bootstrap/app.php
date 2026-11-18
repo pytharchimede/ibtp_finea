@@ -13,6 +13,9 @@ if (session_status() === PHP_SESSION_NONE) {
 
 define('BASE_PATH', dirname(__DIR__));
 
+require_once BASE_PATH . '/bootstrap/environment.php';
+\AppEnvironment::load(BASE_PATH . '/.env');
+
 spl_autoload_register(function (string $class): void {
 
     $prefix = 'App\\';
