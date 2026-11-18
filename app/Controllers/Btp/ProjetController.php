@@ -21,7 +21,7 @@ final class ProjetController extends BaseController
         $module=(new ModuleDashboardService())->dashboard('btp');
         return ['pageTitle'=>$title,'moduleName'=>$module['label'],'moduleCode'=>$module['code'],
             'moduleTheme'=>$module,'activeModule'=>$active,'moduleNavigation'=>$module['navigation'],
-            'additionalStyles'=>['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css','css/finea-ui.css','css/components/btp-projects.css','css/components/btp-workspace.css']];
+            'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css','css/components/btp-workspace.css']];
     }
     public function chantierIndex(): void
     {
