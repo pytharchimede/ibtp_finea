@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 use App\Router;
-use App\Controllers\Btp\AffaireController;
+use App\Controllers\Btp\ProjetController;
 /** @var Router $router */
-$router->group('/btp', static function (Router $router): void {
-    $router->get('/affaires', [AffaireController::class, 'index']);
-    $router->post('/affaires', [AffaireController::class, 'store']);
+$router->group('/btp', static function(Router $router): void {
+    $router->get('/projets',[ProjetController::class,'index']);
+    $router->post('/projets',[ProjetController::class,'store']);
 });
