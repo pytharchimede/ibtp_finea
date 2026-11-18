@@ -260,6 +260,8 @@ final class ModuleDashboardService
                 ['key'=>'nouveau-client','label'=>'Créer un client','icon'=>'+','url'=>'/crm/clients/nouveau','group'=>'Clients & prospects','available'=>true],
                 ['key'=>'opportunites','label'=>'Liste des opportunités','icon'=>'OP','url'=>'/crm/opportunites','group'=>'Opportunités','available'=>true],
                 ['key'=>'nouvelle-opportunite','label'=>'Créer une opportunité','icon'=>'+','url'=>'/crm/opportunites/nouvelle','group'=>'Opportunités','available'=>true],
+                ['key'=>'veille-ao','label'=>"Appels d'offres",'icon'=>'AO','url'=>'/crm/veille-ao','group'=>'Veille appels d’offres','available'=>true],
+                ['key'=>'veille-ao-suivi','label'=>'Historique des collectes','icon'=>'H','url'=>'/crm/veille-ao/synchronisations','group'=>'Veille appels d’offres','available'=>true],
                 ['key'=>'interactions','label'=>'Interactions','icon'=>'IN','url'=>'/crm/interactions','group'=>'Activité commerciale','available'=>true],
             ];
         }

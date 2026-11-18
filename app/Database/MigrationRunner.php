@@ -35,12 +35,59 @@ class MigrationRunner
         $this->createCrmReferenceOptions();
         $this->createCrmVerificationOverrides();
         $this->createCrmOpportunityDetails();
+        $this->createCrmAoTables();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
     }
 
 
+
+    private function createCrmAoTables(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS crm_ao_notices (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            source VARCHAR(80) NOT NULL,
+            numero_ao VARCHAR(160) NULL,
+            reference VARCHAR(160) NULL,
+            titre VARCHAR(700) NOT NULL,
+            autorite_contractante VARCHAR(500) NULL,
+            type_marche VARCHAR(160) NULL,
+            secteur VARCHAR(255) NULL,
+            date_publication DATE NULL,
+            date_limite DATE NULL,
+            lieu_execution VARCHAR(255) NULL,
+            resume TEXT NULL,
+            url_source TEXT NULL,
+            score_pertinence TINYINT UNSIGNED NOT NULL DEFAULT 0,
+            statut_interne VARCHAR(40) NOT NULL DEFAULT 'nouveau',
+            documents_source_json LONGTEXT NULL,
+            details_source_json LONGTEXT NULL,
+            source_key CHAR(64) NOT NULL,
+            crm_opportunity_id INT UNSIGNED NULL,
+            last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_crm_ao_source_key (source_key),
+            UNIQUE KEY uq_crm_ao_opportunity (crm_opportunity_id),
+            KEY idx_crm_ao_deadline (date_limite),
+            KEY idx_crm_ao_score (score_pertinence),
+            KEY idx_crm_ao_status (statut_interne),
+            CONSTRAINT fk_crm_ao_opportunity FOREIGN KEY (crm_opportunity_id)
+                REFERENCES crm_opportunities(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS crm_ao_sync_logs (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            source VARCHAR(80) NOT NULL,
+            status VARCHAR(30) NOT NULL,
+            found_count INT UNSIGNED NOT NULL DEFAULT 0,
+            new_count INT UNSIGNED NOT NULL DEFAULT 0,
+            updated_count INT UNSIGNED NOT NULL DEFAULT 0,
+            error_message VARCHAR(500) NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_crm_ao_logs_date (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
 
     private function createCrmOpportunityDetails(): void
     {
