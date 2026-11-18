@@ -21,7 +21,7 @@ final class ClientController extends BaseController {
   $this->guard();$id=$editPage?(filter_input(INPUT_GET,'id',FILTER_VALIDATE_INT)?:0):0;
   $error=$_SESSION['crm_client_error']??null;$success=$_SESSION['crm_client_success']??null;
   unset($_SESSION['crm_client_error'],$_SESSION['crm_client_success']);
-  $this->view('crm/clients',['pageTitle'=>'Clients et prospects','clients'=>$this->service()->all((string)($_GET['q']??'')),'clientEdit'=>$id?$this->service()->find($id):null,'csrfCrm'=>$this->csrf(),'errorCrm'=>$error,'successCrm'=>$success,'crmNewMode'=>$new,'crmFormMode'=>$new||$editPage] + \App\Services\Crm\CrmPageContext::forPage($new?'Créer un client':($editPage?'Modifier un client':'Clients & Prospects'),$new?'nouveau-client':'clients'));
+  $this->view('crm/clients',['pageTitle'=>'Clients et prospects','clients'=>$this->service()->all((string)($_GET['q']??'')),'clientEdit'=>$id?$this->service()->find($id):null,'csrfCrm'=>$this->csrf(),'errorCrm'=>$error,'successCrm'=>$success,'crmNewMode'=>$new,'crmFormMode'=>$new||$editPage,'crmReferences'=>(new \App\Repositories\Crm\CrmReferenceRepository(Database::getConnection()))->all()] + \App\Services\Crm\CrmPageContext::forPage($new?'Créer un client':($editPage?'Modifier un client':'Clients & Prospects'),$new?'nouveau-client':'clients'));
  }
  public function save():void{
   $this->guard(true);
