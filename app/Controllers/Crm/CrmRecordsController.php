@@ -15,8 +15,9 @@ final class CrmRecordsController extends BaseController {
   }else{
    $rows=$pdo->query('SELECT i.id,i.channel,i.subject,i.interaction_at,i.next_action_date,c.name AS client_name FROM crm_interactions i JOIN crm_clients c ON c.id=i.client_id ORDER BY i.id DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
   }
+  $oppSuccess=$_SESSION['crm_opp_success']??null;
   unset($_SESSION['crm_opp_success']);
-  $this->view('crm/records',['pageTitle'=>$kind==='opportunities'?'Opportunités CRM':'Interactions CRM','crmKind'=>$kind,'crmRows'=>$rows,'crmOppSuccess'=>$_SESSION['crm_opp_success']??null] + \App\Services\Crm\CrmPageContext::forPage($kind==='opportunities'?'Opportunités CRM':'Interactions CRM',$kind==='opportunities'?'opportunites':'interactions'));
+  $this->view('crm/records',['pageTitle'=>$kind==='opportunities'?'Opportunités CRM':'Interactions CRM','crmKind'=>$kind,'crmRows'=>$rows,'crmOppSuccess'=>$oppSuccess] + \App\Services\Crm\CrmPageContext::forPage($kind==='opportunities'?'Opportunités CRM':'Interactions CRM',$kind==='opportunities'?'opportunites':'interactions'));
  }
  private function csrf():string{return $_SESSION['crm_opp_csrf']??=bin2hex(random_bytes(32));}
  public function newOpportunity():void{

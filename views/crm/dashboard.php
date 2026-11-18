@@ -34,7 +34,7 @@ ob_start();?>
 <div class="crm-dash-actions">
 <a href="<?= $e(View::url('crm/clients/nouveau')) ?>">+ Nouveau client</a>
 <a class="secondary" href="<?= $e(View::url('crm/clients')) ?>">Répertoire clients</a>
-<a class="secondary" href="<?= $e(View::url('crm/opportunites')) ?>">Pipeline</a>
+<a class="secondary" href="<?= $e(View::url('crm/opportunites')) ?>">Liste des opportunités</a><a href="<?= $e(View::url('crm/opportunites/nouvelle')) ?>">+ Nouvelle opportunité</a>
 <a class="secondary" href="<?= $e(View::url('crm/interactions')) ?>">Interactions</a>
 </div></header>
 <div class="crm-kpis">
@@ -60,9 +60,6 @@ ob_start();?>
 <div class="crm-dash-scroll"><table><thead><tr><th>Nom</th><th>Catégorie</th><th>Statut</th></tr></thead><tbody>
 <?php foreach($crmAnalytics['recent'] as $row):?><tr><td><a href="<?= $e(View::url('crm/clients')) ?>?edit=<?= (int)$row['id'] ?>"><?= $e($row['name']) ?></a></td><td><?= $e($row['type']) ?></td><td><?= $e($row['status']) ?></td></tr><?php endforeach;?></tbody></table></div><?php endif;?>
 </section>
-<section class="crm-dash-card"><h2>Accès rapide</h2><p>Créez d'abord une fiche client, puis rattachez-la à un projet BTP.</p>
-<p><a href="<?= $e(View::url('crm/clients/nouveau')) ?>">Créer un client →</a></p>
-<p><a href="<?= $e(View::url('btp/projets')) ?>">Accéder aux projets &amp; chantiers →</a></p>
-</section>
+<section class="crm-dash-card"><h2>Gestion des opportunités</h2><p class="crm-dash-empty">Retrouvez les affaires commerciales en cours et créez une nouvelle opportunité rattachée à un client ou prospect.</p><div class="crm-dash-actions"><a href="<?= $e(View::url('crm/opportunites/nouvelle')) ?>">+ Nouvelle opportunité</a><a class="secondary" style="color:#244b92;border-color:#cad7ee;background:#edf3ff" href="<?= $e(View::url('crm/opportunites')) ?>">Liste des opportunités</a></div></section>
 </div></div>
 <?php $content=ob_get_clean();require BASE_PATH.'/views/layouts/module.php';?>
