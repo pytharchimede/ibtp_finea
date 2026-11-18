@@ -31,7 +31,7 @@ ob_start();?>
 <label class="crm-field">Type de client (nature juridique)<select id="crm-legal-form" name="legal_form" required>
 <option value="personne_morale" <?= ($clientEdit['legal_form']??'personne_morale')==='personne_morale'?'selected':'' ?>>Personne morale (entreprise)</option>
 <option value="personne_physique" <?= ($clientEdit['legal_form']??'')==='personne_physique'?'selected':'' ?>>Personne physique</option></select></label>
-<?= Form::selectSearch('identity_country', 'Pays d'identification', array_map(static fn($row)=>['value'=>$row['option_code'],'label'=>$row['label']],$crmReferences['country']), $clientEdit['identity_country']??'CI', ['required'=>true,'placeholder'=>'Rechercher et sélectionner...']) ?>
+<?= Form::selectSearch('identity_country', "Pays d'identification", array_map(static fn($row)=>['value'=>$row['option_code'],'label'=>$row['label']],$crmReferences['country']), $clientEdit['identity_country']??'CI', ['required'=>true,'placeholder'=>'Rechercher et sélectionner...']) ?>
 <?= Form::selectSearch('identifier_kind', 'Type d’identifiant', array_map(static fn($row)=>['value'=>$row['option_code'],'label'=>$row['label']],$crmReferences['identifier']), $clientEdit['identifier_kind']??'', ['required'=>true,'placeholder'=>'Rechercher et sélectionner...']) ?>
 <label class="crm-field">Numéro de l'identifiant officiel<input name="identifier_value" required maxlength="100" value="<?= $e($clientEdit['identifier_value']??'') ?>"></label>
 <label class="crm-field"><input type="checkbox" id="crm-cni-present" name="cni_present" value="1" style="width:auto;display:inline" <?= !empty($clientEdit['cni_present'])?'checked':'' ?>> CNI présentée (personne physique ivoirienne)</label>
