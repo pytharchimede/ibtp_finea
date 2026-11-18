@@ -6,6 +6,7 @@ use App\Controllers\Btp\ProjetController;
 $router->group('/btp', static function(Router $router): void {
     $router->get('/debourses',[ProjetController::class,'budgetIndex']);
     $router->get('/debourses/nouveau',[ProjetController::class,'budgetCreate']);
+    $router->post('/debourses/{id}/valider',[ProjetController::class,'budgetValidate']);
     $router->post('/debourses',[ProjetController::class,'budgetStore']);
     $router->get('/bons-commande',[ProjetController::class,'orderIndex']);
     $router->get('/bons-commande/nouveau',[ProjetController::class,'orderCreate']);

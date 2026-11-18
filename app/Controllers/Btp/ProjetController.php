@@ -23,10 +23,23 @@ final class ProjetController extends BaseController
             'moduleTheme'=>$module,'activeModule'=>$active,'moduleNavigation'=>$module['navigation'],
             'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css','css/components/btp-workspace.css']];
     }
+    public function budgetValidate(string $id): void {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'update')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        try {
+            (new \App\Services\Btp\PrestartBudgetService(Database::getConnection()))->validate((int)$id,(int)Auth::id());
+            $_SESSION['btp_budget_notice']='Déboursé validé.';
+        }catch(\Throwable $e){
+            error_log('[BTP validation budget] '.$e->getMessage());
+            $_SESSION['btp_budget_notice']=$e instanceof InvalidArgumentException?$e->getMessage():'Validation impossible.';
+        }
+        $this->redirect('/btp/debourses');
+    }
     public function budgetIndex(): void {
         AuthMiddleware::check();if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
         $s=new \App\Services\Btp\PrestartBudgetService(Database::getConnection());
-        $this->view('btp/debourses_liste',$this->context('Déboursés prévisionnels','debourses-liste')+['budgetsBtp'=>$s->all()]);
+        $this->view('btp/debourses_liste',$this->context('Déboursés prévisionnels','debourses-liste')+['budgetsBtp'=>$s->all(),'csrfBtp'=>$this->csrf(),'canValidateBudgetBtp'=>Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'update'),'noticeBtp'=>$_SESSION['btp_budget_notice']??null]);
     }
     public function budgetCreate(): void {
         AuthMiddleware::check();if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}

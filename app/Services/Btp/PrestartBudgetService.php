@@ -18,6 +18,25 @@ final class PrestartBudgetService {
     public function all(): array {
         return $this->pdo->query("SELECT b.*,bc.reference AS order_reference,p.intitule,p.client_nom FROM btp_prestart_budgets b JOIN btp_client_orders bc ON bc.id=b.order_id JOIN btp_projets p ON p.id=b.projet_id ORDER BY b.id DESC LIMIT 500")->fetchAll(PDO::FETCH_ASSOC);
     }
+    public function validate(int $budgetId, int $actor): void {
+        if($actor<1)throw new InvalidArgumentException('Identité du validateur manquante.');
+        $this->pdo->beginTransaction();
+        try {
+            $q=$this->pdo->prepare('SELECT * FROM btp_prestart_budgets WHERE id=? FOR UPDATE');
+            $q->execute([$budgetId]);$budget=$q->fetch(PDO::FETCH_ASSOC);
+            if(!$budget||$budget['status']!=='brouillon')throw new InvalidArgumentException('Déboursé introuvable ou déjà traité.');
+            $q=$this->pdo->prepare('SELECT COUNT(*) FROM btp_client_order_lines WHERE order_id=?');
+            $q->execute([$budget['order_id']]);$expected=(int)$q->fetchColumn();
+            $q=$this->pdo->prepare('SELECT COUNT(*) FROM btp_prestart_budget_lines WHERE budget_id=?');
+            $q->execute([$budgetId]);$actual=(int)$q->fetchColumn();
+            if(!$expected||$actual!==$expected)throw new InvalidArgumentException('Le déboursé ne couvre pas toutes les lignes du BC.');
+            $q=$this->pdo->prepare('SELECT COUNT(*) FROM btp_prestart_budgets WHERE order_id=? AND revision>?');
+            $q->execute([$budget['order_id'],$budget['revision']]);
+            if((int)$q->fetchColumn())throw new InvalidArgumentException('Une révision plus récente existe.');
+            $q=$this->pdo->prepare("UPDATE btp_prestart_budgets SET status='valide' WHERE id=? AND status='brouillon'");
+            $q->execute([$budgetId]);$this->pdo->commit();
+        } catch(\Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}
+    }
     public function save(int $orderId,array $data,?int $actor): int {
         $order=$this->order($orderId);if(!$order)throw new InvalidArgumentException('Bon de commande introuvable.');
         $lines=$this->lines($orderId);if(!$lines)throw new InvalidArgumentException('Le BC ne contient aucune ligne.');
