@@ -10,10 +10,11 @@ final class CrmAoCard
         $deadline=(string)($item['date_limite']??'');
         $days=$deadline!==''?(int)floor((strtotime($deadline)-strtotime(date('Y-m-d')))/86400):null;
         $url=(string)($item['url_source']??'');
+        $score=max(0,min(100,(int)($item['score_pertinence']??0)));
         $safeUrl=preg_match('~^https://[^[:space:]]+$~i',$url)===1;
         ob_start();?>
 <article class="ao-card">
-<div class="ao-card-top"><span class="ao-score"><?= (int)$item['score_pertinence'] ?> % <small>pertinence</small></span><span class="ao-status"><?= $e(str_replace('_',' ',(string)$item['statut_interne'])) ?></span></div>
+<div class="ao-card-top"><?= AoScoreBadge::render($score) ?><span class="ao-status"><?= $e(str_replace('_',' ',(string)$item['statut_interne'])) ?></span></div>
 <p class="ao-source"><?= $e($item['source']) ?> · <?= $e(($item['numero_ao']??'')?:($item['reference']??'Sans référence')) ?></p>
 <h3><?= $e($item['titre']) ?></h3>
 <p class="ao-authority"><?= $e(($item['autorite_contractante']??'')?:'Autorité non renseignée') ?></p>

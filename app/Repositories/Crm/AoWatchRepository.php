@@ -29,7 +29,7 @@ final class AoWatchRepository
         if($score==='recommended'){$settings=(new AoScoringSettingsRepository($this->pdo))->get();$sql.=' AND score_pertinence>=:score';$params['score']=(int)$settings['min_score'];}
         elseif(in_array($score,['40','60','80'],true)){$sql.=' AND score_pertinence>=:score';$params['score']=(int)$score;}
         if(!empty($filters['deadline_soon']))$sql.=' AND date_limite BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 14 DAY)';
-        $sql.=' ORDER BY (date_limite IS NULL),date_limite ASC,score_pertinence DESC,id DESC LIMIT '.max(1,min(1000,$limit));
+        $sql.=' ORDER BY score_pertinence DESC,(date_limite IS NULL),date_limite ASC,id DESC LIMIT '.max(1,min(1000,$limit));
         $stmt=$this->pdo->prepare($sql);$stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

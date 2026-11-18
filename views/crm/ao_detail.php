@@ -2,6 +2,7 @@
 declare(strict_types=1);
 use App\Helpers\View;
 use App\View\Components\Form;
+use App\View\Components\AoScoreBadge;
 $e=static fn(mixed $v):string=>htmlspecialchars((string)$v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
 $entry=$aoItem;
 $deadline=(string)($entry['date_limite']??'');
@@ -19,7 +20,7 @@ ob_start();?>
 <div class="ao-wrap"><header class="ao-hero"><a class="ao-back" href="<?= $e(View::url('crm/veille-ao')) ?>">← Retour à la veille</a><h1><?= $e($entry['titre']) ?></h1><p><?= $e($entry['source']) ?> · <?= $e(($entry['numero_ao']??'')?:($entry['reference']??'')) ?></p></header>
 <?php if($aoFlash):?><p class="ao-alert" role="status"><?= $e($aoFlash) ?></p><?php endif;?>
 <div class="ao-detail-grid"><section class="ao-panel ao-details"><h2>Informations de l’appel d’offres</h2>
-<dl><div><dt>Autorité contractante</dt><dd><?= $e($entry['autorite_contractante']??'') ?></dd></div><div><dt>Type de marché</dt><dd><?= $e($entry['type_marche']??'') ?></dd></div><div><dt>Secteur</dt><dd><?= $e($entry['secteur']??'') ?></dd></div><div><dt>Publication</dt><dd><?= $e($entry['date_publication']??'Non indiquée') ?></dd></div><div><dt>Échéance</dt><dd><?= $e($deadline?:'Non indiquée') ?></dd></div><div><dt>Pertinence BTP</dt><dd><?= (int)$entry['score_pertinence'] ?> % — indicateur de correspondance, pas de probabilité d’attribution</dd></div></dl>
+<dl><div><dt>Autorité contractante</dt><dd><?= $e($entry['autorite_contractante']??'') ?></dd></div><div><dt>Type de marché</dt><dd><?= $e($entry['type_marche']??'') ?></dd></div><div><dt>Secteur</dt><dd><?= $e($entry['secteur']??'') ?></dd></div><div><dt>Publication</dt><dd><?= $e($entry['date_publication']??'Non indiquée') ?></dd></div><div><dt>Échéance</dt><dd><?= $e($deadline?:'Non indiquée') ?></dd></div><div><dt>Pertinence BTP</dt><dd><?= AoScoreBadge::render((int)$entry['score_pertinence']) ?> — indicateur de correspondance, pas de probabilité d’attribution</dd></div></dl>
 <h3>Objet et description</h3><p><?= nl2br($e(($entry['resume']??'')?:$entry['titre'])) ?></p>
 <?php if($sourceSafe):?><p><a class="ao-primary ao-inline" href="<?= $e($source) ?>" target="_blank" rel="noopener noreferrer">Consulter la source officielle</a></p><?php endif;?>
 <?php if($documents):?><h3>Documents mentionnés par la source</h3><div class="ao-docs"><?php foreach($documents as $document):?><?php $url=(string)($document['url']??'');if(!preg_match('~^https://[^[:space:]]+$~i',$url))continue;?><a href="<?= $e($url) ?>" target="_blank" rel="noopener noreferrer"><?= $e(($document['label']??'')?:'Consulter un document') ?></a><?php endforeach;?></div><?php endif;?>
