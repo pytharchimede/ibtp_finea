@@ -15,4 +15,4 @@ ob_start();?>
 <?php if(!$crmRows):?><tr><td colspan="5" class="crm-records-empty">Aucun enregistrement pour le moment.</td></tr><?php endif;?></tbody></table>
 <p>Consultation disponible. La création et la modification des opportunités et interactions seront intégrées dans le prochain lot CRM.</p>
 </div></div>
-<?php $content=ob_get_clean();require BASE_PATH.'/views/layouts/app.php';?>
+<?php $content=ob_get_clean();require BASE_PATH.'/views/layouts/module.php';?>

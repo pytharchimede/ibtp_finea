@@ -18,7 +18,7 @@ final class ClientController extends BaseController {
   $this->guard();$id=filter_input(INPUT_GET,'edit',FILTER_VALIDATE_INT)?:0;
   $error=$_SESSION['crm_client_error']??null;$success=$_SESSION['crm_client_success']??null;
   unset($_SESSION['crm_client_error'],$_SESSION['crm_client_success']);
-  $this->view('crm/clients',['pageTitle'=>'Clients et prospects','clients'=>$this->service()->all((string)($_GET['q']??'')),'clientEdit'=>$id?$this->service()->find($id):null,'csrfCrm'=>$this->csrf(),'errorCrm'=>$error,'successCrm'=>$success]);
+  $this->view('crm/clients',['pageTitle'=>'Clients et prospects','clients'=>$this->service()->all((string)($_GET['q']??'')),'clientEdit'=>$id?$this->service()->find($id):null,'csrfCrm'=>$this->csrf(),'errorCrm'=>$error,'successCrm'=>$success] + \App\Services\Crm\CrmPageContext::forPage('Clients & Prospects','clients'));
  }
  public function save():void{
   $this->guard(true);

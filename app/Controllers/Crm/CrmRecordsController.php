@@ -15,7 +15,7 @@ final class CrmRecordsController extends BaseController {
   }else{
    $rows=$pdo->query('SELECT i.id,i.channel,i.subject,i.interaction_at,i.next_action_date,c.name AS client_name FROM crm_interactions i JOIN crm_clients c ON c.id=i.client_id ORDER BY i.id DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
   }
-  $this->view('crm/records',['pageTitle'=>$kind==='opportunities'?'Opportunités CRM':'Interactions CRM','crmKind'=>$kind,'crmRows'=>$rows]);
+  $this->view('crm/records',['pageTitle'=>$kind==='opportunities'?'Opportunités CRM':'Interactions CRM','crmKind'=>$kind,'crmRows'=>$rows] + \App\Services\Crm\CrmPageContext::forPage($kind==='opportunities'?'Opportunités CRM':'Interactions CRM',$kind==='opportunities'?'opportunites':'interactions'));
  }
  public function opportunities():void{$this->show('opportunities');}
  public function interactions():void{$this->show('interactions');}

@@ -253,6 +253,14 @@ final class ModuleDashboardService
     private function navigation(array $module): array
     {
         $base = '/' . $module['slug'];
+        if ($module['slug'] === 'crm') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/crm/dashboard','available'=>true],
+                ['key'=>'clients','label'=>'Clients & Prospects','icon'=>'CL','url'=>'/crm/clients','available'=>true],
+                ['key'=>'opportunites','label'=>'Opportunités','icon'=>'OP','url'=>'/crm/opportunites','available'=>true],
+                ['key'=>'interactions','label'=>'Interactions','icon'=>'IN','url'=>'/crm/interactions','available'=>true],
+            ];
+        }
         return [
             ['key' => 'dashboard', 'label' => 'Tableau de bord', 'icon' => 'DB', 'url' => $base . '/dashboard', 'available' => true],
             ['key' => 'operations', 'label' => 'Opérations', 'icon' => 'OP', 'url' => $base . '/dashboard', 'available' => true],

@@ -26,4 +26,4 @@ ob_start();?>
 <div class="crm-scroll"><table class="crm-table"><thead><tr><th>Client</th><th>Type</th><th>Contact</th><th>Téléphone</th><th>Ville</th><th></th></tr></thead><tbody>
 <?php foreach($clients as $client):?><tr><td><strong><?= $e($client['name']) ?></strong></td><td><?= $e($client['type']) ?></td><td><?= $e($client['contact_name']) ?></td><td><?= $e($client['phone']) ?></td><td><?= $e($client['city']) ?></td><td><a href="<?= $e(View::url('crm/clients')) ?>?edit=<?= (int)$client['id'] ?>">Modifier</a></td></tr><?php endforeach;?>
 <?php if(!$clients):?><tr><td colspan="6">Aucun client enregistré. Créez votre première fiche.</td></tr><?php endif;?></tbody></table></div></section></div></div>
-<?php $content=ob_get_clean();require BASE_PATH.'/views/layouts/app.php';?>
+<?php $content=ob_get_clean();require BASE_PATH.'/views/layouts/module.php';?>
