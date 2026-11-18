@@ -23,6 +23,20 @@ final class ProjetController extends BaseController
             'moduleTheme'=>$module,'activeModule'=>$active,'moduleNavigation'=>$module['navigation'],
             'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css','css/components/btp-workspace.css']];
     }
+    public function quoteIndex(): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
+        $pdo=Database::getConnection();
+        $q=$pdo->query("SELECT q.id,q.revision,q.label,q.amount_ht,q.status,q.created_at,p.id AS projet_id,p.reference,p.intitule,p.client_nom FROM btp_dossier_quotes q JOIN btp_projets p ON p.id=q.projet_id ORDER BY q.created_at DESC,q.id DESC LIMIT 500");
+        $this->view('btp/devis_liste',$this->context('Liste des devis','devis-liste')+['quotesBtp'=>$q->fetchAll(\PDO::FETCH_ASSOC)]);
+    }
+    public function quoteCreate(): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        $this->view('btp/devis_nouveau',$this->context('Nouveau devis','devis-nouveau')+['projetsBtp'=>$this->service()->list(100)]);
+    }
     public function dashboard(): void
     {
         AuthMiddleware::check();

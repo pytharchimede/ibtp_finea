@@ -264,6 +264,8 @@ final class ModuleDashboardService
                 ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/btp/dashboard','group'=>'Pilotage','available'=>true],
                 ['key'=>'projets','label'=>'Tous les projets','icon'=>'PR','url'=>'/btp/projets','group'=>'Projets','available'=>true],
                 ['key'=>'nouveau-projet','label'=>'Nouveau projet','icon'=>'+','url'=>'/btp/projets/nouveau','group'=>'Projets','available'=>true],
+                ['key'=>'devis-liste','label'=>'Liste des devis','icon'=>'DV','url'=>'/btp/devis','group'=>'Devis & chiffrage','available'=>true],
+                ['key'=>'devis-nouveau','label'=>'Nouveau devis','icon'=>'+','url'=>'/btp/devis/nouveau','group'=>'Devis & chiffrage','available'=>true],
             ];
         }
         if ($module['slug'] === 'crm') {
