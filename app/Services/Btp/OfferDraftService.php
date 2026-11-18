@@ -8,7 +8,7 @@ final class OfferDraftService
     public function __construct(private PDO $pdo) {}
     public function project(int $id): ?array
     {
-        $q=$this->pdo->prepare('SELECT id,reference,intitule,client_nom FROM btp_projets WHERE id=?');
+        $q=$this->pdo->prepare('SELECT p.id,p.reference,p.intitule,p.client_nom,o.currency,o.deadline FROM btp_projets p LEFT JOIN crm_opportunities o ON o.id=p.crm_opportunity_id WHERE p.id=?');
         $q->execute([$id]);return $q->fetch(PDO::FETCH_ASSOC)?:null;
     }
     public function save(int $projectId,array $data,?int $actor): int
