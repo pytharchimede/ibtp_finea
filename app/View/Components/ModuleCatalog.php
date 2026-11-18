@@ -18,11 +18,11 @@ final class ModuleCatalog
     public static function hero(string $userName, int $moduleCount): string
     {
         return '<section class="finea-portal-hero"><div class="finea-hero-main">'
-            . '<p class="finea-eyebrow">ERP transit · Portail modules</p><h2>Bonjour '
+            . '<p class="finea-eyebrow">FINEA · Portail de gestion</p><h2>Bonjour '
             . View::e($userName) . ', choisissez votre espace de travail.</h2>'
-            . '<p>Une entrée unique, propre et évolutive pour gérer les opérations transit sans mélanger le portail avec les tableaux de bord métier.</p>'
-            . '</div><div class="finea-hero-side"><span class="finea-version-chip">LBP ERP</span><strong>'
-            . $moduleCount . ' modules</strong><small>Transit, douane, tracking, CRM, tickets, site, RH et finance</small>'
+            . '<p>Un espace de travail centralisé pour piloter vos activités, vos équipes et vos décisions.</p>'
+            . '</div><div class="finea-hero-side"><span class="finea-version-chip">FINEA</span><strong>'
+            . $moduleCount . ' modules</strong><small>Finance, RH, logistique, CRM et pilotage d’entreprise</small>'
             . '</div></section>';
     }
 

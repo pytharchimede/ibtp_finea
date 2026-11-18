@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'name' => 'ERP LBP Transit',
-    'tagline' => 'Plateforme de gestion des opérations de transit et de logistique.',
-    'url' => rtrim((string) (getenv('APP_URL') ?: 'http://localhost/ERP_LBP_REFACTO'), '/'),
+    'name' => 'FINEA Commercial',
+    'tagline' => 'ERP modulaire de gestion d’entreprise, configurable par organisation.',
+    'url' => rtrim((string) (getenv('APP_URL') ?: 'http://localhost/ibtp_finea'), '/'),
 
     'theme' => [
         'primary' => '#1d2b57',
