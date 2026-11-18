@@ -4,6 +4,9 @@ use App\Router;
 use App\Controllers\Btp\ProjetController;
 /** @var Router $router */
 $router->group('/btp', static function(Router $router): void {
+    $router->get('/plannings',[ProjetController::class,'planningIndex']);
+    $router->get('/plannings/projet/{id}',[ProjetController::class,'planningEditor']);
+    $router->post('/plannings/projet/{id}',[ProjetController::class,'planningSave']);
     $router->get('/devis',[ProjetController::class,'quoteIndex']);
     $router->get('/devis/projet/{id}',[ProjetController::class,'quoteEditor']);
     $router->post('/devis/projet/{id}',[ProjetController::class,'quoteSave']);

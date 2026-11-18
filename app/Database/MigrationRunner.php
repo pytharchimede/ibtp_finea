@@ -42,6 +42,7 @@ class MigrationRunner
         $this->createBtpDocuments();
         $this->createBtpOfferDrafts();
         $this->upgradeBtpOfferEditor();
+        $this->createBtpStandalonePlannings();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
@@ -129,6 +130,31 @@ class MigrationRunner
         $this->addColumnIfMissing('btp_offer_lines','group_name','VARCHAR(180) NULL');
     }
 
+    private function createBtpStandalonePlannings(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_project_plannings (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            revision INT UNSIGNED NOT NULL,
+            title VARCHAR(180) NOT NULL,
+            status ENUM('previsionnel','definitif') NOT NULL DEFAULT 'previsionnel',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_planning_revision(projet_id,revision),
+            CONSTRAINT fk_btp_planning_project FOREIGN KEY(projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_planning_author FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_project_planning_tasks (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            planning_id BIGINT UNSIGNED NOT NULL,
+            task_order INT UNSIGNED NOT NULL,
+            label VARCHAR(250) NOT NULL,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            KEY idx_btp_planning_tasks(planning_id,task_order),
+            CONSTRAINT fk_btp_planning_task_parent FOREIGN KEY(planning_id) REFERENCES btp_project_plannings(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
     private function createBtpOfferDrafts(): void
     {
         $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_offer_drafts (

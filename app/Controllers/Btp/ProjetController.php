@@ -23,12 +23,43 @@ final class ProjetController extends BaseController
             'moduleTheme'=>$module,'activeModule'=>$active,'moduleNavigation'=>$module['navigation'],
             'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css','css/components/btp-workspace.css']];
     }
+    public function planningIndex(): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
+        $service=new \App\Services\Btp\PlanningService(Database::getConnection());
+        $this->view('btp/plannings_liste',$this->context('Plannings prévisionnels','plannings')+['planningsBtp'=>$service->all(),'projetsBtp'=>$this->service()->list(500)]);
+    }
+    public function planningEditor(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        $service=new \App\Services\Btp\OfferDraftService(Database::getConnection());
+        $project=$service->project((int)$id);
+        if(!$project){http_response_code(404);exit('Projet introuvable');}
+        $error=$_SESSION['btp_planning_error']??null;unset($_SESSION['btp_planning_error']);
+        $this->view('btp/planning_editeur',$this->context('Nouveau planning prévisionnel','plannings')+['projectBtp'=>$project,'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+    }
+    public function planningSave(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        try{
+            (new \App\Services\Btp\PlanningService(Database::getConnection()))->save((int)$id,$_POST,isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);
+            $this->redirect('/btp/plannings');
+        }catch(\Throwable $e){
+            error_log('[BTP planning] '.$e->getMessage());
+            $_SESSION['btp_planning_error']=$e instanceof InvalidArgumentException?$e->getMessage():'Enregistrement du planning impossible.';
+            $this->redirect('/btp/plannings/projet/'.(int)$id);
+        }
+    }
     public function quoteIndex(): void
     {
         AuthMiddleware::check();
         if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
         $pdo=Database::getConnection();
-        $q=$pdo->query("SELECT q.id,q.revision,q.label,q.amount_ht,q.status,q.created_at,p.id AS projet_id,p.reference,p.intitule,p.client_nom FROM btp_dossier_quotes q JOIN btp_projets p ON p.id=q.projet_id ORDER BY q.created_at DESC,q.id DESC LIMIT 500");
+        $q=$pdo->query("SELECT q.id,q.revision,q.title AS label,q.total_ht AS amount_ht,q.status,q.created_at,p.id AS projet_id,p.reference,p.intitule,p.client_nom FROM btp_offer_drafts q JOIN btp_projets p ON p.id=q.projet_id ORDER BY q.created_at DESC,q.id DESC LIMIT 500");
         $this->view('btp/devis_liste',$this->context('Liste des devis','devis-liste')+['quotesBtp'=>$q->fetchAll(\PDO::FETCH_ASSOC)]);
     }
     public function quoteCreate(): void
@@ -45,7 +76,7 @@ final class ProjetController extends BaseController
         $project=$service->project((int)$id);
         if(!$project){http_response_code(404);exit('Projet introuvable');}
         $error=$_SESSION['btp_offer_error']??null;unset($_SESSION['btp_offer_error']);
-        $this->view('btp/devis_editeur',$this->context('Éditeur de devis et planning','devis-nouveau')+['projectBtp'=>$project,'unitsBtp'=>$service->units(),'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+        $this->view('btp/devis_editeur',$this->context('Éditeur de devis','devis-nouveau')+['projectBtp'=>$project,'unitsBtp'=>$service->units(),'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
     }
     public function quoteSave(string $id): void
     {

@@ -43,15 +43,6 @@ final class OfferDraftService
         if($discountCents>$totalCents)throw new InvalidArgumentException('La remise dépasse le montant HT.');
         $taxable=$totalCents-$discountCents;
         $vat=!empty($data['vat_enabled'])?(int)round($taxable*0.18):0;
-        $planning=$data['planning']??[];
-        if(!is_array($planning)||count($planning)<1||count($planning)>100)throw new InvalidArgumentException('Ajoutez entre 1 et 100 tâches de planning.');
-        $tasks=[];
-        foreach($planning as $task){
-            if(!is_array($task))throw new InvalidArgumentException('Tâche invalide.');
-            $label=trim((string)($task['label']??''));$start=(string)($task['start_date']??'');$end=(string)($task['end_date']??'');
-            if($label===''||mb_strlen($label)>250||!self::validDate($start)||!self::validDate($end)||$end<$start)throw new InvalidArgumentException('Vérifiez les tâches et leurs dates.');
-            $tasks[]=[$label,$start,$end];
-        }
         $validityDays=trim((string)($data['validity_days']??'30'));
         if($validityDays===''||!ctype_digit($validityDays)||(int)$validityDays>3650)throw new InvalidArgumentException('Durée de validité invalide.');
         $calculatedEnd=(new \DateTimeImmutable($date))->modify('+'.(int)$validityDays.' days')->format('Y-m-d');
@@ -74,8 +65,6 @@ final class OfferDraftService
             $id=(int)$this->pdo->lastInsertId();
             $q=$this->pdo->prepare('INSERT INTO btp_offer_lines(offer_id,line_order,description,unit,quantity,unit_price,line_total,group_name) VALUES(?,?,?,?,?,?,?,?)');
             foreach($parsed as $i=>$line)$q->execute([$id,$i+1,...$line]);
-            $q=$this->pdo->prepare('INSERT INTO btp_offer_planning(offer_id,task_order,label,start_date,end_date) VALUES(?,?,?,?,?)');
-            foreach($tasks as $i=>$task)$q->execute([$id,$i+1,...$task]);
             $this->pdo->commit();return $id;
         }catch(\Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}
     }
