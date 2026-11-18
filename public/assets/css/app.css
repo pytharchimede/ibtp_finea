@@ -1421,3 +1421,8 @@ a { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
     .error-state__orbit { animation: none; }
 }
+
+/* Portail BTP : identité du module et icône SVG */
+.finea-module-card.module-btp .finea-module-icon{background:linear-gradient(135deg,#164e63,#0891b2)!important;color:#fff!important;box-shadow:0 10px 22px rgba(8,145,178,.25)}
+.finea-module-card.module-btp .finea-module-icon svg{display:block!important;width:24px!important;height:24px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;stroke-linecap:round;stroke-linejoin:round}
+.finea-module-card.module-btp .finea-module-glow{background:rgba(8,145,178,.12)}
