@@ -17,6 +17,12 @@ class AoScoringService
         'eclairage public' => 15, 'installation electrique' => 14, 'remise en etat' => 14,
     ];
 
+    public function scoreConfigured(array $opportunity,array $settings):int
+    {
+        if($this->containsExcludedKeyword($opportunity,(string)($settings['excluded_keywords']??'')))return 0;
+        return $this->score($opportunity,$this->splitKeywords((string)($settings['keywords']??'')));
+    }
+
     public function score(array $opportunity, array $customKeywords = []): int
     {
         $title = $this->normalize($opportunity['titre'] ?? '');

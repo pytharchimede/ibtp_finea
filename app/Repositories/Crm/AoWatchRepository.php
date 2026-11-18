@@ -33,6 +33,19 @@ final class AoWatchRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function rescore(\App\Services\Crm\Ao\AoScoringService $scorer,array $settings):int
+    {
+        $count=0;
+        $query=$this->pdo->query('SELECT id,titre,resume,secteur,type_marche,lieu_execution FROM crm_ao_notices');
+        $update=$this->pdo->prepare('UPDATE crm_ao_notices SET score_pertinence=? WHERE id=?');
+        while($item=$query->fetch(PDO::FETCH_ASSOC)){
+            $update->execute([$scorer->scoreConfigured($item,$settings),(int)$item['id']]);
+            $count++;
+        }
+        $query->closeCursor();
+        return $count;
+    }
+
     public function stats():array
     {
         return $this->pdo->query("SELECT COUNT(*) total,

@@ -36,12 +36,27 @@ class MigrationRunner
         $this->createCrmVerificationOverrides();
         $this->createCrmOpportunityDetails();
         $this->createCrmAoTables();
+        $this->createCrmAoScoringSettings();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
     }
 
 
+
+    private function createCrmAoScoringSettings(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS crm_ao_scoring_settings (
+            id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+            keywords TEXT NOT NULL,
+            excluded_keywords TEXT NOT NULL,
+            min_score TINYINT UNSIGNED NOT NULL DEFAULT 60,
+            updated_by INT NULL,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("INSERT IGNORE INTO crm_ao_scoring_settings (id,keywords,excluded_keywords,min_score)
+            VALUES (1,'bâtiment, construction, réhabilitation, rénovation, génie civil, route, voirie, VRD, assainissement, drainage, terrassement, ouvrage, pont, dalot, caniveau, école, centre de santé, clôture, aménagement, adduction d eau, réseau hydraulique, électrification, maintenance bâtiment','logiciel, licence informatique, cybersécurité, audit comptable, assurance, gardiennage, restauration, denrées alimentaires, fournitures de bureau, consommables informatiques, billet d avion, formation seule, étude sans travaux',60)");
+    }
 
     private function createCrmAoTables(): void
     {

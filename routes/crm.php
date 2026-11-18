@@ -24,6 +24,8 @@ $router->group('/crm', function (Router $router): void {
     $router->get('/opportunites/piece-jointe', [CrmRecordsController::class, 'downloadAttachment']);
     $router->get('/opportunites/export', [CrmRecordsController::class, 'exportOpportunities']);
     $router->get('/opportunites', [CrmRecordsController::class, 'opportunities']);
+    $router->get('/veille-ao/parametres', [AoWatchController::class, 'settings']);
+    $router->post('/veille-ao/parametres', [AoWatchController::class, 'saveSettings']);
     $router->get('/veille-ao', [AoWatchController::class, 'index']);
     $router->get('/veille-ao/detail', [AoWatchController::class, 'detail']);
     $router->post('/veille-ao/convertir', [AoWatchController::class, 'convert']);

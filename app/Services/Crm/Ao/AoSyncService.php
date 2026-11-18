@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace App\Services\Crm\Ao;
 use App\Repositories\Crm\AoWatchRepository;
+use App\Repositories\Crm\AoScoringSettingsRepository;
 use PDO;
 
 final class AoSyncService
@@ -17,6 +18,7 @@ final class AoSyncService
             if(ContenuLocalAoAdapter::isConfigured())$adapters[]=new ContenuLocalAoAdapter();
             $repo=new AoWatchRepository($this->pdo);
             $scorer=new AoScoringService();
+            $settings=(new AoScoringSettingsRepository($this->pdo))->get();
             $report=['found'=>0,'new'=>0,'updated'=>0,'errors'=>0,'sources'=>[]];
             foreach($adapters as $adapter){
                 $found=0;$new=0;$updated=0;$errors=0;$message='';
@@ -32,7 +34,7 @@ final class AoSyncService
                             $key=$adapter->getSourceName().'|'.$identifier;
                             if(isset($seen[$key]))continue;
                             $seen[$key]=true;
-                            $normalized['score_pertinence']=$scorer->score($normalized);
+                            $normalized['score_pertinence']=$scorer->scoreConfigured($normalized,$settings);
                             $outcome=$repo->upsert($normalized);
                             if($outcome==='new')$new++;else $updated++;
                         }catch(\Throwable $e){$errors++;$message='Une ou plusieurs annonces n’ont pas été enregistrées.';}

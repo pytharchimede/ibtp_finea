@@ -7,6 +7,8 @@ use App\Helpers\Auth;
 use App\Middleware\AuthMiddleware;
 use App\Models\Database;
 use App\Repositories\Crm\AoWatchRepository;
+use App\Repositories\Crm\AoScoringSettingsRepository;
+use App\Services\Crm\Ao\AoScoringService;
 use App\Services\Crm\CrmPageContext;
 
 final class AoWatchController extends BaseController
@@ -41,12 +43,47 @@ final class AoWatchController extends BaseController
         unset($_SESSION['crm_ao_flash']);
         return $message;
     }
+    public function settings():void
+    {
+        $this->guard();
+        $this->view('crm/ao_settings',[
+            'aoSettings'=>(new AoScoringSettingsRepository(Database::getConnection()))->get(),
+            'aoCsrf'=>$this->csrf(),'aoFlash'=>$this->flash()
+        ]+CrmPageContext::forPage('Paramétrage de la pertinence AO','veille-ao-parametres'));
+    }
+    public function saveSettings():void
+    {
+        $this->guard();$this->checkCsrf();
+        $keywords=trim((string)($_POST['keywords']??''));
+        $excluded=trim((string)($_POST['excluded_keywords']??''));
+        $min=filter_var($_POST['min_score']??null,FILTER_VALIDATE_INT);
+        $scorer=new AoScoringService();
+        if(mb_strlen($keywords)>10000||mb_strlen($excluded)>10000||count($scorer->splitKeywords($keywords))>250||count($scorer->splitKeywords($excluded))>250||$min===false||$min<0||$min>100){
+            $_SESSION['crm_ao_flash']='Paramètres invalides : score entre 0 et 100, 250 mots-clés maximum par liste.';
+            $this->redirect('/crm/veille-ao/parametres');
+        }
+        $settings=['keywords'=>$keywords,'excluded_keywords'=>$excluded,'min_score'=>$min];
+        $pdo=Database::getConnection();
+        try{
+            $pdo->beginTransaction();
+            (new AoScoringSettingsRepository($pdo))->save($settings,(int)Auth::id());
+            $count=$this->repo()->rescore($scorer,$settings);
+            $pdo->commit();
+            $_SESSION['crm_ao_flash']="Paramètres enregistrés : ".$count." appels d'offres recalculés.";
+        }catch(\Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            error_log('[CRM AO scoring] '.$e->getMessage());
+            $_SESSION['crm_ao_flash']='Échec de la mise à jour des paramètres.';
+        }
+        $this->redirect('/crm/veille-ao/parametres');
+    }
     public function index():void
     {
         $this->guard();$repo=$this->repo();$filters=$this->filters();
         $this->view('crm/ao_list',[
             'aoItems'=>$repo->search($filters),'aoStats'=>$repo->stats(),
-            'aoFilters'=>$filters,'aoFlash'=>$this->flash()
+            'aoFilters'=>$filters,'aoFlash'=>$this->flash(),
+            'aoSettings'=>(new AoScoringSettingsRepository(Database::getConnection()))->get()
         ]+CrmPageContext::forPage("Veille appels d'offres",'veille-ao'));
     }
     public function detail():void
