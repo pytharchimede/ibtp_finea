@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace App\Services\Feb;
 use DomainException;
 final class FebSecurityRules {
+ public static function assertDecidableStatus(string $status):void {if($status!=='soumis')throw new DomainException('La FEB doit être soumise avant décision.');}
  public static function assertUpdated(int $affected,string $message):void {if($affected!==1)throw new DomainException($message);}
  public static function assertPayment(float $total,float $paid,float $amount,bool $referenceExists):void {
   if($referenceExists)throw new DomainException('Cette référence de paiement existe déjà.');
