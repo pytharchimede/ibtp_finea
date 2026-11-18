@@ -5,14 +5,19 @@ use App\Helpers\View;
 use App\View\Components\Form;
 use App\View\Components\Ui;
 
+/** @var \App\Services\Shared\BrandingService $branding */
+
 /** @var \App\Support\ViewBag $viewData */ $viewData ??= \App\Support\ViewBag::from(get_defined_vars());
 ob_start();
 ?>
 
 <section class="auth-page">
     <div class="auth-visual-panel">
-        <div class="auth-badge">ERP LBP Transit</div>
-        <h1>Centralisez vos opérations de transit.</h1>
+        <div class="auth-badge"><?= View::e($branding->productName()) ?> · <?= View::e($branding->companyName()) ?></div>
+        <?php if ($branding->logoPath() !== ''): ?>
+            <img class="finea-brand-logo" src="<?= View::e(View::asset($branding->logoPath())) ?>" alt="Logo <?= View::e($branding->companyName()) ?>">
+        <?php endif; ?>
+        <h1>Centralisez la gestion de votre entreprise.</h1>
         <p>Suivez les activités, les documents et les équipes en temps réel depuis une interface moderne et sécurisée.</p>
 
         <ul class="auth-highlights">
@@ -35,7 +40,7 @@ ob_start();
             <?= Form::input('email', [
                 'label' => 'Identifiant ou email',
                 'type' => 'text',
-                'placeholder' => 'admin ou admin@erp-lbp.local',
+                'placeholder' => 'Votre identifiant ou email',
                 'required' => true,
                 'autocomplete' => 'username',
             ]) ?>
@@ -56,7 +61,7 @@ ob_start();
         </form>
 
         <div class="auth-footer">
-            <span>Accès sécurisé • ERP de transit • Version 1.0</span>
+            <span>Accès sécurisé · <?= View::e($branding->productName()) ?></span>
         </div>
     </div>
 </section>

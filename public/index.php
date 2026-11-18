@@ -20,7 +20,7 @@ try {
     );
 } catch (\Throwable $exception) {
     error_log(sprintf(
-        '[ERP LBP] %s dans %s:%d',
+        '[FINEA] %s dans %s:%d',
         $exception->getMessage(),
         $exception->getFile(),
         $exception->getLine()

@@ -10,6 +10,7 @@ use App\Middleware\GuestMiddleware;
 use App\Models\Database;
 use App\Repositories\Admin\UserRepository;
 use App\Services\Auth\AuthService;
+use App\Services\Shared\BrandingService;
 
 class AuthController extends BaseController
 {
@@ -25,7 +26,10 @@ class AuthController extends BaseController
     public function showLogin(): void
     {
         GuestMiddleware::check();
-        $this->view('auth/login', ['pageTitle' => 'Connexion']);
+        $this->view('auth/login', [
+            'pageTitle' => 'Connexion',
+            'branding' => new BrandingService(),
+        ]);
     }
 
     public function login(): void
