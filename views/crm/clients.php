@@ -17,7 +17,7 @@ ob_start();?>
 <div class="crm-tab" data-crm-tab="contact"><span class="crm-step-dot"><i class="fa-solid fa-address-book"></i></span><span class="crm-tab-title">2. Coordonnées</span><small class="crm-step-hint">Contact et localisation</small></div>
 <div class="crm-tab" data-crm-tab="business"><span class="crm-step-dot"><i class="fa-solid fa-briefcase"></i></span><span class="crm-tab-title">3. Classification</span><small class="crm-step-hint">Profil commercial</small></div>
 </nav>
-<form class="crm-form-layout" data-finea-wizard="1" method="post" action="<?= $e(View::url('crm/clients')) ?>">
+<form class="crm-form-layout" data-finea-wizard="1" novalidate method="post" action="<?= $e(View::url('crm/clients')) ?>">
 <input type="hidden" name="_csrf" value="<?= $e($csrfCrm) ?>">
 <?php if($clientEdit):?><input type="hidden" name="id" value="<?= (int)$clientEdit['id'] ?>"><?php endif;?>
 <div class="crm-panel crm-full crm-form-layout" data-crm-panel="contact" hidden>

@@ -21,7 +21,7 @@
      if(focus){error.textContent='Veuillez renseigner les champs obligatoires avant de continuer.';focusField(field);}
      return false;
     }
-    if(!field.checkValidity()){
+    if(field.type==='email' && field.value && !field.checkValidity()){
      if(focus){error.textContent=field.validationMessage||'Veuillez vérifier ce champ.';focusField(field);}
      return false;
     }
