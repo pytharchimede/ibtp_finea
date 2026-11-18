@@ -266,7 +266,8 @@ final class ModuleDashboardService
                 ['key'=>'nouveau-projet','label'=>'Nouveau projet','icon'=>'+','url'=>'/btp/projets/nouveau','group'=>'Projets','available'=>true],
                 ['key'=>'chantier-nouveau','label'=>'Préparer un chantier','icon'=>'+','url'=>'/btp/chantiers/nouveau','group'=>'Exécution','available'=>true],
                 ['key'=>'chantiers','label'=>'Liste des chantiers','icon'=>'CH','url'=>'/btp/chantiers','group'=>'Exécution','available'=>true],
-                ['key'=>'plannings','label'=>'Plannings prévisionnels','icon'=>'PL','url'=>'/btp/plannings','group'=>'Études & planning','available'=>true],
+                ['key'=>'planning-nouveau','label'=>'Créer un planning','icon'=>'+','url'=>'/btp/plannings/nouveau','group'=>'Études & planning','available'=>true],
+                ['key'=>'plannings','label'=>'Liste des plannings','icon'=>'PL','url'=>'/btp/plannings','group'=>'Études & planning','available'=>true],
                 ['key'=>'devis-liste','label'=>'Liste des devis','icon'=>'DV','url'=>'/btp/devis','group'=>'Devis & chiffrage','available'=>true],
                 ['key'=>'devis-nouveau','label'=>'Nouveau devis','icon'=>'+','url'=>'/btp/devis/nouveau','group'=>'Devis & chiffrage','available'=>true],
             ];

@@ -65,7 +65,7 @@ final class ProjetController extends BaseController
     {
         AuthMiddleware::check();
         if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
-        $this->view('btp/planning_nouveau',$this->context('Créer un planning','plannings')+['projetsBtp'=>$this->service()->list(500)]);
+        $this->view('btp/planning_nouveau',$this->context('Créer un planning','planning-nouveau')+['projetsBtp'=>$this->service()->list(500)]);
     }
     public function planningEditor(string $id): void
     {
@@ -75,7 +75,7 @@ final class ProjetController extends BaseController
         $project=$service->project((int)$id);
         if(!$project){http_response_code(404);exit('Projet introuvable');}
         $error=$_SESSION['btp_planning_error']??null;unset($_SESSION['btp_planning_error']);
-        $this->view('btp/planning_editeur',$this->context('Nouveau planning prévisionnel','plannings')+['projectBtp'=>$project,'projectPlanningsBtp'=>(new \App\Services\Btp\PlanningService(Database::getConnection()))->forProject((int)$id),'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+        $this->view('btp/planning_editeur',$this->context('Nouveau planning prévisionnel','planning-nouveau')+['projectBtp'=>$project,'projectPlanningsBtp'=>(new \App\Services\Btp\PlanningService(Database::getConnection()))->forProject((int)$id),'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
     }
     public function planningSave(string $id): void
     {
