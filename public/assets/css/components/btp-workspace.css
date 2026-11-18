@@ -1,0 +1,85 @@
+/* Project workspace: isolated layout to prevent overlapping global module cards. */
+.btp-workspace{width:100%;max-width:1480px;margin:0 auto 50px;padding:clamp(12px,2vw,28px);min-width:0}
+.btp-workspace *{box-sizing:border-box}
+.btp-workspace .btp-breadcrumb{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 18px;color:#64748b;font-size:.84rem}
+.btp-workspace .btp-breadcrumb a{color:#315b94;text-decoration:none}
+.btp-workspace .btp-breadcrumb strong{color:#1d3555}
+.btp-workspace .btp-workspace-header{padding:clamp(22px,3vw,38px);margin-bottom:20px;overflow:hidden}
+.btp-heading{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+.btp-heading>div{min-width:0}
+.btp-heading h1{overflow-wrap:anywhere}
+.btp-state{background:#ffffff25;border:1px solid #ffffff66;padding:8px 14px;border-radius:99px;white-space:nowrap;font-weight:700;font-size:.8rem}
+.btp-progress-card{background:#fff;border:1px solid #dbe5f1;border-radius:18px;padding:clamp(18px,2.4vw,28px);margin-bottom:22px;min-width:0}
+.btp-section-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.btp-section-heading small,.btp-workspace-aside .btp-panel>small{color:#5674a3;letter-spacing:.1em;font-size:.72rem;font-weight:800}
+.btp-section-heading h2{margin:5px 0 0;color:#1c3557;font-size:clamp(1.08rem,1.7vw,1.32rem)}
+.btp-muted,.btp-help{color:#64748b;font-size:.85rem;line-height:1.6}
+.btp-stepper{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:0;margin:22px 0;list-style:none}
+.btp-stepper li{min-width:0;display:flex;gap:9px;align-items:flex-start;padding:14px 10px;border-radius:12px;background:#f4f7fc;border:1px solid #e4eaf4}
+.btp-stepper li.is-complete{background:#edf9f2;border-color:#bde7cc}
+.btp-stepper li.is-current{background:#eef4ff;border-color:#a7c2eb}
+.btp-step-number{flex:0 0 26px;height:26px;display:grid;place-items:center;border-radius:50%;background:#dce6f5;color:#27466d;font-weight:800;font-size:.8rem}
+.is-complete .btp-step-number{background:#23845b;color:#fff}
+.is-current .btp-step-number{background:#24519b;color:#fff}
+.btp-stepper strong,.btp-stepper small{display:block;overflow-wrap:anywhere}
+.btp-stepper strong{font-size:.8rem;color:#233d5e}
+.btp-stepper small{font-size:.72rem;color:#6b7c91;margin-top:4px}
+.btp-gate-note{border-left:3px solid #e8a344;padding:11px 14px;background:#fff9ef;border-radius:0 9px 9px 0;color:#795523;font-size:.83rem;line-height:1.6;margin:16px 0 0}
+.btp-workspace-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;align-items:start;gap:20px}
+.btp-workspace-main,.btp-workspace-aside{min-width:0}
+.btp-workspace .btp-tabs{position:sticky;top:0;z-index:4;display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:#f5f8fc;border:1px solid #dbe5f1;border-radius:13px;margin-bottom:18px}
+.btp-tabs a{font-size:.8rem;font-weight:750;text-decoration:none;color:#365b8c;padding:9px 12px;border-radius:8px}
+.btp-tabs a:hover,.btp-tabs a:focus-visible,.btp-tabs a.is-active{background:#24519b;color:#fff}
+.btp-workspace .btp-section{min-width:0;margin-bottom:20px;scroll-margin-top:85px;padding:clamp(18px,2.3vw,28px);overflow:visible}
+.btp-workspace .btp-panel h2{margin:0}
+.btp-description{line-height:1.7;color:#3d516c;overflow-wrap:anywhere}
+.btp-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+.btp-facts>div{background:#f5f8fd;border-radius:10px;padding:14px;min-width:0}
+.btp-facts small,.btp-facts strong{display:block;overflow-wrap:anywhere}
+.btp-facts small{color:#71829a;font-size:.75rem;margin-bottom:6px}
+.btp-inline-link{color:#24519b;font-weight:750;text-decoration:none}
+.btp-count,.btp-version{display:inline-block;background:#edf3fb;color:#315889;padding:6px 10px;border-radius:9px;font-size:.76rem;font-weight:800}
+.btp-workspace .btp-composer{border:1px solid #dbe5f1;border-radius:13px;padding:0;margin:20px 0;background:#fbfdff}
+.btp-composer summary{cursor:pointer;list-style:none;padding:16px 18px;font-weight:800;color:#24519b}
+.btp-composer summary::-webkit-details-marker{display:none}
+.btp-composer[open] summary{border-bottom:1px solid #e4eaf4}
+.btp-workspace .btp-composer form{padding:18px;display:grid;gap:16px;max-width:none;min-width:0}
+.btp-form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.btp-workspace .btp-composer label{min-width:0}
+.btp-workspace .btp-composer input,.btp-workspace .btp-composer textarea,.btp-workspace .btp-composer select{min-width:0;width:100%;max-width:100%}
+.btp-workspace .btp-upload-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;min-height:190px;padding:24px;border:2px dashed #9cb6d9;border-radius:15px;background:#f4f8ff;cursor:pointer;transition:.18s}
+.btp-workspace .btp-upload-zone.is-dragover,.btp-workspace .btp-upload-zone:focus-within{background:#e3efff;border-color:#24519b;box-shadow:0 0 0 4px #24519b15}
+.btp-drop-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:#dfeafa;color:#24519b;font-size:2rem;font-weight:800}
+.btp-upload-zone>strong{color:#244c7d}
+.btp-upload-zone>span,.btp-upload-zone>small{color:#607797}
+.btp-upload-zone input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.btp-upload-zone .btp-upload-preview{font-weight:800;color:#24519b;overflow-wrap:anywhere;max-width:100%}
+.btp-empty{padding:22px;border:1px dashed #d6e1f0;border-radius:12px;background:#f8fafd;color:#6a7d96}
+.btp-activity{border-left:2px solid #d7e4f3;margin:18px 0 0 12px;padding-left:24px}
+.btp-activity-item{position:relative;padding:0 0 24px;min-width:0}
+.btp-activity-dot{position:absolute;left:-33px;top:7px;width:16px;height:16px;border-radius:50%;background:#638fc5;border:3px solid #fff;box-shadow:0 0 0 1px #a8bfdd}
+.btp-activity-request .btp-activity-dot{background:#e4a23a}
+.btp-activity-submitted .btp-activity-dot{background:#26845f}
+.btp-activity-content{border:1px solid #e0e8f3;border-radius:12px;padding:16px;background:#fff;min-width:0}
+.btp-activity-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;color:#71829a;font-size:.76rem}
+.btp-event-type{font-weight:800;color:#365b8c}
+.btp-activity h3{margin:10px 0 7px;font-size:.96rem;color:#233d5e;overflow-wrap:anywhere}
+.btp-activity p{margin:0;color:#52657f;line-height:1.6;overflow-wrap:anywhere}
+.btp-workspace .btp-table-wrap{max-width:100%;overflow-x:auto}
+.btp-workspace .btp-table-wrap td{overflow-wrap:anywhere}
+.btp-quote-list{display:grid;gap:10px}
+.btp-quote-list article{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;padding:15px;border:1px solid #e0e8f3;border-radius:12px}
+.btp-quote-list article>div{display:grid;gap:6px}
+.btp-quote-list article small{color:#74859b}
+.btp-quote-list article b{color:#244d7f}
+.btp-readiness{display:grid;gap:10px}
+.btp-readiness>div{display:flex;justify-content:space-between;gap:12px;padding:14px;background:#f6f8fc;border-radius:10px;flex-wrap:wrap}
+.btp-readiness strong{color:#99662b;font-size:.83rem}
+.btp-workspace-aside .btp-panel{position:sticky;top:20px;min-width:0}
+.btp-aside-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:18px 0}
+.btp-aside-metrics div{text-align:center;background:#f4f7fc;padding:10px 3px;border-radius:9px;min-width:0}
+.btp-aside-metrics strong,.btp-aside-metrics span{display:block}
+.btp-aside-metrics strong{font-size:1.3rem;color:#24519b}
+.btp-aside-metrics span{font-size:.7rem;color:#64748b}
+@media(max-width:1150px){.btp-stepper{grid-template-columns:repeat(3,minmax(0,1fr))}.btp-workspace-layout{grid-template-columns:minmax(0,1fr)}.btp-workspace-aside .btp-panel{position:static}}
+@media(max-width:650px){.btp-stepper{grid-template-columns:1fr}.btp-heading{flex-direction:column}.btp-form-row,.btp-facts{grid-template-columns:1fr}.btp-workspace .btp-tabs{position:static}.btp-workspace .btp-section{scroll-margin-top:15px}.btp-workspace .btp-composer form{padding:14px}.btp-workspace .btp-banner nav a{flex:1 1 auto;text-align:center}}

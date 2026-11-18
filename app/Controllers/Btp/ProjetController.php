@@ -21,7 +21,7 @@ final class ProjetController extends BaseController
         $module=(new ModuleDashboardService())->dashboard('btp');
         return ['pageTitle'=>$title,'moduleName'=>$module['label'],'moduleCode'=>$module['code'],
             'moduleTheme'=>$module,'activeModule'=>$active,'moduleNavigation'=>$module['navigation'],
-            'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css']];
+            'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css','css/components/btp-workspace.css']];
     }
     public function dashboard(): void
     {
