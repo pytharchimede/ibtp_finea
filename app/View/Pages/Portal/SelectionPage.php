@@ -11,6 +11,8 @@ final class SelectionPage
         public readonly string $userName,
         public readonly array $modules,
         public readonly string $title = 'Sélection portail',
+        public readonly string $productName = 'FINEA',
+        public readonly string $companyName = 'Votre entreprise',
     ) {
     }
 

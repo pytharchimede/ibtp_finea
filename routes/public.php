@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Router;
 use App\Controllers\Core\HomeController;
+use App\Controllers\Core\BrandingController;
 use App\Controllers\Site\WebsiteController;
 use App\Controllers\Site\WebsiteCustomerController;
 use App\Controllers\Site\WebsiteAnalyticsController;
@@ -11,6 +12,7 @@ use App\Controllers\Site\WebsiteAnalyticsController;
 /** @var Router $router */
 
 $router->get('/', [HomeController::class, 'index']);
+$router->get('/branding/theme.css', [BrandingController::class, 'theme']);
 
 $router->get('/site', [WebsiteController::class, 'publicSite']);
 $router->get('/site/tracking', [WebsiteController::class, 'tracking']);

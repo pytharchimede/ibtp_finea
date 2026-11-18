@@ -33,6 +33,7 @@ $moduleIconKey = $moduleTheme['iconKey'] ?? strtolower((string) ($moduleCode ?? 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="<?= View::asset('css/app.css') ?>" rel="stylesheet">
     <link href="<?= View::asset('css/components.css') ?>" rel="stylesheet">
+    <link href="<?= View::url('branding/theme.css') ?>" rel="stylesheet">
     <?php foreach ($styles as $style): ?>
         <?php $styleUrl = preg_match('#^https?://#i', (string) $style) ? (string) $style : View::asset((string) $style); ?>
         <link href="<?= View::e($styleUrl) ?>" rel="stylesheet">
@@ -52,7 +53,7 @@ $moduleIconKey = $moduleTheme['iconKey'] ?? strtolower((string) ($moduleCode ?? 
                 <span class="module-brand-mark module-brand-mark--icon"><?= ModuleIcon::svg((string) $moduleIconKey) ?></span>
                 <span>
                     <strong><?= View::e($moduleName ?? 'Module') ?></strong>
-                    <small>FINEA • Gestion d’entreprise</small>
+                    <small><?= View::e($appConfig['name']) ?> • Gestion d’entreprise</small>
                 </span>
             </a>
 

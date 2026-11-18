@@ -1,11 +1,11 @@
 # Nom affiché dans l'onglet « Actions » de GitHub.
-name: ERP LBP Quality
+name: FINEA Commercial Quality
 
 # Événements qui déclenchent le workflow.
 on:
   # Exécute les contrôles lors d'un push sur les branches du projet.
   push:
-    branches: [main, master, develop, "feature/**", "fix/**", "release/**"]
+    branches: [main, master, develop, test-update, "feature/**", "fix/**", "refactor/**", "release/**"]
     # Évite de lancer le workflow lorsque seuls des fichiers sans rapport
     # avec l'application ou ses tests ont été modifiés.
     paths:
@@ -24,7 +24,7 @@ on:
 
   # Exécute également les contrôles sur les pull requests importantes.
   pull_request:
-    branches: [main, master, develop]
+    branches: [main, master, develop, test-update]
     paths:
       - "app/**"
       - "bootstrap/**"
@@ -44,7 +44,7 @@ on:
 
 jobs:
   quality:
-    name: ERP code quality checks
+    name: FINEA code quality checks
     # Le job s'exécute dans une machine virtuelle Linux fournie par GitHub.
     runs-on: ubuntu-latest
 

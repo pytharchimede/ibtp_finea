@@ -15,13 +15,13 @@ use App\Helpers\View;
  */
 final class ModuleCatalog
 {
-    public static function hero(string $userName, int $moduleCount): string
+    public static function hero(string $userName, int $moduleCount, string $productName = 'FINEA', string $companyName = 'Votre entreprise'): string
     {
         return '<section class="finea-portal-hero"><div class="finea-hero-main">'
-            . '<p class="finea-eyebrow">FINEA · Portail de gestion</p><h2>Bonjour '
+            . '<p class="finea-eyebrow">' . View::e($productName) . ' · Portail de gestion</p><h2>Bonjour '
             . View::e($userName) . ', choisissez votre espace de travail.</h2>'
-            . '<p>Un espace de travail centralisé pour piloter vos activités, vos équipes et vos décisions.</p>'
-            . '</div><div class="finea-hero-side"><span class="finea-version-chip">FINEA</span><strong>'
+            . '<p>Un espace de travail centralisé pour ' . View::e($companyName) . '.</p>'
+            . '</div><div class="finea-hero-side"><span class="finea-version-chip">' . View::e($productName) . '</span><strong>'
             . $moduleCount . ' modules</strong><small>Finance, RH, logistique, CRM et pilotage d’entreprise</small>'
             . '</div></section>';
     }

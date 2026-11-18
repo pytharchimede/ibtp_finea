@@ -203,7 +203,11 @@ final class ModuleDashboardService
     public function portalModules(): array
     {
         $modules = [];
+        $registry = new ModuleRegistry();
         foreach ($this->modules() as $key => $module) {
+            if (!$registry->isEnabled((string) $module['slug'])) {
+                continue;
+            }
             $modules[] = [
                 'key' => $key,
                 'label' => (string) $module['label'],

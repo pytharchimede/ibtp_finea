@@ -9,7 +9,7 @@ $pageTitle = $page->title;
 ob_start();
 ?>
 <div class="portal-page">
-    <?= ModuleCatalog::hero($page->userName, count($page->modules)) ?>
+    <?= ModuleCatalog::hero($page->userName, count($page->modules), $page->productName, $page->companyName) ?>
 
     <?= ModuleCatalog::moduleFilter($page->moduleOptions(), count($page->modules)) ?>
 

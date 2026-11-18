@@ -7,6 +7,7 @@ namespace App\Middleware;
 use App\Models\Database;
 use App\Repositories\Admin\ModuleMaintenanceRepository;
 use App\Services\Admin\ModuleMaintenanceService;
+use App\Services\Shared\ModuleRegistry;
 
 final class ModuleMaintenanceMiddleware
 {
@@ -16,6 +17,13 @@ final class ModuleMaintenanceMiddleware
         $slug = self::slugForPath($path);
         if ($slug === null) {
             return null;
+        }
+        if (!(new ModuleRegistry())->isEnabled($slug)) {
+            return [
+                'slug' => $slug,
+                'is_maintenance' => true,
+                'reason' => 'Ce module est désactivé pour cette installation.',
+            ];
         }
         $state = (new ModuleMaintenanceService(
             new ModuleMaintenanceRepository(Database::getConnection())

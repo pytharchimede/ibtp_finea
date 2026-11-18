@@ -13,6 +13,8 @@ use App\Security\PermissionAction;
 use App\Security\PermissionEntityRegistry;
 use App\Services\Admin\ModuleMaintenanceService;
 use App\Services\Shared\ModuleDashboardService;
+use App\Services\Shared\ModuleRegistry;
+use App\Services\Shared\BrandingService;
 use App\View\Pages\Portal\SelectionPage;
 
 /**
@@ -49,7 +51,12 @@ final class SelectionPortailController extends BaseController
             'keywords' => 'admin administration utilisateurs droits rôles permissions paramètres sécurité audit configuration',
         ];
 
-        $modules = array_values(array_filter($modules, static function (array $module): bool {
+        $registry = new ModuleRegistry();
+        $modules = array_values(array_filter($modules, static function (array $module) use ($registry): bool {
+            $slug = $module['key'] === 'employee' ? 'espace-employe' : (string) $module['key'];
+            if (!$registry->isEnabled($slug)) {
+                return false;
+            }
             if ($module['key'] === 'admin') {
                 return Auth::user()?->isAdmin ?? false;
             }
@@ -89,10 +96,14 @@ final class SelectionPortailController extends BaseController
         }
         unset($module);
 
+        $branding = new BrandingService();
         $this->view('selection_portail/index', [
             'page' => new SelectionPage(
                 Auth::user()?->fullName ?? 'Administrateur',
                 $modules,
+                'Sélection portail',
+                $branding->productName(),
+                $branding->companyName(),
             ),
         ]);
     }

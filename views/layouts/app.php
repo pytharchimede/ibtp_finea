@@ -23,6 +23,7 @@ $user = Auth::user();
 
     <link href="<?= View::asset('css/app.css') ?>" rel="stylesheet">
     <link href="<?= View::asset('css/components.css') ?>" rel="stylesheet">
+    <link href="<?= View::url('branding/theme.css') ?>" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -42,8 +43,8 @@ $user = Auth::user();
             <header class="app-topbar app-topbar--portal">
                 <div>
                     <span class="app-topbar-kicker">Portail ERP</span>
-                    <h1>Modules de gestion • FINEA</h1>
-                    <p class="app-topbar-subtitle">Accédez aux modules de gestion de votre entreprise depuis FINEA.</p>
+                    <h1>Modules de gestion • <?= View::e($appConfig['name']) ?></h1>
+                    <p class="app-topbar-subtitle">Accédez aux modules de gestion de votre entreprise.</p>
                 </div>
 
                 <div class="app-profile">
