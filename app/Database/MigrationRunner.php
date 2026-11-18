@@ -32,12 +32,39 @@ class MigrationRunner
         $this->createBusinessTables();
         $this->createBtpTables();
         $this->createCrmIdentityFields();
+        $this->createCrmReferenceOptions();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
     }
 
 
+
+    private function createCrmReferenceOptions(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS crm_reference_options (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            list_code VARCHAR(40) NOT NULL,
+            option_code VARCHAR(40) NOT NULL,
+            label VARCHAR(150) NOT NULL,
+            country_code CHAR(2) NULL,
+            legal_form VARCHAR(30) NULL,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            sort_order INT NOT NULL DEFAULT 100,
+            UNIQUE KEY uq_crm_reference_option (list_code, option_code)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $seed=[
+            'country'=>['CI'=>'Côte d’Ivoire','FR'=>'France','DE'=>'Allemagne','BE'=>'Belgique','CH'=>'Suisse','GB'=>'Royaume-Uni','US'=>'États-Unis','CA'=>'Canada','SN'=>'Sénégal','BF'=>'Burkina Faso','ML'=>'Mali','GH'=>'Ghana','TG'=>'Togo','BJ'=>'Bénin','NG'=>'Nigeria','MA'=>'Maroc','TN'=>'Tunisie','CN'=>'Chine','IN'=>'Inde','AE'=>'Émirats arabes unis'],
+            'identifier'=>['CNI'=>'Carte nationale d’identité','NCC'=>'Numéro de compte contribuable','RCCM'=>'Registre du commerce','SIREN'=>'SIREN','SIRET'=>'SIRET','REGISTRE'=>'Registre national','TVA'=>'Numéro TVA','LEI'=>'Identifiant LEI'],
+            'category'=>['prospect'=>'Prospect','client'=>'Client','partner'=>'Partenaire'],
+            'status'=>['new'=>'Nouveau','active'=>'Actif','dormant'=>'Inactif','lost'=>'Perdu']
+        ];
+        $stmt=$this->pdo->prepare("INSERT IGNORE INTO crm_reference_options(list_code,option_code,label) VALUES(?,?,?)");
+        foreach($seed as $list=>$options){foreach($options as $code=>$label){$stmt->execute([$list,$code,$label]);}}
+        $this->pdo->exec("UPDATE crm_reference_options SET country_code='CI',legal_form='personne_physique' WHERE list_code='identifier' AND option_code='CNI' AND country_code IS NULL");
+        $this->pdo->exec("UPDATE crm_reference_options SET country_code='CI',legal_form='personne_morale' WHERE list_code='identifier' AND option_code IN ('NCC','RCCM') AND country_code IS NULL");
+        $this->pdo->exec("UPDATE crm_reference_options SET country_code='FR',legal_form='personne_morale' WHERE list_code='identifier' AND option_code IN ('SIREN','SIRET') AND country_code IS NULL");
+    }
 
     /**
      * Champs d'identification légale. Aucun statut vérifié n'est attribué sans preuve externe.
