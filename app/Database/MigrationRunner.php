@@ -38,6 +38,7 @@ class MigrationRunner
         $this->createCrmAoTables();
         $this->createCrmAoScoringSettings();
         $this->createBtpCrmProjectLink();
+        $this->createBtpTechnicalDossier();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
@@ -46,6 +47,38 @@ class MigrationRunner
 
 
     /** Idempotent CRM -> BTP project link, executed after CRM schema creation. */
+    /** Project technical dossier: immutable journal entries and quote revisions. */
+    private function createBtpTechnicalDossier(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_dossier_events (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            event_type ENUM('soumission','demande_client','reponse','negociation','reunion','decision','note') NOT NULL,
+            subject VARCHAR(180) NOT NULL,
+            details TEXT NULL,
+            occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_btp_events_project (projet_id,occurred_at),
+            CONSTRAINT fk_btp_events_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_events_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_dossier_quotes (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            revision INT UNSIGNED NOT NULL,
+            label VARCHAR(180) NOT NULL,
+            amount_ht DECIMAL(18,2) NOT NULL DEFAULT 0,
+            status ENUM('brouillon','soumis','en_negociation','retenu','refuse') NOT NULL DEFAULT 'brouillon',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_quote_revision (projet_id,revision),
+            KEY idx_btp_quote_project (projet_id),
+            CONSTRAINT fk_btp_quote_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_quote_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
     private function createBtpCrmProjectLink(): void
     {
         $this->addColumnIfMissing('btp_projets', 'crm_opportunity_id', 'INT UNSIGNED NULL');

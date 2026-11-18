@@ -47,6 +47,39 @@ final class ProjetController extends BaseController
         unset($_SESSION['btp_projet_error']);
         $this->view('btp/projets',$this->context('Projets BTP','projets')+['projets'=>$this->service()->list(),'errorBtp'=>$error]);
     }
+    public function show(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
+        $service=new \App\Services\Btp\DossierService(Database::getConnection());
+        $project=$service->project((int)$id);
+        if(!$project){http_response_code(404);exit('Projet introuvable');}
+        $this->view('btp/dossier',$this->context('Dossier projet','projets')+[
+            'projectBtp'=>$project,'eventsBtp'=>$service->events((int)$id),
+            'quotesBtp'=>$service->quotes((int)$id),'csrfBtp'=>$this->csrf(),
+            'errorBtp'=>$_SESSION['btp_projet_error']??null]);
+        unset($_SESSION['btp_projet_error']);
+    }
+    public function addEvent(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        try {
+            (new \App\Services\Btp\DossierService(Database::getConnection()))->addEvent((int)$id,$_POST,isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);
+        } catch (\Throwable $e) {$_SESSION['btp_projet_error']=$e instanceof \PDOException?'Impossible d’enregistrer cet événement.':$e->getMessage();}
+        $this->redirect('/btp/projets/'.(int)$id);
+    }
+    public function addQuote(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        try {
+            (new \App\Services\Btp\DossierService(Database::getConnection()))->addQuote((int)$id,$_POST,isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);
+        } catch (\Throwable $e) {$_SESSION['btp_projet_error']=$e instanceof \PDOException?'Impossible d’enregistrer le devis.':$e->getMessage();}
+        $this->redirect('/btp/projets/'.(int)$id);
+    }
     public function store(): void
     {
         AuthMiddleware::check();
