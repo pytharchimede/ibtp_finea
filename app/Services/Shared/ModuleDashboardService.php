@@ -263,9 +263,7 @@ final class ModuleDashboardService
             return [
                 ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/btp/dashboard','group'=>'Pilotage','available'=>true],
                 ['key'=>'projets','label'=>'Tous les projets','icon'=>'PR','url'=>'/btp/projets','group'=>'Projets','available'=>true],
-                ['key'=>'nouveau-projet','label'=>'Créer depuis le CRM','icon'=>'+','url'=>'/btp/projets/nouveau','group'=>'Projets','available'=>true],
-                ['key'=>'crm-opportunites','label'=>'Opportunités CRM','icon'=>'CRM','url'=>'/crm/opportunites','group'=>'Études & consultations','available'=>true],
-                ['key'=>'crm-ao','label'=>"Veille appels d’offres",'icon'=>'AO','url'=>'/crm/veille-ao','group'=>'Études & consultations','available'=>true],
+                ['key'=>'nouveau-projet','label'=>'Nouveau projet','icon'=>'+','url'=>'/btp/projets/nouveau','group'=>'Projets','available'=>true],
             ];
         }
         if ($module['slug'] === 'crm') {
