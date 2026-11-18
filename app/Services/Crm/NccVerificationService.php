@@ -13,7 +13,10 @@ final class NccVerificationService {
   $body=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);
   if(!is_string($body)||$http!==200)throw new DomainException('Service NCC temporairement indisponible. Enregistrement non validé.');
   $data=json_decode($body,true);
-  if(!is_array($data)||!isset($data['ncc'],$data['status'])||!is_bool($data['status']))throw new DomainException('Réponse NCC inexploitable.');
+  return $this->validateResponse($ncc,$data); 
+ }
+ public function validateResponse(string $ncc,mixed $data):array {
+  if(!is_array($data)||!array_key_exists('ncc',$data)||!array_key_exists('status',$data)||!is_bool($data['status']))throw new DomainException('Réponse NCC inexploitable.');
   if(strtoupper((string)$data['ncc'])!==$ncc)throw new DomainException('Incohérence de numéro NCC dans la réponse officielle.');
   if($data['status']!==true)throw new DomainException('NCC non reconnu par le service DGI.');
   $activity=mb_strtolower(trim((string)($data['statusActivity']??'')));
