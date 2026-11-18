@@ -8,6 +8,7 @@ use App\Controllers\BaseController;
 use App\Middleware\AuthMiddleware;
 use App\Models\Database;
 use App\Repositories\Crm\CrmDashboardRepository;
+use App\Repositories\Crm\CrmAnalyticsRepository;
 use App\Services\Crm\CrmDashboardService;
 
 final class CrmDashboardController extends BaseController
@@ -27,6 +28,7 @@ final class CrmDashboardController extends BaseController
 
         $this->view('crm/dashboard', $this->viewData($module) + [
             'dashboardModule' => $module,
+            'crmAnalytics' => (new CrmAnalyticsRepository(Database::getConnection()))->overview(),
         ]);
     }
 
