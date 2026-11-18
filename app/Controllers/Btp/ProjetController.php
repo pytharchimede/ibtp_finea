@@ -61,6 +61,12 @@ final class ProjetController extends BaseController
         $service=new \App\Services\Btp\PlanningService(Database::getConnection());
         $this->view('btp/plannings_liste',$this->context('Plannings prévisionnels','plannings')+['planningsBtp'=>$service->all(),'projetsBtp'=>$this->service()->list(500)]);
     }
+    public function planningCreate(): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        $this->view('btp/planning_nouveau',$this->context('Créer un planning','plannings')+['projetsBtp'=>$this->service()->list(500)]);
+    }
     public function planningEditor(string $id): void
     {
         AuthMiddleware::check();
