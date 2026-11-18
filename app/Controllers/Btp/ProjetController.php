@@ -23,6 +23,24 @@ final class ProjetController extends BaseController
             'moduleTheme'=>$module,'activeModule'=>$active,'moduleNavigation'=>$module['navigation'],
             'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css','css/components/btp-workspace.css']];
     }
+    public function budgetIndex(): void {
+        AuthMiddleware::check();if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
+        $s=new \App\Services\Btp\PrestartBudgetService(Database::getConnection());
+        $this->view('btp/debourses_liste',$this->context('Déboursés prévisionnels','debourses-liste')+['budgetsBtp'=>$s->all()]);
+    }
+    public function budgetCreate(): void {
+        AuthMiddleware::check();if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        $s=new \App\Services\Btp\PrestartBudgetService(Database::getConnection());$id=(int)($_GET['bc']??0);
+        $this->view('btp/debourse_nouveau',$this->context('Nouveau déboursé','debourses-nouveau')+['ordersBtp'=>$s->orders(),'selectedOrderBtp'=>$id?$s->order($id):null,'orderLinesBtp'=>$id?$s->lines($id):[],'csrfBtp'=>$this->csrf(),'errorBtp'=>$_SESSION['btp_budget_error']??null]);
+        unset($_SESSION['btp_budget_error']);
+    }
+    public function budgetStore(): void {
+        AuthMiddleware::check();if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        $id=(int)($_POST['order_id']??0);
+        try{(new \App\Services\Btp\PrestartBudgetService(Database::getConnection()))->save($id,$_POST,isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);$this->redirect('/btp/debourses');}
+        catch(\Throwable $e){error_log('[BTP budget] '.$e->getMessage());$_SESSION['btp_budget_error']=$e instanceof InvalidArgumentException?$e->getMessage():'Impossible d’enregistrer le déboursé.';$this->redirect('/btp/debourses/nouveau?bc='.$id);}
+    }
     public function orderIndex(): void {
         AuthMiddleware::check();if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
         $s=new \App\Services\Btp\ClientOrderService(Database::getConnection());

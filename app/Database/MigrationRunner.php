@@ -45,6 +45,7 @@ class MigrationRunner
         $this->createBtpChantierStarts();
         $this->createBtpStandalonePlannings();
         $this->createBtpClientOrders();
+        $this->createBtpPrestartBudgets();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
@@ -82,6 +83,38 @@ class MigrationRunner
             KEY idx_btp_quote_project (projet_id),
             CONSTRAINT fk_btp_quote_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
             CONSTRAINT fk_btp_quote_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function createBtpPrestartBudgets(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_prestart_budgets (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            order_id BIGINT UNSIGNED NOT NULL,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            revision INT UNSIGNED NOT NULL,
+            status VARCHAR(30) NOT NULL DEFAULT 'brouillon',
+            total_cost DECIMAL(18,2) NOT NULL DEFAULT 0,
+            expected_margin DECIMAL(18,2) NOT NULL DEFAULT 0,
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_budget_revision (order_id,revision),
+            FOREIGN KEY (order_id) REFERENCES btp_client_orders(id) ON DELETE RESTRICT,
+            FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_prestart_budget_lines (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            budget_id BIGINT UNSIGNED NOT NULL,
+            order_line_id BIGINT UNSIGNED NOT NULL,
+            materials DECIMAL(18,2) NOT NULL DEFAULT 0,
+            labor DECIMAL(18,2) NOT NULL DEFAULT 0,
+            equipment DECIMAL(18,2) NOT NULL DEFAULT 0,
+            subcontracting DECIMAL(18,2) NOT NULL DEFAULT 0,
+            other_cost DECIMAL(18,2) NOT NULL DEFAULT 0,
+            total_cost DECIMAL(18,2) NOT NULL DEFAULT 0,
+            UNIQUE KEY uq_btp_budget_order_line (budget_id,order_line_id),
+            FOREIGN KEY (budget_id) REFERENCES btp_prestart_budgets(id) ON DELETE RESTRICT,
+            FOREIGN KEY (order_line_id) REFERENCES btp_client_order_lines(id) ON DELETE RESTRICT
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     }
 
