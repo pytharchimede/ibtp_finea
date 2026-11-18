@@ -30,6 +30,13 @@ final class ProjetController extends BaseController
         $s=new \App\Services\Btp\ChantierStartService(Database::getConnection());
         $this->view('btp/chantiers_liste',$this->context('Chantiers','chantiers')+['chantiersBtp'=>$s->list(),'projetsBtp'=>$s->projects()]);
     }
+    public function chantierCreate(): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        $s=new \App\Services\Btp\ChantierStartService(Database::getConnection());
+        $this->view('btp/chantier_nouveau',$this->context('Préparer un chantier','chantier-nouveau')+['projetsBtp'=>$s->projects()]);
+    }
     public function chantierWizard(string $id): void
     {
         AuthMiddleware::check();
@@ -37,7 +44,7 @@ final class ProjetController extends BaseController
         $s=new \App\Services\Btp\ChantierStartService(Database::getConnection());
         $d=$s->dossier((int)$id);if(!$d){http_response_code(404);exit('Projet introuvable');}
         $error=$_SESSION['btp_chantier_error']??null;unset($_SESSION['btp_chantier_error']);
-        $this->view('btp/chantier_wizard',$this->context('Préparation du chantier','chantiers')+['dossierBtp'=>$d,'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+        $this->view('btp/chantier_wizard',$this->context('Préparation du chantier','chantier-nouveau')+['dossierBtp'=>$d,'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
     }
     public function chantierStart(string $id): void
     {
