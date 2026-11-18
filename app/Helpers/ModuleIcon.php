@@ -7,6 +7,7 @@ final class ModuleIcon
     public static function svg(string $name): string
     {
         $icons = [
+            'btp' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-7h6v7M3 10h18M9 10V7m6 3V7"/></svg>',
             'finance' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9.5L12 5l8 4.5V19"/><path d="M8 19v-6h8v6"/><path d="M9 10h6"/><path d="M12 13v6"/></svg>',
             'rh' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 19v-1.5a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4V19"/><circle cx="10" cy="7.5" r="3"/><path d="M20 19v-1.2a3.2 3.2 0 0 0-2.4-3.1"/><path d="M15.5 4.8a3 3 0 0 1 0 5.4"/></svg>',
             'colisage' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5 12 4l8 4.5-8 4.5-8-4.5Z"/><path d="M4 8.5v7L12 20l8-4.5v-7"/><path d="M12 13v7"/><path d="m8.2 6.2 8 4.5"/></svg>',

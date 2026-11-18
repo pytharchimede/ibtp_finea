@@ -43,7 +43,7 @@ final class SelectionPortailController extends BaseController
             'key' => 'btp',
             'label' => 'Projets & Chantiers',
             'code' => 'BTP',
-            'icon' => 'logistique',
+            'icon' => 'btp',
             'description' => 'Créer les projets BTP, préparer les devis et suivre les chantiers.',
             'url' => '/btp/projets',
             'class' => 'module-btp',
