@@ -204,7 +204,8 @@ final class ProjetController extends BaseController
         AuthMiddleware::check();
         if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
         $this->view('btp/dashboard',$this->context('Pilotage des projets','dashboard')+[
-            'summaryBtp'=>$this->service()->summary(),'projets'=>$this->service()->list(10)]);
+            'summaryBtp'=>$this->service()->summary(),'projets'=>$this->service()->list(10),
+            'febBudgetBtp'=>(new \App\Services\Btp\FebBudgetDashboardService(Database::getConnection()))->summary()]);
     }
     public function create(): void
     {
