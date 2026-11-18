@@ -47,18 +47,22 @@ final class DossierService
         if(!in_array($category,['dce','administratif','technique','financier','client','chantier','autre'],true))throw new InvalidArgumentException('Catégorie invalide.');
         $label=trim((string)($input['label']??''));
         if($label===''||mb_strlen($label)>180)throw new InvalidArgumentException('Intitulé du document invalide.');
-        if(($file['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK||!isset($file['tmp_name'])||!is_uploaded_file($file['tmp_name']))throw new InvalidArgumentException('Fichier non reçu.');
+        $uploadError=(int)($file['error']??UPLOAD_ERR_NO_FILE);
+        if($uploadError!==UPLOAD_ERR_OK){
+            $messages=[UPLOAD_ERR_INI_SIZE=>'Le fichier dépasse la limite upload_max_filesize du serveur.',UPLOAD_ERR_FORM_SIZE=>'Le fichier dépasse la limite du formulaire.',UPLOAD_ERR_PARTIAL=>'Le transfert du fichier est incomplet.',UPLOAD_ERR_NO_FILE=>'Aucun fichier reçu.',UPLOAD_ERR_NO_TMP_DIR=>'Dossier temporaire PHP indisponible.',UPLOAD_ERR_CANT_WRITE=>'Écriture du fichier temporaire impossible.',UPLOAD_ERR_EXTENSION=>'Téléversement interrompu par une extension PHP.'];
+            throw new InvalidArgumentException($messages[$uploadError]??'Échec du transfert du fichier.');
+        }
+        if(!isset($file['tmp_name'])||!is_uploaded_file((string)$file['tmp_name']))throw new InvalidArgumentException('Fichier temporaire non reçu.');
         $size=(int)($file['size']??0);
         if($size<1||$size>20*1024*1024)throw new InvalidArgumentException('Taille maximale : 20 Mo.');
-        $mime=(new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
-        $allowed=['application/pdf'=>'pdf','image/jpeg'=>'jpg','image/png'=>'png','application/vnd.openxmlformats-officedocument.wordprocessingml.document'=>'docx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'=>'xlsx'];
-        if(!isset($allowed[$mime]))throw new InvalidArgumentException('Format non autorisé (PDF, JPG, PNG, DOCX, XLSX).');
+        $mime=(new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name'])?:'application/octet-stream';
+        // Conserver les fichiers de tout format hors du répertoire web, sans jamais utiliser leur nom d'origine comme chemin.
         $dir=BASE_PATH.'/storage/private/btp';
         if(!is_dir($dir)&&!mkdir($dir,0700,true)&&!is_dir($dir))throw new \RuntimeException('Stockage indisponible.');
-        $name=bin2hex(random_bytes(24)).'.'.$allowed[$mime];
+        $name=bin2hex(random_bytes(24));
         $destination=$dir.'/'.$name;
         if(!move_uploaded_file($file['tmp_name'],$destination))throw new \RuntimeException('Impossible de conserver le fichier.');
-        chmod($destination,0600);
+        if(!chmod($destination,0600)){@unlink($destination);throw new \RuntimeException('Permissions du document impossibles à définir.');}
         try {
             $hash=hash_file('sha256',$destination);
             $this->pdo->beginTransaction();

@@ -175,7 +175,7 @@ final class ProjetController extends BaseController
             (new \App\Services\Btp\DossierService(Database::getConnection()))->uploadDocuments((int)$id,$_FILES['documents']??[],isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);
         } catch (\Throwable $e) {
             error_log('[BTP upload] '.$e->getMessage());
-            $_SESSION['btp_projet_error']=$e instanceof InvalidArgumentException?$e->getMessage():'Impossible de conserver le document.';
+            $_SESSION['btp_projet_error']=$e instanceof InvalidArgumentException?$e->getMessage():'Le document n’a pas pu être enregistré. Vérifiez les permissions du stockage et consultez les journaux PHP.';
         }
         $this->redirect('/btp/projets/'.(int)$id);
     }

@@ -43,8 +43,8 @@ ob_start(); ?>
           <label class="btp-upload-zone" id="btp-bulk-dropzone" for="btp-document-files">
             <span class="btp-drop-icon" aria-hidden="true">⇧</span>
             <strong>Glissez vos documents ici</strong><span>ou cliquez pour sélectionner plusieurs fichiers</span>
-            <small>PDF · JPG · PNG · DOCX · XLSX — 20 Mo par fichier, 20 fichiers maximum</small>
-            <input id="btp-document-files" type="file" name="documents[]" accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx" multiple required>
+            <small>Tous formats de fichiers — 20 Mo par fichier, 20 fichiers maximum</small>
+            <input id="btp-document-files" type="file" name="documents[]" multiple required>
           </label>
           <div id="btp-bulk-preview" class="btp-bulk-preview" aria-live="polite">Aucun fichier sélectionné</div>
           <button type="submit">Ajouter les documents</button>
