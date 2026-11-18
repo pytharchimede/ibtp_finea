@@ -37,12 +37,21 @@ class MigrationRunner
         $this->createCrmOpportunityDetails();
         $this->createCrmAoTables();
         $this->createCrmAoScoringSettings();
+        $this->createBtpCrmProjectLink();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
     }
 
 
+
+    /** Idempotent CRM -> BTP project link, executed after CRM schema creation. */
+    private function createBtpCrmProjectLink(): void
+    {
+        $this->addColumnIfMissing('btp_projets', 'crm_opportunity_id', 'INT UNSIGNED NULL');
+        $this->addUniqueIndexIfMissing('btp_projets', 'uq_btp_projets_crm_opportunity', 'crm_opportunity_id');
+        $this->addForeignKeyIfMissing('btp_projets', 'fk_btp_projets_crm_opportunity', 'crm_opportunity_id', 'crm_opportunities', 'id', 'RESTRICT');
+    }
 
     private function createCrmAoScoringSettings(): void
     {
