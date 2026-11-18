@@ -44,7 +44,7 @@ final class ModuleMaintenanceMiddleware
             return 'espace-employe';
         }
         foreach ([
-            'rh', 'finance', 'colisage', 'logistique', 'crm', 'tickets',
+            'btp', 'rh', 'finance', 'colisage', 'logistique', 'crm', 'tickets',
             'transit-douane', 'tracking-colis', 'facturation', 'entrepots',
             'flotte-transport', 'portefeuille-clients', 'agents-correspondants',
             'pilotage-dg',

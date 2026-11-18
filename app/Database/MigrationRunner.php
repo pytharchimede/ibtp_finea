@@ -32,6 +32,7 @@ class MigrationRunner
         $this->createBusinessTables();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
+        (new BtpMigrationRunner($this->pdo))->run();
         $this->linkUsersToRhEmployees();
     }
 

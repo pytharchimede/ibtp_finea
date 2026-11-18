@@ -4,6 +4,11 @@ namespace App\Security;
 
 final class PermissionEntityRegistry
 {
+    public const BTP_PROJETS = 'btp_projets';
+    public const BTP_DEVIS = 'btp_devis';
+    public const BTP_CHANTIERS = 'btp_chantiers';
+    public const BTP_SOUS_TRAITANCES = 'btp_sous_traitances';
+    public const BTP_FINANCES = 'btp_finances';
     public const USERS = 'users';
     public const PERMISSION_ENTITIES = 'permission_entities';
     public const USER_PERMISSIONS = 'user_permissions';
@@ -18,6 +23,11 @@ final class PermissionEntityRegistry
     public static function all(): array
     {
         return [
+            self::BTP_PROJETS => ['module'=>'BTP','name'=>'Projets BTP','description'=>'Projets et clients','sort_order'=>500],
+            self::BTP_DEVIS => ['module'=>'BTP','name'=>'Devis BTP','description'=>'Devis et approbations','sort_order'=>510],
+            self::BTP_CHANTIERS => ['module'=>'BTP','name'=>'Chantiers BTP','description'=>'BC et travaux','sort_order'=>520],
+            self::BTP_SOUS_TRAITANCES => ['module'=>'BTP','name'=>'Sous-traitance','description'=>'Offres et visas','sort_order'=>530],
+            self::BTP_FINANCES => ['module'=>'BTP','name'=>'Déboursés et dépenses','description'=>'Budgets et pilotage','sort_order'=>540],
             self::USERS => [
                 'module' => 'Administration',
                 'name' => 'Comptes utilisateurs',

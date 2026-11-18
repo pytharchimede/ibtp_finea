@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 return [
+    'btp' => true,
     'finance' => true,
     'rh' => true,
     'espace-employe' => true,

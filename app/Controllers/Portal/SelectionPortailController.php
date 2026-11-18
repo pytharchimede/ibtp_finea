@@ -27,6 +27,12 @@ final class SelectionPortailController extends BaseController
         AuthMiddleware::check();
 
         $modules = (new ModuleDashboardService())->portalModules();
+        array_unshift($modules, [
+            'key'=>'btp','label'=>'Projets & Chantiers','code'=>'BTP','icon'=>'finance',
+            'description'=>'Projets, devis, validations signées, BC, chantiers, sous-traitance et pilotage.',
+            'url'=>'/btp/projets','class'=>'module-finance','status'=>'BTP',
+            'keywords'=>'btp projets chantiers devis bons de commande déboursés sous-traitance',
+        ]);
         array_splice($modules, 1, 0, [[
             'key' => 'rh',
             'label' => 'RH',
@@ -59,6 +65,9 @@ final class SelectionPortailController extends BaseController
             }
             if ($module['key'] === 'admin') {
                 return Auth::user()?->isAdmin ?? false;
+            }
+            if ($module['key'] === 'btp') {
+                return Auth::can(PermissionEntityRegistry::BTP_PROJETS);
             }
             if ($module['key'] === 'rh') {
                 $requirements = array_fill_keys(
