@@ -22,6 +22,7 @@ $router->group('/admin', function (Router $router): void {
     $router->post('/feb/workflows/{id}', [AdminFebController::class, 'workflowSave']);
     $router->post('/feb/workflows/{id}/etat', [AdminFebController::class, 'workflowToggle']);
     $router->post('/feb/affectations', [AdminFebController::class, 'accessSave']);
+    $router->post('/feb/affectations-groupe', [AdminFebController::class, 'accessBulkSave']);
     $router->post('/feb/budgets', [AdminFebController::class, 'budgetSave']);
 
     $router->get('/system-tests', [AdminSystemTestController::class, 'index']);
