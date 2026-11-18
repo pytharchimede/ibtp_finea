@@ -104,7 +104,7 @@ final class ProjetController extends BaseController
         if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
         if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
         try {
-            (new \App\Services\Btp\DossierService(Database::getConnection()))->uploadDocument((int)$id,$_POST,$_FILES['document']??[],isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);
+            (new \App\Services\Btp\DossierService(Database::getConnection()))->uploadDocuments((int)$id,$_FILES['documents']??[],isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);
         } catch (\Throwable $e) {
             error_log('[BTP upload] '.$e->getMessage());
             $_SESSION['btp_projet_error']=$e instanceof InvalidArgumentException?$e->getMessage():'Impossible de conserver le document.';

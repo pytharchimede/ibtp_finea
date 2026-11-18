@@ -15,7 +15,7 @@ final class DossierService
         $q->execute([$id]);return $q->fetchAll(PDO::FETCH_ASSOC);
     }
     public function quotes(int $id):array {
-        $q=$this->pdo->prepare('SELECT * FROM btp_dossier_quotes WHERE projet_id=? ORDER BY revision DESC');
+        $q=$this->pdo->prepare('SELECT id,revision,title AS label,total_ht AS amount_ht,total_ttc,status,created_at FROM btp_offer_drafts WHERE projet_id=? ORDER BY revision DESC,id DESC');
         $q->execute([$id]);return $q->fetchAll(PDO::FETCH_ASSOC);
     }
     public function documents(int $id): array {
@@ -25,6 +25,21 @@ final class DossierService
     public function document(int $projectId,int $documentId): ?array {
         $q=$this->pdo->prepare('SELECT * FROM btp_documents WHERE projet_id=? AND id=?');
         $q->execute([$projectId,$documentId]);return $q->fetch(PDO::FETCH_ASSOC)?:null;
+    }
+    public function uploadDocuments(int $projectId,array $files,?int $actor): int {
+        if(!$this->project($projectId))throw new InvalidArgumentException('Projet introuvable.');
+        $names=$files['name']??[];
+        if(!is_array($names)||count($names)<1||count($names)>20)throw new InvalidArgumentException('Sélectionnez entre 1 et 20 documents.');
+        $count=0;
+        foreach(array_keys($names) as $index){
+            $file=[];
+            foreach(['name','type','tmp_name','error','size'] as $key)$file[$key]=$files[$key][$index]??null;
+            $label=trim(pathinfo(basename((string)$file['name']),PATHINFO_FILENAME));
+            if($label==='')$label='Document';
+            $this->uploadDocument($projectId,['category'=>'autre','label'=>mb_substr($label,0,180)],$file,$actor);
+            $count++;
+        }
+        return $count;
     }
     public function uploadDocument(int $projectId,array $input,array $file,?int $actor): void {
         if(!$this->project($projectId))throw new InvalidArgumentException('Projet introuvable.');
