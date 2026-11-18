@@ -77,6 +77,7 @@ ob_start();?>
 .crm-client-empty p{color:#73839b}.crm-client-empty a{color:#254b95;font-weight:750}
 @media(max-width:760px){.crm-client-grid{grid-template-columns:1fr}.crm-search{flex-wrap:wrap}.crm-search input{flex-basis:100%}.crm-search button{width:100%}}
 @media(max-width:420px){.crm-client-head{padding:16px 15px 11px}.crm-client-details{padding:4px 15px 14px}.crm-client-details>div{grid-template-columns:85px minmax(0,1fr)}.crm-client-footer{padding:11px 15px}}
+.crm-search-advanced{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.crm-search-advanced input,.crm-search-advanced select{width:100%;min-width:0;min-height:44px;border:1px solid #cbd5e1;border-radius:9px;padding:10px;background:white}.crm-search-advanced a{justify-content:center;text-decoration:none}.crm-client-badges{display:flex;gap:6px;flex-wrap:wrap}.crm-client-badge{display:inline-block;padding:4px 8px;border-radius:8px;font-size:.72rem;font-weight:750}.crm-client-badge.is-good{background:#dcfce7;color:#166534}.crm-client-badge.is-warning{background:#fff4db;color:#925c13}.crm-client-quick{position:relative}.crm-client-quick summary{cursor:pointer;color:#244e94;font-weight:700;padding:8px}.crm-client-quick-menu{position:absolute;z-index:3;right:0;bottom:100%;min-width:210px;padding:12px;border:1px solid #dbe5f2;border-radius:12px;background:#fff;box-shadow:0 12px 28px #1e2b4322;display:grid;gap:10px}.crm-client-quick-menu form{display:grid;gap:8px}.crm-client-quick-menu select{width:100%;padding:8px}.crm-client-quick-menu button{border:0;background:#254b95;color:#fff;border-radius:8px;padding:9px;cursor:pointer}@media(max-width:760px){.crm-search-advanced{grid-template-columns:1fr}.crm-search-advanced input{flex-basis:auto}.crm-client-footer{overflow:visible}}
 </style>
 <div class="crm-wrap"><div class="crm-hero"><h1>Clients &amp; Prospects</h1><p>Référentiel CRM partagé avec les projets BTP.</p><a href="<?= $e(View::url('crm/dashboard')) ?>">Tableau de bord CRM</a> · <a href="<?= $e(View::url('crm/clients/nouveau')) ?>">+ Nouveau client</a></div>
 <?php if($errorCrm):?><div class="crm-alert" role="alert"><?= $e($errorCrm) ?></div><?php endif;?>
@@ -121,10 +122,18 @@ ob_start();?>
 <?= \App\View\Components\FormWizard::controls($clientEdit ? 'Enregistrer les modifications' : 'Créer la fiche') ?>
 <?php if($clientEdit):?><a href="<?= $e(View::url('crm/clients')) ?>">Annuler</a><?php endif;?>
 </form></section><?php else:?><section class="crm-card"><h2>Répertoire CRM (<?= count($clients) ?>)</h2>
-<form class="crm-search" method="get"><input name="q" placeholder="Rechercher un client" value="<?= $e($_GET['q']??'') ?>"><button class="crm-submit" type="submit">Rechercher</button></form>
+<form class="crm-search crm-search-advanced" method="get">
+<input name="q" placeholder="Nom, contact, email, téléphone, NCC..." value="<?= $e($crmFilters['q']??'') ?>">
+<input name="city" placeholder="Ville" value="<?= $e($crmFilters['city']??'') ?>">
+<select name="type"><option value="">Toutes catégories</option><?php foreach(['prospect'=>'Prospect','client'=>'Client','partner'=>'Partenaire'] as $key=>$label):?><option value="<?= $e($key) ?>" <?= ($crmFilters['type']??'')===$key?'selected':'' ?>><?= $e($label) ?></option><?php endforeach;?></select>
+<select name="status"><option value="">Tous statuts</option><?php foreach(['new'=>'Nouveau','active'=>'Actif','dormant'=>'Dormant','lost'=>'Perdu'] as $key=>$label):?><option value="<?= $e($key) ?>" <?= ($crmFilters['status']??'')===$key?'selected':'' ?>><?= $e($label) ?></option><?php endforeach;?></select>
+<select name="verification_status"><option value="">Toutes vérifications</option><?php foreach(['verified'=>'Vérifié','pending'=>'En attente','rejected'=>'Non vérifié'] as $key=>$label):?><option value="<?= $e($key) ?>" <?= ($crmFilters['verification_status']??'')===$key?'selected':'' ?>><?= $e($label) ?></option><?php endforeach;?></select>
+<button class="crm-submit" type="submit">Rechercher</button><a class="crm-secondary" href="<?= $e(View::url('crm/clients')) ?>">Effacer</a>
+<a class="crm-secondary" href="<?= $e(View::url('crm/clients/export')) ?>?<?= $e(http_build_query($crmFilters)) ?>">Exporter les résultats CSV</a>
+</form>
 <div class="crm-client-grid">
 <?php foreach($clients as $client):?>
-<?= \App\View\Components\CrmClientCard::render($client) ?>
+<?= \App\View\Components\CrmClientCard::render($client, $csrfCrm) ?>
 <?php endforeach;?>
 <?php if(!$clients):?><div class="crm-client-empty"><strong>Aucun client trouvé</strong><p>Aucun résultat pour cette recherche. Vous pouvez créer une nouvelle fiche client.</p><a href="<?= $e(View::url('crm/clients/nouveau')) ?>">Créer un client</a></div><?php endif;?>
 </div></section><?php endif;?></div></div>

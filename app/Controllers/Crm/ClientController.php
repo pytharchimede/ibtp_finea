@@ -21,7 +21,29 @@ final class ClientController extends BaseController {
   $this->guard();$id=$editPage?(filter_input(INPUT_GET,'id',FILTER_VALIDATE_INT)?:0):0;
   $error=$_SESSION['crm_client_error']??null;$success=$_SESSION['crm_client_success']??null;
   unset($_SESSION['crm_client_error'],$_SESSION['crm_client_success']);
-  $this->view('crm/clients',['pageTitle'=>'Clients et prospects','clients'=>$this->service()->all((string)($_GET['q']??'')),'clientEdit'=>$id?$this->service()->find($id):null,'csrfCrm'=>$this->csrf(),'errorCrm'=>$error,'successCrm'=>$success,'crmNewMode'=>$new,'crmFormMode'=>$new||$editPage,'crmReferences'=>(new \App\Repositories\Crm\CrmReferenceRepository(Database::getConnection()))->all()] + \App\Services\Crm\CrmPageContext::forPage($new?'Créer un client':($editPage?'Modifier un client':'Clients & Prospects'),$new?'nouveau-client':'clients'));
+  $filters=array_intersect_key($_GET,array_flip(['q','type','status','city','verification_status','identity_country']));
+  $this->view('crm/clients',['pageTitle'=>'Clients et prospects','clients'=>$this->service()->filter($filters),'crmFilters'=>$filters,'clientEdit'=>$id?$this->service()->find($id):null,'csrfCrm'=>$this->csrf(),'errorCrm'=>$error,'successCrm'=>$success,'crmNewMode'=>$new,'crmFormMode'=>$new||$editPage,'crmReferences'=>(new \App\Repositories\Crm\CrmReferenceRepository(Database::getConnection()))->all()] + \App\Services\Crm\CrmPageContext::forPage($new?'Créer un client':($editPage?'Modifier un client':'Clients & Prospects'),$new?'nouveau-client':'clients'));
+ }
+ public function qualify():void{
+  $this->guard(true);
+  if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton CSRF invalide.');}
+  try{$this->service()->qualify((int)($_POST['id']??0),(string)($_POST['type']??''),(int)Auth::id());$_SESSION['crm_client_success']='Qualification commerciale mise à jour.';}
+  catch(\DomainException $e){$_SESSION['crm_client_error']=$e->getMessage();}
+  $this->redirect('/crm/clients');
+ }
+ public function export():void{
+  $this->guard();
+  $filters=array_intersect_key($_GET,array_flip(['q','type','status','city','verification_status','identity_country']));
+  if(isset($_GET['id'])){$record=$this->service()->find((int)$_GET['id']);$rows=$record?[$record]:[];}
+  else{$rows=$this->service()->filter($filters);}
+  header('Content-Type: text/csv; charset=UTF-8');
+  header('Content-Disposition: attachment; filename="finea-clients-'.date('Ymd-His').'.csv"');
+  header('Cache-Control: no-store');
+  $out=fopen('php://output','wb');fwrite($out,"\\xEF\\xBB\\xBF");
+  $fields=['id','name','type','status','contact_name','email','phone','city','country','sector','legal_form','identity_country','identifier_kind','identifier_value','verification_status','verification_note'];
+  fputcsv($out,$fields,';');
+  foreach($rows as $row){fputcsv($out,array_map(static function($key)use($row){$v=(string)($row[$key]??'');return preg_match('/^[\\s]*[=+@\\-]/u',$v)?"'".$v:$v;},$fields),';');}
+  fclose($out);exit;
  }
  public function save():void{
   $this->guard(true);

@@ -6,6 +6,12 @@ use DomainException;
 final class ClientService {
  public function __construct(private ClientRepository $repo){}
  public function all(string $search=''):array{return $this->repo->all(mb_substr(trim($search),0,100));}
+ public function filter(array $filters):array{return $this->repo->filter($filters);}
+ public function qualify(int $id,string $type,int $actor):void{
+  if($actor<=0||$id<=0)throw new DomainException('Action non autorisée.');
+  if(!in_array($type,['prospect','client','partner'],true))throw new DomainException('Qualification invalide.');
+  $this->repo->changeType($id,$type);
+ }
  public function find(int $id):?array{return $this->repo->find($id);}
  public function save(array $input,int $actor,?int $id=null):int{
   if($actor<=0)throw new DomainException('Session invalide.');
