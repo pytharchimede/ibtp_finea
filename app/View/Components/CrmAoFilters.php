@@ -5,14 +5,14 @@ use App\Helpers\View;
 
 final class CrmAoFilters
 {
-    public static function render(array $filters):string
+    public static function render(array $filters,int $recommended=60):string
     {
         $e=static fn(mixed $v):string=>htmlspecialchars((string)$v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
         $scope=[['value'=>'active','label'=>'Échéances ouvertes'],['value'=>'all','label'=>'Toutes les échéances'],['value'=>'expired','label'=>'Échéances dépassées'],['value'=>'undated','label'=>'Sans date limite']];
         $statuses=[['value'=>'','label'=>'Tous les statuts']];
         foreach(['nouveau'=>'Nouveau','a_analyser'=>'À analyser','interessant'=>'Intéressant','non_interessant'=>'Non intéressant','dossier_en_preparation'=>'Dossier en préparation','soumission'=>'Soumission','soumissionne'=>'Soumissionné','converti_crm'=>'Converti CRM','gagne'=>'Gagné','perdu'=>'Perdu','expire'=>'Expiré'] as $code=>$label)$statuses[]=['value'=>$code,'label'=>$label];
         $sources=[['value'=>'','label'=>'Toutes les sources'],['value'=>'DGMP public','label'=>'Marchés publics DGMP'],['value'=>'Contenu local DGH','label'=>'Contenu local DGH']];
-        $scores=[['value'=>'','label'=>'Tous les scores'],['value'=>'40','label'=>'40 % et plus'],['value'=>'60','label'=>'60 % et plus'],['value'=>'80','label'=>'80 % et plus']];
+        $scores=[['value'=>'','label'=>'Tous les scores'],['value'=>'recommended','label'=>'Seuil recommandé ('.$recommended.' % et plus)'],['value'=>'40','label'=>'40 % et plus'],['value'=>'60','label'=>'60 % et plus'],['value'=>'80','label'=>'80 % et plus']];
         ob_start();?>
 <form class="ao-filters" action="<?= $e(View::url('crm/veille-ao')) ?>" method="get">
 <?= Form::input('q','Rechercher', $filters['q']??'', ['placeholder'=>'Référence, objet, autorité, description...']) ?>

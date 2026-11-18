@@ -26,7 +26,8 @@ final class AoWatchRepository
         $source=(string)($filters['source']??'');
         if(in_array($source,['DGMP public','Contenu local DGH'],true)){$sql.=' AND source=:source';$params['source']=$source;}
         $score=(string)($filters['min_score']??'');
-        if(in_array($score,['40','60','80'],true)){$sql.=' AND score_pertinence>=:score';$params['score']=(int)$score;}
+        if($score==='recommended'){$settings=(new AoScoringSettingsRepository($this->pdo))->get();$sql.=' AND score_pertinence>=:score';$params['score']=(int)$settings['min_score'];}
+        elseif(in_array($score,['40','60','80'],true)){$sql.=' AND score_pertinence>=:score';$params['score']=(int)$score;}
         if(!empty($filters['deadline_soon']))$sql.=' AND date_limite BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 14 DAY)';
         $sql.=' ORDER BY (date_limite IS NULL),date_limite ASC,score_pertinence DESC,id DESC LIMIT '.max(1,min(1000,$limit));
         $stmt=$this->pdo->prepare($sql);$stmt->execute($params);
