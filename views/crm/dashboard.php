@@ -6,7 +6,7 @@ $counts=$crmAnalytics['counts'];$pipeline=$crmAnalytics['pipeline'];$actions=$cr
 $fmt=static fn(mixed $n):string=>number_format((float)($n??0),0,',',' ');
 ob_start();?>
 <style>
-.crm-dash{max-width:1250px;margin:0 auto;color:#15233d}.crm-dash *{box-sizing:border-box}
+.crm-dash{max-width:1250px;margin:24px auto 40px;padding:0 clamp(16px,2.5vw,32px);color:#15233d}.crm-dash *{box-sizing:border-box}
 .crm-dash-hero{background:linear-gradient(115deg,#172b56,#405f9e);border-radius:22px;padding:32px;color:white;margin-bottom:23px}
 .crm-dash-hero h1{font-size:clamp(1.6rem,3vw,2.3rem);margin:6px 0 8px;color:white}.crm-dash-hero p{margin:0;color:#e0eaff}
 .crm-dash-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
