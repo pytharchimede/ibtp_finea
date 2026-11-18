@@ -6,6 +6,7 @@ use App\Controllers\Btp\ProjetController;
 $router->group('/btp', static function(Router $router): void {
     $router->get('/chantiers',[ProjetController::class,'chantierIndex']);
     $router->get('/chantiers/nouveau',[ProjetController::class,'chantierCreate']);
+    $router->get('/chantiers/nouveau/projet/{id}',[ProjetController::class,'chantierWizard']);
     $router->get('/chantiers/projet/{id}',[ProjetController::class,'chantierWizard']);
     $router->post('/chantiers/projet/{id}',[ProjetController::class,'chantierStart']);
     $router->get('/plannings',[ProjetController::class,'planningIndex']);
