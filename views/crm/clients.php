@@ -88,6 +88,12 @@ ob_start();?>
 <?= Form::selectSearch('identifier_kind', 'Type d’identifiant', array_map(static fn($row)=>['value'=>$row['option_code'],'label'=>$row['label']],$crmReferences['identifier']), $clientEdit['identifier_kind']??'', ['required'=>true,'placeholder'=>'Rechercher et sélectionner...']) ?>
 <label class="crm-field">Numéro de l'identifiant officiel<input name="identifier_value" required maxlength="100" value="<?= $e($clientEdit['identifier_value']??'') ?>"></label>
 <label class="crm-field"><input type="checkbox" id="crm-cni-present" name="cni_present" value="1" style="width:auto;display:inline" <?= !empty($clientEdit['cni_present'])?'checked':'' ?>> CNI présentée (personne physique ivoirienne)</label>
+<div class="crm-full" style="background:#fff8e8;border:1px solid #f0dca4;border-radius:12px;padding:16px">
+<strong><i class="fa-solid fa-triangle-exclamation"></i> Enregistrement avec dérogation</strong>
+<p style="font-size:.84rem;color:#715b32;margin:8px 0">En cas de NCC erroné, de cessation d'activité ou d'indisponibilité DGI, le client peut être enregistré sans être déclaré vérifié. Cette décision est tracée.</p>
+<label class="crm-field"><input type="checkbox" name="verification_override" value="1" id="crm-verification-override" <?= !empty($clientEdit['verification_override_reason'])?'checked':'' ?>> Autoriser l'enregistrement malgré les contrôles</label>
+<label class="crm-field" id="crm-override-reason-wrap" hidden>Motif de la dérogation<textarea name="verification_override_reason" maxlength="500" rows="2" id="crm-override-reason"><?= $e($clientEdit['verification_override_reason']??'') ?></textarea></label>
+</div>
 <?php if($clientEdit):?><p><strong>Vérification :</strong> <?= $e($clientEdit['verification_status']??'pending') ?> — aucune validation externe automatique dans cette version.</p><?php endif;?>
 </div>
 <div class="crm-panel crm-full crm-form-layout" data-crm-panel="business">
@@ -118,6 +124,10 @@ document.addEventListener('DOMContentLoaded',function(){
  const cni=document.getElementById('crm-cni-present');
  const nameField=document.querySelector('[data-crm-name-field]');
  if(!legal||!country||!kind)return;
+ const override=document.getElementById('crm-verification-override');
+ const reason=document.getElementById('crm-override-reason');
+ const reasonWrap=document.getElementById('crm-override-reason-wrap');
+ if(override&&reason&&reasonWrap){const sync=()=>{reasonWrap.hidden=!override.checked;reason.required=override.checked;};override.addEventListener('change',sync);sync();}
  const update=function(){
   const physical=legal.value==='personne_physique',ci=country.value==='CI';
   if(cni)cni.closest('label').style.display=physical&&ci?'block':'none';

@@ -33,12 +33,21 @@ class MigrationRunner
         $this->createBtpTables();
         $this->createCrmIdentityFields();
         $this->createCrmReferenceOptions();
+        $this->createCrmVerificationOverrides();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
     }
 
 
+
+    private function createCrmVerificationOverrides(): void
+    {
+        $this->addColumnIfMissing('crm_clients','verification_override_reason',"VARCHAR(500) NULL");
+        $this->addColumnIfMissing('crm_clients','verification_override_by',"INT NULL");
+        $this->addColumnIfMissing('crm_clients','verification_override_at',"DATETIME NULL");
+        $this->addColumnIfMissing('crm_clients','verification_note',"VARCHAR(500) NULL");
+    }
 
     private function createCrmReferenceOptions(): void
     {

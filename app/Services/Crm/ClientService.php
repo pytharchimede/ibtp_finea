@@ -35,12 +35,28 @@ final class ClientService {
   $data['legal_form']=$legal;$data['identity_country']=$country;$data['identifier_kind']=$kind!==''?$kind:null;
   $data['identifier_value']=$value!==''?$value:null;$data['cni_present']=$cni?1:0;
   $data['verification_status']='pending';
+  $override=isset($input['verification_override'])&&(string)$input['verification_override']==='1';
+  $reason=trim((string)($input['verification_override_reason']??''));
+  if($override&&($reason===''||mb_strlen($reason)>500))throw new DomainException('Motif de dérogation obligatoire (500 caractères maximum).');
+  $data['verification_override_reason']=$override?$reason:null;
+  $data['verification_override_by']=$override?$actor:null;
+  $data['verification_override_at']=$override?date('Y-m-d H:i:s'):null;
+  $data['verification_note']=null;
   if($legal==='personne_morale' && $country==='CI' && $kind==='NCC'){
-   $verified=(new NccVerificationService())->check($value);
-   if($verified['name']==='')throw new DomainException('Raison sociale absente de la réponse DGI.');
-   $normalize=static fn(string $text):string=>mb_strtoupper(trim(preg_replace('/\\s+/u',' ',$text)??$text));
-   if($normalize($verified['name'])!==$normalize((string)$data['name']))throw new DomainException('Raison sociale différente du registre DGI : '.$verified['name']);
-   $data['verification_status']='verified';
+   try{
+    $verified=(new NccVerificationService())->check($value);
+    if($verified['name']==='')throw new DomainException('Raison sociale absente de la réponse DGI.');
+    $normalize=static fn(string $text):string=>mb_strtoupper(trim(preg_replace('/\\s+/u',' ',$text)??$text));
+    if($normalize($verified['name'])!==$normalize((string)$data['name']))throw new DomainException('Raison sociale différente du registre DGI : '.$verified['name']);
+    $data['verification_status']='verified';
+   }catch(DomainException $e){
+    if(!$override)throw new DomainException($e->getMessage().' Vous pouvez enregistrer avec dérogation motivée.');
+    $data['verification_status']='rejected';
+    $data['verification_note']=mb_substr($e->getMessage(),0,500);
+   }
+  }
+  if($override&&$data['verification_status']==='verified'){
+   $data['verification_override_reason']=null;$data['verification_override_by']=null;$data['verification_override_at']=null;
   }
   if($id!==null){if($id<=0)throw new DomainException('Identifiant invalide.');$this->repo->update($id,$data);return $id;}
   return $this->repo->create($data,$actor);
