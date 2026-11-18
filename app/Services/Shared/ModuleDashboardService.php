@@ -74,9 +74,9 @@ final class ModuleDashboardService
                     ['label' => 'Interactions', 'value' => '0', 'meta' => 'Historique relation client'],
                 ],
                 'actions' => [
-                    ['label' => 'Nouveau client', 'hint' => 'Créer une fiche client/prospect', 'url' => '/crm/dashboard'],
-                    ['label' => 'Pipeline', 'hint' => 'Suivre les opportunités et relances', 'url' => '/crm/dashboard'],
-                    ['label' => 'Interactions', 'hint' => 'Historique appels, mails et visites', 'url' => '/crm/dashboard'],
+                    ['label' => 'Nouveau client', 'hint' => 'Créer une fiche client/prospect', 'url' => '/crm/clients'],
+                    ['label' => 'Pipeline', 'hint' => 'Suivre les opportunités et relances', 'url' => '/crm/opportunites'],
+                    ['label' => 'Interactions', 'hint' => 'Historique appels, mails et visites', 'url' => '/crm/interactions'],
                 ],
             ],
             'tickets' => [
