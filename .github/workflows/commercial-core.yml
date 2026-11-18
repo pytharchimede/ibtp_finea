@@ -1,0 +1,40 @@
+name: FINEA Commercial Core Smoke
+
+on:
+  push:
+    branches: ["refactor/**", "feature/**", test-update, develop, main]
+    paths:
+      - "app/**"
+      - "config/**"
+      - "routes/**"
+      - "views/**"
+      - "tests/Smoke/smoke_commercial_core.php"
+      - ".github/workflows/commercial-core.yml"
+  pull_request:
+    branches: [test-update, develop, main]
+  workflow_dispatch:
+
+jobs:
+  commercial-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+      - name: Syntax check for new core
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in app/Services/Shared/BrandingService.php app/Services/Shared/ModuleRegistry.php app/Controllers/Core/BrandingController.php app/Services/Admin/AdminSeederService.php config/branding.php config/modules.php config/app.php config/database.php views/auth/login.php tests/Smoke/smoke_commercial_core.php; do
+            php -l "$file"
+          done
+          find config/brands config/module-profiles -name '*.php' -exec php -l {} \;
+      - name: Smoke without database
+        env:
+          FINEA_BRAND_PROFILE: ibtp
+          FINEA_MODULE_PROFILE: ibtp
+        run: php tests/Smoke/smoke_commercial_core.php
