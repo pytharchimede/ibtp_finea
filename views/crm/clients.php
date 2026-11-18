@@ -132,15 +132,7 @@ ob_start();?>
 <form class="crm-search" method="get"><input name="q" placeholder="Rechercher un client" value="<?= $e($_GET['q']??'') ?>"><button class="crm-submit" type="submit">Rechercher</button></form>
 <div class="crm-client-grid">
 <?php foreach($clients as $client):?>
-<article class="crm-client-card">
-<div class="crm-client-head"><span class="crm-client-avatar" aria-hidden="true"><?= $e(mb_strtoupper(mb_substr(trim((string)$client['name']),0,1))) ?></span><div class="crm-client-title"><h3><?= $e($client['name']) ?></h3><span class="crm-client-type"><?= $e($client['type']) ?></span></div></div>
-<dl class="crm-client-details">
-<div><dt>Contact</dt><dd><?= $e($client['contact_name']?:'Non renseigné') ?></dd></div>
-<div><dt>Téléphone</dt><dd><?php if(!empty($client['phone'])):?><a href="tel:<?= $e(preg_replace('/[^+0-9]/','',(string)$client['phone'])) ?>"><?= $e($client['phone']) ?></a><?php else:?>Non renseigné<?php endif;?></dd></div>
-<div><dt>Ville</dt><dd><?= $e($client['city']?:'Non renseignée') ?></dd></div>
-</dl>
-<div class="crm-client-footer"><a class="crm-client-edit" href="<?= $e(View::url('crm/clients/modifier')) ?>?id=<?= (int)$client['id'] ?>">Modifier la fiche <span aria-hidden="true">→</span></a></div>
-</article>
+<?= \App\View\Components\CrmClientCard::render($client) ?>
 <?php endforeach;?>
 <?php if(!$clients):?><div class="crm-client-empty"><strong>Aucun client trouvé</strong><p>Aucun résultat pour cette recherche. Vous pouvez créer une nouvelle fiche client.</p><a href="<?= $e(View::url('crm/clients/nouveau')) ?>">Créer un client</a></div><?php endif;?>
 </div></section><?php endif;?></div></div>
