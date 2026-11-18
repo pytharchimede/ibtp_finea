@@ -8,6 +8,7 @@ use App\Security\PermissionEntityRegistry;
 use App\Models\Database;
 use App\Repositories\Btp\ProjetRepository;
 use App\Services\Btp\ProjetService;
+use App\Services\Shared\ModuleDashboardService;
 use InvalidArgumentException;
 final class ProjetController extends BaseController
 {
@@ -15,13 +16,36 @@ final class ProjetController extends BaseController
     {
         return new ProjetService(new ProjetRepository(Database::getConnection()));
     }
+    private function context(string $title,string $active): array
+    {
+        $module=(new ModuleDashboardService())->dashboard('btp');
+        return ['pageTitle'=>$title,'moduleName'=>$module['label'],'moduleCode'=>$module['code'],
+            'moduleTheme'=>$module,'activeModule'=>$active,'moduleNavigation'=>$module['navigation'],
+            'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css']];
+    }
+    public function dashboard(): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
+        $this->view('btp/dashboard',$this->context('Pilotage des projets','dashboard')+[
+            'summaryBtp'=>$this->service()->summary(),'projets'=>$this->service()->list(10)]);
+    }
+    public function create(): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        $this->view('btp/projet_create',$this->context('Nouveau projet CRM','nouveau-projet')+[
+            'opportunitiesBtp'=>$this->service()->opportunities(),'csrfBtp'=>$this->csrf(),
+            'errorBtp'=>$_SESSION['btp_projet_error']??null]);
+        unset($_SESSION['btp_projet_error']);
+    }
     public function index(): void
     {
         AuthMiddleware::check();
         if (!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)) { http_response_code(403); exit('Accès interdit'); }
         $error=$_SESSION['btp_projet_error'] ?? null;
         unset($_SESSION['btp_projet_error']);
-        $this->view('btp/projets',['pageTitle'=>'Projets BTP','projets'=>$this->service()->list(),'clientsBtp'=>$this->service()->clients(),'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+        $this->view('btp/projets',$this->context('Projets BTP','projets')+['projets'=>$this->service()->list(),'errorBtp'=>$error]);
     }
     public function store(): void
     {

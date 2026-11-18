@@ -63,6 +63,12 @@ final class ModuleDashboardService
                     ['label' => 'Mon pointage', 'hint' => 'Voir mes présences et retards', 'url' => '/espace-employe/dashboard'],
                 ],
             ],
+            'btp' => [
+                'slug'=>'btp','label'=>'Projets & Chantiers','code'=>'BTP','iconKey'=>'logistique',
+                'accent'=>'#2563eb','accent2'=>'#172e58','gradient'=>'linear-gradient(135deg,#172e58,#2563eb)',
+                'description'=>'Études, appels d’offres, soumissions, devis, chantiers et suivi des projets.',
+                'kpis'=>[], 'actions'=>[],
+            ],
             'crm' => [
                 'slug' => 'crm', 'label' => 'CRM', 'code' => 'CRM', 'iconKey' => 'crm',
                 'accent' => '#ec4899', 'accent2' => '#9d174d', 'gradient' => 'linear-gradient(135deg, #9d174d, #ec4899)',
@@ -253,6 +259,15 @@ final class ModuleDashboardService
     private function navigation(array $module): array
     {
         $base = '/' . $module['slug'];
+        if ($module['slug'] === 'btp') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/btp/dashboard','group'=>'Pilotage','available'=>true],
+                ['key'=>'projets','label'=>'Tous les projets','icon'=>'PR','url'=>'/btp/projets','group'=>'Projets','available'=>true],
+                ['key'=>'nouveau-projet','label'=>'Créer depuis le CRM','icon'=>'+','url'=>'/btp/projets/nouveau','group'=>'Projets','available'=>true],
+                ['key'=>'crm-opportunites','label'=>'Opportunités CRM','icon'=>'CRM','url'=>'/crm/opportunites','group'=>'Études & consultations','available'=>true],
+                ['key'=>'crm-ao','label'=>"Veille appels d’offres",'icon'=>'AO','url'=>'/crm/veille-ao','group'=>'Études & consultations','available'=>true],
+            ];
+        }
         if ($module['slug'] === 'crm') {
             return [
                 ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/crm/dashboard','group'=>'Pilotage','available'=>true],
