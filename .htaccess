@@ -1,6 +1,5 @@
 RewriteEngine On
 
-RewriteBase /ERP_LBP_REFACTO/
 
 # Si le fichier ou dossier existe réellement, Apache le sert directement
 RewriteCond %{REQUEST_FILENAME} -f [OR]

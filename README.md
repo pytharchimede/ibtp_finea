@@ -1,10 +1,10 @@
-﻿# ERP_LBP_REFACTO
+# FINEA Commercial — ERP configurable
 
 Ce projet est une application PHP MVC légère avec authentification, vues personnalisées et portail de sélection (dashboard/module portal). Il est pensé pour être simple à comprendre, à démarrer et à enrichir.
 
 ## Objectif du projet
 
-- démarrer rapidement avec WAMP/XAMPP
+- déployer une instance ERP par entreprise avec une configuration isolée
 - comprendre l’architecture backend et frontend
 - utiliser un système de connexion simple
 - avoir un portail de sélection moderne pour les modules ERP
@@ -18,12 +18,11 @@ Ce projet est une application PHP MVC légère avec authentification, vues perso
 
 ## Démarrage rapide
 
-1. placer le projet dans votre dossier web local (ex. C:\wamp\www\ERP_LBP_REFACTO)
-2. démarrer Apache et MySQL
-3. ouvrir l’URL locale du projet dans le navigateur
-4. utiliser le compte administrateur par défaut :
-   - email : admin@erp-lbp.local
-   - mot de passe : admin
+1. Placer le projet dans le dossier web et démarrer PHP et MySQL.
+2. Définir les variables DB_*, APP_URL, FINEA_BRAND_PROFILE et FINEA_MODULE_PROFILE.
+3. Avant la première installation, définir FINEA_BOOTSTRAP_ADMIN_EMAIL et FINEA_BOOTSTRAP_ADMIN_PASSWORD avec un mot de passe fort (12 caractères minimum).
+4. Une fois le compte créé, retirer ces deux variables du serveur et se connecter avec les identifiants choisis.
+5. Consulter doc/architecture/branding-et-modularite.md pour personnaliser l’instance.
 
 ## Structure principale
 

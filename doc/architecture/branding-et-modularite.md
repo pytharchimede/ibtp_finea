@@ -51,3 +51,11 @@ CSS et JavaScript sont séparés. Respecter CONTRIBUTING.md.
 - Prévoir historique, droits et audit pour une future édition du branding
   depuis l'administration.
 - Ajouter migrations versionnées et tests d'intégration des modules extraits.
+
+## Sécurité d’installation
+
+Les paramètres de base sont fournis par l'environnement du serveur ; aucun
+mot de passe DB n'est embarqué. Le compte administrateur initial n'est créé
+que si FINEA_BOOTSTRAP_ADMIN_EMAIL et FINEA_BOOTSTRAP_ADMIN_PASSWORD sont
+fournis, avec un mot de passe de 12 caractères minimum. Retirer ces variables
+après le provisionnement. Aucun compte existant n'est élevé automatiquement.
