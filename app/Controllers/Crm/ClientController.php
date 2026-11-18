@@ -14,11 +14,13 @@ final class ClientController extends BaseController {
   if(!Auth::user()?->isAdmin){http_response_code(403);exit('Accès CRM réservé aux administrateurs pour cette première version.');}
  }
  private function csrf():string{return $_SESSION['crm_client_csrf']??=bin2hex(random_bytes(32));}
- public function index():void{
-  $this->guard();$id=filter_input(INPUT_GET,'edit',FILTER_VALIDATE_INT)?:0;
+ public function index():void{ $this->renderIndex(false); }
+ public function create():void{ $this->renderIndex(true); }
+ private function renderIndex(bool $new):void{
+  $this->guard();$id=$new?0:(filter_input(INPUT_GET,'edit',FILTER_VALIDATE_INT)?:0);
   $error=$_SESSION['crm_client_error']??null;$success=$_SESSION['crm_client_success']??null;
   unset($_SESSION['crm_client_error'],$_SESSION['crm_client_success']);
-  $this->view('crm/clients',['pageTitle'=>'Clients et prospects','clients'=>$this->service()->all((string)($_GET['q']??'')),'clientEdit'=>$id?$this->service()->find($id):null,'csrfCrm'=>$this->csrf(),'errorCrm'=>$error,'successCrm'=>$success] + \App\Services\Crm\CrmPageContext::forPage('Clients & Prospects','clients'));
+  $this->view('crm/clients',['pageTitle'=>'Clients et prospects','clients'=>$this->service()->all((string)($_GET['q']??'')),'clientEdit'=>$id?$this->service()->find($id):null,'csrfCrm'=>$this->csrf(),'errorCrm'=>$error,'successCrm'=>$success,'crmNewMode'=>$new] + \App\Services\Crm\CrmPageContext::forPage($new?'Créer un client':'Clients & Prospects',$new?'nouveau-client':'clients'));
  }
  public function save():void{
   $this->guard(true);

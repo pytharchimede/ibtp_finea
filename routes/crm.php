@@ -13,6 +13,7 @@ $router->group('/crm', function (Router $router): void {
     $router->get('/', [CrmDashboardController::class, 'index']);
     $router->get('/dashboard', [CrmDashboardController::class, 'index']);
     $router->get('/clients', [ClientController::class, 'index']);
+    $router->get('/clients/nouveau', [ClientController::class, 'create']);
     $router->post('/clients', [ClientController::class, 'save']);
     $router->get('/opportunites', [CrmRecordsController::class, 'opportunities']);
     $router->get('/interactions', [CrmRecordsController::class, 'interactions']);

@@ -74,7 +74,7 @@ final class ModuleDashboardService
                     ['label' => 'Interactions', 'value' => '0', 'meta' => 'Historique relation client'],
                 ],
                 'actions' => [
-                    ['label' => 'Nouveau client', 'hint' => 'Créer une fiche client/prospect', 'url' => '/crm/clients'],
+                    ['label' => 'Nouveau client', 'hint' => 'Créer une fiche client/prospect', 'url' => '/crm/clients/nouveau'],
                     ['label' => 'Pipeline', 'hint' => 'Suivre les opportunités et relances', 'url' => '/crm/opportunites'],
                     ['label' => 'Interactions', 'hint' => 'Historique appels, mails et visites', 'url' => '/crm/interactions'],
                 ],
@@ -255,10 +255,11 @@ final class ModuleDashboardService
         $base = '/' . $module['slug'];
         if ($module['slug'] === 'crm') {
             return [
-                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/crm/dashboard','available'=>true],
-                ['key'=>'clients','label'=>'Clients & Prospects','icon'=>'CL','url'=>'/crm/clients','available'=>true],
-                ['key'=>'opportunites','label'=>'Opportunités','icon'=>'OP','url'=>'/crm/opportunites','available'=>true],
-                ['key'=>'interactions','label'=>'Interactions','icon'=>'IN','url'=>'/crm/interactions','available'=>true],
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/crm/dashboard','group'=>'Pilotage','available'=>true],
+                ['key'=>'clients','label'=>'Liste des clients','icon'=>'CL','url'=>'/crm/clients','group'=>'Clients & prospects','available'=>true],
+                ['key'=>'nouveau-client','label'=>'Créer un client','icon'=>'+','url'=>'/crm/clients/nouveau','group'=>'Clients & prospects','available'=>true],
+                ['key'=>'opportunites','label'=>'Opportunités','icon'=>'OP','url'=>'/crm/opportunites','group'=>'Activité commerciale','available'=>true],
+                ['key'=>'interactions','label'=>'Interactions','icon'=>'IN','url'=>'/crm/interactions','group'=>'Activité commerciale','available'=>true],
             ];
         }
         return [
