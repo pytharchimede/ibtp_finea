@@ -268,6 +268,8 @@ final class ModuleDashboardService
                 ['key'=>'chantiers','label'=>'Liste des chantiers','icon'=>'CH','url'=>'/btp/chantiers','group'=>'Exécution','available'=>true],
                 ['key'=>'planning-nouveau','label'=>'Créer un planning','icon'=>'+','url'=>'/btp/plannings/nouveau','group'=>'Études & planning','available'=>true],
                 ['key'=>'plannings','label'=>'Liste des plannings','icon'=>'PL','url'=>'/btp/plannings','group'=>'Études & planning','available'=>true],
+                ['key'=>'bc-nouveau','label'=>'Nouveau bon de commande','icon'=>'+','url'=>'/btp/bons-commande/nouveau','group'=>'Commandes clients','available'=>true],
+                ['key'=>'bc-liste','label'=>'Liste des bons de commande','icon'=>'BC','url'=>'/btp/bons-commande','group'=>'Commandes clients','available'=>true],
                 ['key'=>'devis-liste','label'=>'Liste des devis','icon'=>'DV','url'=>'/btp/devis','group'=>'Devis & chiffrage','available'=>true],
                 ['key'=>'devis-nouveau','label'=>'Nouveau devis','icon'=>'+','url'=>'/btp/devis/nouveau','group'=>'Devis & chiffrage','available'=>true],
             ];

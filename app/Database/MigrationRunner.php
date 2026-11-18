@@ -44,6 +44,7 @@ class MigrationRunner
         $this->upgradeBtpOfferEditor();
         $this->createBtpChantierStarts();
         $this->createBtpStandalonePlannings();
+        $this->createBtpClientOrders();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
@@ -81,6 +82,41 @@ class MigrationRunner
             KEY idx_btp_quote_project (projet_id),
             CONSTRAINT fk_btp_quote_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
             CONSTRAINT fk_btp_quote_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function createBtpClientOrders(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_client_orders (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            offer_id BIGINT UNSIGNED NOT NULL,
+            reference VARCHAR(80) NOT NULL,
+            received_at DATE NOT NULL,
+            document_id BIGINT UNSIGNED NOT NULL,
+            amount_ht DECIMAL(18,2) NOT NULL,
+            status VARCHAR(30) NOT NULL DEFAULT 'enregistre',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_order_reference (projet_id,reference),
+            FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            FOREIGN KEY (offer_id) REFERENCES btp_offer_drafts(id) ON DELETE RESTRICT,
+            FOREIGN KEY (document_id) REFERENCES btp_documents(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_client_order_lines (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            order_id BIGINT UNSIGNED NOT NULL,
+            offer_line_id BIGINT UNSIGNED NOT NULL,
+            line_order INT NOT NULL,
+            group_name VARCHAR(180) NULL,
+            description VARCHAR(500) NOT NULL,
+            unit VARCHAR(30) NOT NULL,
+            quantity DECIMAL(15,3) NOT NULL,
+            unit_price DECIMAL(18,2) NOT NULL,
+            line_total DECIMAL(18,2) NOT NULL,
+            UNIQUE KEY uq_btp_order_line (order_id,offer_line_id),
+            FOREIGN KEY (order_id) REFERENCES btp_client_orders(id) ON DELETE RESTRICT,
+            FOREIGN KEY (offer_line_id) REFERENCES btp_offer_lines(id) ON DELETE RESTRICT
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     }
 

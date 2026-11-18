@@ -23,6 +23,25 @@ final class ProjetController extends BaseController
             'moduleTheme'=>$module,'activeModule'=>$active,'moduleNavigation'=>$module['navigation'],
             'additionalStyles'=>['css/finea-ui.css','css/components/btp-projects.css','css/components/btp-workspace.css']];
     }
+    public function orderIndex(): void {
+        AuthMiddleware::check();if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
+        $s=new \App\Services\Btp\ClientOrderService(Database::getConnection());
+        $this->view('btp/bc_liste',$this->context('Bons de commande','bc-liste')+['ordersBtp'=>$s->all()]);
+    }
+    public function orderCreate(): void {
+        AuthMiddleware::check();if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        $s=new \App\Services\Btp\ClientOrderService(Database::getConnection());
+        $id=(int)($_GET['projet']??0);
+        $this->view('btp/bc_nouveau',$this->context('Nouveau bon de commande','bc-nouveau')+['projetsBtp'=>$s->projects(),'offersBtp'=>$id?$s->offers($id):[],'selectedProjectBtp'=>$id,'csrfBtp'=>$this->csrf(),'errorBtp'=>$_SESSION['btp_bc_error']??null]);
+        unset($_SESSION['btp_bc_error']);
+    }
+    public function orderStore(): void {
+        AuthMiddleware::check();if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        $project=(int)($_POST['project_id']??0);
+        try{(new \App\Services\Btp\ClientOrderService(Database::getConnection()))->save($project,$_POST,$_FILES['document']??[],isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);$this->redirect('/btp/bons-commande');}
+        catch(\Throwable $e){error_log('[BTP BC] '.$e->getMessage());$_SESSION['btp_bc_error']=$e instanceof InvalidArgumentException?$e->getMessage():'Enregistrement du BC impossible. Consultez les journaux PHP.';$this->redirect('/btp/bons-commande/nouveau?projet='.$project);}
+    }
     public function chantierIndex(): void
     {
         AuthMiddleware::check();

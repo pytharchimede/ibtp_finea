@@ -4,6 +4,9 @@ use App\Router;
 use App\Controllers\Btp\ProjetController;
 /** @var Router $router */
 $router->group('/btp', static function(Router $router): void {
+    $router->get('/bons-commande',[ProjetController::class,'orderIndex']);
+    $router->get('/bons-commande/nouveau',[ProjetController::class,'orderCreate']);
+    $router->post('/bons-commande',[ProjetController::class,'orderStore']);
     $router->get('/chantiers',[ProjetController::class,'chantierIndex']);
     $router->get('/chantiers/nouveau',[ProjetController::class,'chantierCreate']);
     $router->get('/chantiers/nouveau/projet/{id}',[ProjetController::class,'chantierWizard']);
