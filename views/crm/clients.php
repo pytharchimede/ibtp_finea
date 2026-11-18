@@ -16,6 +16,16 @@ ob_start();?>
 <?php foreach(['name'=>'Raison sociale / nom','contact_name'=>'Personne à contacter','email'=>'Adresse email','phone'=>'Téléphone','country'=>'Pays','city'=>'Ville','sector'=>"Secteur d'activité"] as $key=>$label):?>
 <label class="crm-field"><?= $e($label) ?><input name="<?= $e($key) ?>" value="<?= $e($clientEdit[$key]??'') ?>" <?= $key==='name'?'required':'' ?> maxlength="<?= $key==='name'?180:($key==='email'?150:160) ?>"></label>
 <?php endforeach;?>
+<h3>Identification légale</h3>
+<p style="color:#64748b;font-size:.83rem">L'enregistrement reste en attente de vérification officielle. Aucun numéro n'est considéré comme authentifié automatiquement.</p>
+<label class="crm-field">Nature juridique<select name="legal_form" required>
+<option value="personne_morale" <?= ($clientEdit['legal_form']??'personne_morale')==='personne_morale'?'selected':'' ?>>Personne morale (entreprise)</option>
+<option value="personne_physique" <?= ($clientEdit['legal_form']??'')==='personne_physique'?'selected':'' ?>>Personne physique</option></select></label>
+<label class="crm-field">Pays d'immatriculation / identité (code ISO : CI, FR, DE...)<input name="identity_country" required maxlength="2" value="<?= $e($clientEdit['identity_country']??'CI') ?>"></label>
+<label class="crm-field">Type d'identifiant (CNI, NCC, RCCM, SIREN, SIRET, REGISTRE, TVA, LEI)<input name="identifier_kind" required maxlength="32" value="<?= $e($clientEdit['identifier_kind']??'') ?>"></label>
+<label class="crm-field">Numéro de l'identifiant officiel<input name="identifier_value" required maxlength="100" value="<?= $e($clientEdit['identifier_value']??'') ?>"></label>
+<label class="crm-field"><input type="checkbox" name="cni_present" value="1" style="width:auto;display:inline" <?= !empty($clientEdit['cni_present'])?'checked':'' ?>> CNI présentée (personne physique ivoirienne)</label>
+<?php if($clientEdit):?><p><strong>Vérification :</strong> <?= $e($clientEdit['verification_status']??'pending') ?> — aucune validation externe automatique dans cette version.</p><?php endif;?>
 <label class="crm-field">Catégorie<select name="type"><?php foreach(['prospect'=>'Prospect','client'=>'Client','partner'=>'Partenaire'] as $key=>$label):?><option value="<?= $key ?>" <?= ($clientEdit['type']??'prospect')===$key?'selected':'' ?>><?= $label ?></option><?php endforeach;?></select></label>
 <label class="crm-field">Statut<select name="status"><?php foreach(['new'=>'Nouveau','active'=>'Actif','dormant'=>'Inactif','lost'=>'Perdu'] as $key=>$label):?><option value="<?= $key ?>" <?= ($clientEdit['status']??'new')===$key?'selected':'' ?>><?= $label ?></option><?php endforeach;?></select></label>
 <label class="crm-field">Notes<textarea name="notes" rows="3"><?= $e($clientEdit['notes']??'') ?></textarea></label>

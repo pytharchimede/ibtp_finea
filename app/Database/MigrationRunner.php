@@ -31,12 +31,29 @@ class MigrationRunner
         $this->createRhTables();
         $this->createBusinessTables();
         $this->createBtpTables();
+        $this->createCrmIdentityFields();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
     }
 
 
+
+    /**
+     * Champs d'identification légale. Aucun statut vérifié n'est attribué sans preuve externe.
+     */
+    private function createCrmIdentityFields(): void
+    {
+        $this->addColumnIfMissing('crm_clients', 'legal_form', "ENUM('personne_physique','personne_morale') NOT NULL DEFAULT 'personne_morale'");
+        $this->addColumnIfMissing('crm_clients', 'identity_country', "CHAR(2) NULL");
+        $this->addColumnIfMissing('crm_clients', 'identifier_kind', "VARCHAR(32) NULL");
+        $this->addColumnIfMissing('crm_clients', 'identifier_value', "VARCHAR(100) NULL");
+        $this->addColumnIfMissing('crm_clients', 'cni_present', "TINYINT(1) NOT NULL DEFAULT 0");
+        $this->addColumnIfMissing('crm_clients', 'verification_status', "ENUM('pending','verified','rejected') NOT NULL DEFAULT 'pending'");
+        $this->addColumnIfMissing('crm_clients', 'verification_provider', "VARCHAR(100) NULL");
+        $this->addColumnIfMissing('crm_clients', 'verified_at', "DATETIME NULL");
+        $this->addIndexIfMissing('crm_clients', 'idx_crm_legal_identifier', 'identity_country, identifier_kind, identifier_value');
+    }
 
     /**
      * Création additive et idempotente du socle projets BTP.

@@ -18,6 +18,22 @@ final class ClientService {
   if($data['email']!==null&&!filter_var($data['email'],FILTER_VALIDATE_EMAIL))throw new DomainException('Adresse email invalide.');
   $data['type']=(string)($input['type']??'prospect');$data['status']=(string)($input['status']??'new');
   if(!in_array($data['type'],['prospect','client','partner'],true)||!in_array($data['status'],['new','active','dormant','lost'],true))throw new DomainException('Statut ou catégorie invalide.');
+  $legal=(string)($input['legal_form']??'personne_morale');
+  $country=strtoupper(trim((string)($input['identity_country']??'CI')));
+  $kind=strtoupper(trim((string)($input['identifier_kind']??'')));
+  $value=trim((string)($input['identifier_value']??''));
+  $cni=isset($input['cni_present']) && (string)$input['cni_present']==='1';
+  if(!in_array($legal,['personne_physique','personne_morale'],true))throw new DomainException('Nature juridique invalide.');
+  if(!preg_match('/^[A-Z]{2}$/',$country))throw new DomainException('Code pays ISO à deux lettres requis.');
+  if(strlen($kind)>32||strlen($value)>100)throw new DomainException('Identifiant légal trop long.');
+  if($legal==='personne_physique' && $country==='CI'){
+   if(!$cni||$kind!=='CNI'||$value==='')throw new DomainException('CNI présente et numéro CNI obligatoires pour une personne physique ivoirienne.');
+  }elseif($legal==='personne_morale'){
+   $allowed=match($country){'CI'=>['NCC','RCCM'],'FR'=>['SIREN','SIRET'],default=>['REGISTRE','TVA','LEI','SIREN','SIRET']};
+   if(!in_array($kind,$allowed,true)||$value==='')throw new DomainException('Identifiant officiel requis pour ce pays.');
+  }
+  $data['legal_form']=$legal;$data['identity_country']=$country;$data['identifier_kind']=$kind!==''?$kind:null;
+  $data['identifier_value']=$value!==''?$value:null;$data['cni_present']=$cni?1:0;
   if($id!==null){if($id<=0)throw new DomainException('Identifiant invalide.');$this->repo->update($id,$data);return $id;}
   return $this->repo->create($data,$actor);
  }
