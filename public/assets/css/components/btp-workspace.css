@@ -132,3 +132,14 @@
 
 /* Planning card action buttons */
 .btp-planning-actions{display:flex;gap:8px;flex-wrap:wrap}.btp-planning-actions a{border:1px solid #d6e3f3;background:#f2f7fd;padding:9px 11px;border-radius:8px}.btp-planning-actions a:hover{background:#dbeafe}.btp-planning-list-page [data-planning-card][hidden],#btp-planning-no-results[hidden]{display:none!important}
+
+/* Bon de commande : réutilisation du composant générique de dépôt de fichiers. */
+.btp-bc-upload{margin:20px 0}
+.btp-bc-field-title{display:block;font-weight:750;color:#243c5d;margin-bottom:10px}
+.btp-bc-dropzone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;min-height:185px;border:2px dashed #9cb8d7;border-radius:16px;background:#f5f9ff;padding:24px;text-align:center;cursor:pointer;transition:background .2s,border-color .2s}
+.btp-bc-dropzone:hover,.btp-bc-dropzone.is-dragover{background:#e8f2ff;border-color:#2463aa}
+.btp-bc-dropzone>i{font-size:2rem;color:#2765a7}
+.btp-bc-dropzone>strong{font-size:1.05rem;color:#203c5c}
+.btp-bc-dropzone>span,.btp-bc-dropzone>small{color:#637b98}
+.btp-bc-dropzone input[type=file]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.btp-bc-file-preview:not(:empty){font-weight:700;color:#176b4b;overflow-wrap:anywhere}
