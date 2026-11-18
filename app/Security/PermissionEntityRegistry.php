@@ -4,6 +4,7 @@ namespace App\Security;
 
 final class PermissionEntityRegistry
 {
+    public const BTP_PROJECTS = 'btp_projets';
     public const USERS = 'users';
     public const PERMISSION_ENTITIES = 'permission_entities';
     public const USER_PERMISSIONS = 'user_permissions';
@@ -18,6 +19,12 @@ final class PermissionEntityRegistry
     public static function all(): array
     {
         return [
+            self::BTP_PROJECTS => [
+                'module' => 'BTP',
+                'name' => 'Projets et chantiers',
+                'description' => 'Créer, consulter et modifier les projets BTP.',
+                'sort_order' => 200,
+            ],
             self::USERS => [
                 'module' => 'Administration',
                 'name' => 'Comptes utilisateurs',

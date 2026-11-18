@@ -3,6 +3,8 @@ declare(strict_types=1);
 namespace App\Controllers\Btp;
 use App\Controllers\BaseController;
 use App\Middleware\AuthMiddleware;
+use App\Helpers\Auth;
+use App\Security\PermissionEntityRegistry;
 use App\Models\Database;
 use App\Repositories\Btp\ProjetRepository;
 use App\Services\Btp\ProjetService;
@@ -16,13 +18,15 @@ final class ProjetController extends BaseController
     public function index(): void
     {
         AuthMiddleware::check();
+        if (!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)) { http_response_code(403); exit('Accès interdit'); }
         $error=$_SESSION['btp_projet_error'] ?? null;
         unset($_SESSION['btp_projet_error']);
-        $this->view('btp/projets',['pageTitle'=>'Projets BTP','projets'=>$this->service()->list(),'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+        $this->view('btp/projets',['pageTitle'=>'Projets BTP','projets'=>$this->service()->list(),'clientsBtp'=>$this->service()->clients(),'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
     }
     public function store(): void
     {
         AuthMiddleware::check();
+        if (!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')) { http_response_code(403); exit('Accès interdit'); }
         if (!hash_equals($this->csrf(),(string)($_POST['_csrf'] ?? ''))) {
             http_response_code(403); exit('Jeton invalide');
         }

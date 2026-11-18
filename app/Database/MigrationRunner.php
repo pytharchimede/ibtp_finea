@@ -30,11 +30,37 @@ class MigrationRunner
         $this->createAdminTables();
         $this->createRhTables();
         $this->createBusinessTables();
+        $this->createBtpTables();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
     }
 
+
+
+    /**
+     * Création additive et idempotente du socle projets BTP.
+     * Les migrations métier complémentaires restent dans database/manual.
+     */
+    private function createBtpTables(): void
+    {
+        $this->pdo->exec("
+            CREATE TABLE IF NOT EXISTS btp_projets (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                reference VARCHAR(40) NOT NULL UNIQUE,
+                intitule VARCHAR(180) NOT NULL,
+                client_nom VARCHAR(180) NOT NULL,
+                statut ENUM('prospect','etude','soumission','commande','execution','clos','abandonne') NOT NULL DEFAULT 'prospect',
+                created_by INT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                CONSTRAINT fk_btp_projet_auteur FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        ");
+        $this->addColumnIfMissing('btp_projets', 'client_id', 'INT UNSIGNED NULL');
+        $this->addIndexIfMissing('btp_projets', 'idx_btp_projet_client', 'client_id');
+        $this->addForeignKeyIfMissing('btp_projets', 'fk_btp_projet_client', 'client_id', 'crm_clients', 'id', 'SET NULL');
+    }
 
     /**
      * Crée la table "users" si elle n'existe pas, et ajoute les colonnes nécessaires.

@@ -40,6 +40,18 @@ final class SelectionPortailController extends BaseController
         ]]);
 
         $modules[] = [
+            'key' => 'btp',
+            'label' => 'Projets & Chantiers',
+            'code' => 'BTP',
+            'icon' => 'logistique',
+            'description' => 'Créer les projets BTP, préparer les devis et suivre les chantiers.',
+            'url' => '/btp/projets',
+            'class' => 'module-btp',
+            'status' => 'Projets opérationnels',
+            'keywords' => 'btp projet chantier devis bon de commande déboursé',
+        ];
+
+        $modules[] = [
             'key' => 'admin',
             'label' => 'Admin',
             'code' => 'ADM',
@@ -59,6 +71,9 @@ final class SelectionPortailController extends BaseController
             }
             if ($module['key'] === 'admin') {
                 return Auth::user()?->isAdmin ?? false;
+            }
+            if ($module['key'] === 'btp') {
+                return Auth::can(PermissionEntityRegistry::BTP_PROJECTS);
             }
             if ($module['key'] === 'rh') {
                 $requirements = array_fill_keys(
