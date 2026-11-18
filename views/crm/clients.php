@@ -58,7 +58,25 @@ ob_start();?>
 .crm-search{display:flex;gap:8px;margin-bottom:14px}
 .crm-search input{flex:1;min-width:0;padding:10px;border:1px solid #cbd5e1;border-radius:9px}
 @media(max-width:700px){.crm-wrap{padding:0 12px;margin:14px auto}.crm-card{padding:20px 15px}.crm-form-layout{grid-template-columns:1fr;gap:17px}.crm-tabbar{margin-bottom:26px;padding-left:0;padding-right:0}.crm-step-dot{width:39px;height:39px;font-size:15px}.crm-tabbar:before{top:31px}.crm-tab-title{font-size:.78rem}.crm-step-hint{display:none}.crm-wizard-actions{flex-wrap:wrap}.crm-wizard-actions [data-wizard-counter]{font-size:.74rem}}
-.crm-step-check{font-size:23px;font-weight:900;line-height:1}.crm-step-check[hidden]{display:none!important}.crm-step-dot svg{display:block;flex-shrink:0}</style>
+.crm-step-check{font-size:23px;font-weight:900;line-height:1}.crm-step-check[hidden]{display:none!important}.crm-step-dot svg{display:block;flex-shrink:0}.crm-client-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.crm-client-card{min-width:0;display:flex;flex-direction:column;border:1px solid #dfe7f2;border-radius:16px;background:#fff;box-shadow:0 5px 18px rgba(28,48,84,.045);overflow:hidden;transition:transform .18s,box-shadow .18s}
+.crm-client-card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(28,48,84,.1)}
+.crm-client-head{display:flex;align-items:flex-start;gap:13px;padding:19px 19px 13px}
+.crm-client-avatar{flex:0 0 43px;width:43px;height:43px;border-radius:12px;display:grid;place-items:center;background:#eaf0ff;color:#254b95;font-size:1.18rem;font-weight:850}
+.crm-client-title{min-width:0;flex:1}.crm-client-title h3{margin:0 0 8px;color:#1c3155;font-size:1.02rem;line-height:1.35;overflow-wrap:anywhere}
+.crm-client-type{display:inline-flex;padding:4px 10px;border-radius:999px;background:#eff5ff;color:#315b9b;font-size:.74rem;font-weight:750}
+.crm-client-details{margin:0;padding:4px 19px 15px;display:grid;gap:12px}
+.crm-client-details>div{display:grid;grid-template-columns:95px minmax(0,1fr);gap:9px;align-items:start}
+.crm-client-details dt{color:#74839a;font-size:.8rem}.crm-client-details dd{margin:0;min-width:0;color:#263954;font-size:.86rem;font-weight:650;overflow-wrap:anywhere}
+.crm-client-details a{color:#24529b;text-decoration:none}
+.crm-client-footer{margin-top:auto;padding:13px 19px;border-top:1px solid #e9eef6;background:#fbfcff;display:flex;justify-content:flex-end}
+.crm-client-edit{display:inline-flex;align-items:center;gap:9px;color:#244e94;font-weight:800;font-size:.84rem;text-decoration:none;min-height:32px}
+.crm-client-edit:hover{text-decoration:underline}
+.crm-client-empty{grid-column:1/-1;padding:36px 20px;text-align:center;border:1px dashed #cbd8e9;border-radius:14px;color:#334766}
+.crm-client-empty p{color:#73839b}.crm-client-empty a{color:#254b95;font-weight:750}
+@media(max-width:760px){.crm-client-grid{grid-template-columns:1fr}.crm-search{flex-wrap:wrap}.crm-search input{flex-basis:100%}.crm-search button{width:100%}}
+@media(max-width:420px){.crm-client-head{padding:16px 15px 11px}.crm-client-details{padding:4px 15px 14px}.crm-client-details>div{grid-template-columns:85px minmax(0,1fr)}.crm-client-footer{padding:11px 15px}}
+</style>
 <div class="crm-wrap"><div class="crm-hero"><h1>Clients &amp; Prospects</h1><p>Référentiel CRM partagé avec les projets BTP.</p><a href="<?= $e(View::url('crm/dashboard')) ?>">Tableau de bord CRM</a> · <a href="<?= $e(View::url('crm/clients/nouveau')) ?>">+ Nouveau client</a></div>
 <?php if($errorCrm):?><div class="crm-alert" role="alert"><?= $e($errorCrm) ?></div><?php endif;?>
 <?php if($successCrm):?><div class="crm-alert crm-success"><?= $e($successCrm) ?></div><?php endif;?>
@@ -112,9 +130,20 @@ ob_start();?>
 <?php if($clientEdit):?><a href="<?= $e(View::url('crm/clients')) ?>">Annuler</a><?php endif;?>
 </form></section><?php else:?><section class="crm-card"><h2>Répertoire CRM (<?= count($clients) ?>)</h2>
 <form class="crm-search" method="get"><input name="q" placeholder="Rechercher un client" value="<?= $e($_GET['q']??'') ?>"><button class="crm-submit" type="submit">Rechercher</button></form>
-<div class="crm-scroll"><table class="crm-table"><thead><tr><th>Client</th><th>Type</th><th>Contact</th><th>Téléphone</th><th>Ville</th><th></th></tr></thead><tbody>
-<?php foreach($clients as $client):?><tr><td><strong><?= $e($client['name']) ?></strong></td><td><?= $e($client['type']) ?></td><td><?= $e($client['contact_name']) ?></td><td><?= $e($client['phone']) ?></td><td><?= $e($client['city']) ?></td><td><a href="<?= $e(View::url('crm/clients/modifier')) ?>?id=<?= (int)$client['id'] ?>">Modifier</a></td></tr><?php endforeach;?>
-<?php if(!$clients):?><tr><td colspan="6">Aucun client enregistré. Créez votre première fiche.</td></tr><?php endif;?></tbody></table></div></section><?php endif;?></div></div>
+<div class="crm-client-grid">
+<?php foreach($clients as $client):?>
+<article class="crm-client-card">
+<div class="crm-client-head"><span class="crm-client-avatar" aria-hidden="true"><?= $e(mb_strtoupper(mb_substr(trim((string)$client['name']),0,1))) ?></span><div class="crm-client-title"><h3><?= $e($client['name']) ?></h3><span class="crm-client-type"><?= $e($client['type']) ?></span></div></div>
+<dl class="crm-client-details">
+<div><dt>Contact</dt><dd><?= $e($client['contact_name']?:'Non renseigné') ?></dd></div>
+<div><dt>Téléphone</dt><dd><?php if(!empty($client['phone'])):?><a href="tel:<?= $e(preg_replace('/[^+0-9]/','',(string)$client['phone'])) ?>"><?= $e($client['phone']) ?></a><?php else:?>Non renseigné<?php endif;?></dd></div>
+<div><dt>Ville</dt><dd><?= $e($client['city']?:'Non renseignée') ?></dd></div>
+</dl>
+<div class="crm-client-footer"><a class="crm-client-edit" href="<?= $e(View::url('crm/clients/modifier')) ?>?id=<?= (int)$client['id'] ?>">Modifier la fiche <span aria-hidden="true">→</span></a></div>
+</article>
+<?php endforeach;?>
+<?php if(!$clients):?><div class="crm-client-empty"><strong>Aucun client trouvé</strong><p>Aucun résultat pour cette recherche. Vous pouvez créer une nouvelle fiche client.</p><a href="<?= $e(View::url('crm/clients/nouveau')) ?>">Créer un client</a></div><?php endif;?>
+</div></section><?php endif;?></div></div>
 <script src="<?= $e(View::asset('js/components/form-wizard.js')) ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
