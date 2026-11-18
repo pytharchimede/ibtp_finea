@@ -54,7 +54,9 @@ final class OfferDraftService
         }
         $validityDays=trim((string)($data['validity_days']??'30'));
         if($validityDays===''||!ctype_digit($validityDays)||(int)$validityDays>3650)throw new InvalidArgumentException('Durée de validité invalide.');
-        $valid=(new \DateTimeImmutable($date))->modify('+'.(int)$validityDays.' days')->format('Y-m-d');
+        $calculatedEnd=(new \DateTimeImmutable($date))->modify('+'.(int)$validityDays.' days')->format('Y-m-d');
+        if($valid!==''&&$valid!==$calculatedEnd)throw new InvalidArgumentException('Les dates et la durée de validité ne correspondent pas.');
+        $valid=$calculatedEnd;
         $billingDate=(string)($data['billing_date']??'');
         if(!self::validDate($billingDate))throw new InvalidArgumentException('Date de facturation invalide.');
         $days=trim((string)($data['delivery_days']??''));

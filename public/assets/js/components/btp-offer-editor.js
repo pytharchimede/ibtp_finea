@@ -16,6 +16,28 @@ const td=document.createElement('td'),remove=document.createElement('button');re
 if(window.FineaFormComponents?.enhanceSelect)window.FineaFormComponents.enhanceSelect(select);
 };
 const addTask=()=>{const i=taskId++,tr=document.createElement('tr');for(const [field,type,placeholder] of [['label','text','Phase des travaux'],['start_date','date',''],['end_date','date','']]){const td=document.createElement('td');td.appendChild(input('planning['+i+']['+field+']',type,placeholder));tr.appendChild(td);}const td=document.createElement('td'),remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.addEventListener('click',()=>tr.remove());td.appendChild(remove);tr.appendChild(td);tasks.appendChild(tr);};
-const updateValidity=()=>{const issued=form.querySelector('[name=issue_date]').value,days=Number(form.querySelector('[name=validity_days]').value);if(!issued||!Number.isInteger(days)||days<0)return;const date=new Date(issued+'T12:00:00Z');date.setUTCDate(date.getUTCDate()+days);form.querySelector('[data-validity-end]').value=date.toISOString().slice(0,10);};
-form.querySelector('[data-add-line]').addEventListener('click',addLine);form.querySelector('[data-add-group]').addEventListener('click',addGroup);form.querySelector('[data-add-task]').addEventListener('click',addTask);form.addEventListener('input',()=>{calc();updateValidity();});form.addEventListener('change',()=>{calc();updateValidity();});addLine();addTask();calc();updateValidity();
+const issuedField=form.querySelector('[name=issue_date]'),durationField=form.querySelector('[name=validity_days]'),endField=form.querySelector('[name=validity_date]');
+const parseDate=value=>{if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value))return null;const date=new Date(value+'T00:00:00Z');return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value?date:null;};
+const formatDate=date=>date.toISOString().slice(0,10);
+const daysBetween=(start,end)=>Math.round((end.getTime()-start.getTime())/86400000);
+const shiftDate=(date,days)=>{const copy=new Date(date.getTime());copy.setUTCDate(copy.getUTCDate()+days);return formatDate(copy);};
+let lastEdited='duration';
+const syncValidity=changed=>{
+  if(changed==='issue'||changed==='duration'||changed==='end')lastEdited=changed;
+  const start=parseDate(issuedField.value),end=parseDate(endField.value);
+  const raw=durationField.value,days=raw!==''?Number(raw):NaN;
+  const validDays=Number.isInteger(days)&&days>=0&&days<=3650;
+  if(lastEdited==='end'){
+    if(start&&end){const diff=daysBetween(start,end);durationField.value=diff>=0&&diff<=3650?String(diff):'';}
+    else if(end&&validDays)issuedField.value=shiftDate(end,-days);
+  }else if(lastEdited==='issue'){
+    if(end&&validDays){issuedField.value=start?issuedField.value:shiftDate(end,-days);if(start)durationField.value=String(daysBetween(start,end));}
+    else if(start&&validDays)endField.value=shiftDate(start,days);
+  }else{
+    if(start&&validDays)endField.value=shiftDate(start,days);
+    else if(end&&validDays)issuedField.value=shiftDate(end,-days);
+    else if(start&&end){const diff=daysBetween(start,end);durationField.value=diff>=0&&diff<=3650?String(diff):'';}
+  }
+};
+form.querySelector('[data-add-line]').addEventListener('click',addLine);form.querySelector('[data-add-group]').addEventListener('click',addGroup);form.querySelector('[data-add-task]').addEventListener('click',addTask);form.addEventListener('input',e=>{calc();if(e.target===issuedField)syncValidity('issue');else if(e.target===durationField)syncValidity('duration');else if(e.target===endField)syncValidity('end');});form.addEventListener('change',e=>{calc();if(e.target===issuedField)syncValidity('issue');else if(e.target===durationField)syncValidity('duration');else if(e.target===endField)syncValidity('end');});addLine();addTask();calc();syncValidity('duration');
 });})();
