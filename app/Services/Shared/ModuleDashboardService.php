@@ -26,7 +26,7 @@ final class ModuleDashboardService
                     ['label' => 'Alertes', 'value' => '0', 'meta' => 'Anomalies financières à surveiller'],
                 ],
                 'actions' => [
-                    ['label' => 'Nouvelle dépense', 'hint' => 'Préparer une demande de décaissement', 'url' => '/finance/dashboard'],
+                    ['label' => 'FEB à traiter', 'hint' => 'Valider les demandes et suivre les décaissements', 'url' => '/feb'],
                     ['label' => 'Facturation', 'hint' => 'Suivre les factures et avoirs', 'url' => '/finance/dashboard'],
                     ['label' => 'Trésorerie', 'hint' => 'Consulter les flux et prévisions', 'url' => '/finance/dashboard'],
                 ],
@@ -58,8 +58,8 @@ final class ModuleDashboardService
                     ['label' => 'Présence', 'value' => '0%', 'meta' => 'Indicateur personnel mensuel'],
                 ],
                 'actions' => [
-                    ['label' => 'Mes demandes', 'hint' => 'Absence, attestation, congé, avance', 'url' => '/espace-employe/dashboard'],
-                    ['label' => 'Mes documents', 'hint' => 'Consulter et compléter mon dossier', 'url' => '/espace-employe/dashboard'],
+                    ['label' => 'Créer une FEB', 'hint' => 'Demander un besoin pour un chantier autorisé', 'url' => '/feb/nouvelle'],
+                    ['label' => 'Mes FEB', 'hint' => 'Suivre mes demandes et leurs décisions', 'url' => '/feb'],
                     ['label' => 'Mon pointage', 'hint' => 'Voir mes présences et retards', 'url' => '/espace-employe/dashboard'],
                 ],
             ],
@@ -263,7 +263,14 @@ final class ModuleDashboardService
             return [
                 ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/finance/dashboard','group'=>'Pilotage','available'=>true],
                 ['key'=>'feb','label'=>'Fiches d’expression de besoin (FEB)','icon'=>'FEB','url'=>'/feb','group'=>'Décaissements','available'=>true],
-                ['key'=>'feb-nouvelle','label'=>'Nouvelle FEB','icon'=>'+','url'=>'/feb/nouvelle','group'=>'Décaissements','available'=>true],
+                ['key'=>'feb-admin','label'=>'Paramétrage FEB','icon'=>'CFG','url'=>'/admin/feb','group'=>'Décaissements','available'=>true],
+            ];
+        }
+        if ($module['slug'] === 'espace-employe') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/espace-employe/dashboard','group'=>'Mon espace','available'=>true],
+                ['key'=>'feb-nouvelle','label'=>'Créer une FEB','icon'=>'+','url'=>'/feb/nouvelle','group'=>'Mes demandes','available'=>true],
+                ['key'=>'feb','label'=>'Mes FEB','icon'=>'FEB','url'=>'/feb','group'=>'Mes demandes','available'=>true],
             ];
         }
         if ($module['slug'] === 'btp') {
