@@ -11,13 +11,15 @@ final class CrmRecordsController extends BaseController {
  private function show(string $kind):void{
   $this->guard();$pdo=Database::getConnection();
   if($kind==='opportunities'){
-   $rows=$pdo->query('SELECT o.id,o.title,o.stage,o.estimated_amount,o.currency,o.expected_close_date,c.name AS client_name FROM crm_opportunities o JOIN crm_clients c ON c.id=o.client_id ORDER BY o.id DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
+   $repo=new \App\Repositories\Crm\OpportunityRepository($pdo);
+   $filters=array_intersect_key($_GET,array_flip(['q','client_id','stage','deadline_from','deadline_to']));
+   $rows=$repo->search($filters);$filterClients=$repo->clients();
   }else{
    $rows=$pdo->query('SELECT i.id,i.channel,i.subject,i.interaction_at,i.next_action_date,c.name AS client_name FROM crm_interactions i JOIN crm_clients c ON c.id=i.client_id ORDER BY i.id DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
   }
   $oppSuccess=$_SESSION['crm_opp_success']??null;
   unset($_SESSION['crm_opp_success']);
-  $this->view('crm/records',['pageTitle'=>$kind==='opportunities'?'Opportunités CRM':'Interactions CRM','crmKind'=>$kind,'crmRows'=>$rows,'crmOppSuccess'=>$oppSuccess] + \App\Services\Crm\CrmPageContext::forPage($kind==='opportunities'?'Opportunités CRM':'Interactions CRM',$kind==='opportunities'?'opportunites':'interactions'));
+  $this->view('crm/records',['pageTitle'=>$kind==='opportunities'?'Opportunités CRM':'Interactions CRM','crmKind'=>$kind,'crmRows'=>$rows,'crmOppSuccess'=>$oppSuccess,'crmOppFilters'=>$filters??[],'crmOppClients'=>$filterClients??[]] + \App\Services\Crm\CrmPageContext::forPage($kind==='opportunities'?'Opportunités CRM':'Interactions CRM',$kind==='opportunities'?'opportunites':'interactions'));
  }
  private function csrf():string{return $_SESSION['crm_opp_csrf']??=bin2hex(random_bytes(32));}
  public function newOpportunity():void{
@@ -83,6 +85,16 @@ final class CrmRecordsController extends BaseController {
   header('Content-Type: application/octet-stream');header('X-Content-Type-Options: nosniff');
   header('Content-Disposition: attachment; filename="piece-jointe-'.(int)$file['id'].'.bin"');
   header('Content-Length: '.filesize($path));readfile($path);exit;
+ }
+ public function exportOpportunities():void{
+  $this->guard();
+  $filters=array_intersect_key($_GET,array_flip(['q','client_id','stage','deadline_from','deadline_to']));
+  $rows=(new \App\Repositories\Crm\OpportunityRepository(Database::getConnection()))->search($filters);
+  header('Content-Type: text/csv; charset=UTF-8');header('Content-Disposition: attachment; filename="opportunites-finea-'.date('Ymd-His').'.csv"');header('Cache-Control: no-store');
+  $out=fopen('php://output','wb');fwrite($out,"\xEF\xBB\xBF");
+  $columns=['id','client_name','title','stage','estimated_amount','currency','deadline','probability','description','attachment_count'];fputcsv($out,$columns,';');
+  foreach($rows as $row){$values=[];foreach($columns as $key){$value=(string)($row[$key]??'');$values[]=preg_match('/^\s*[=+@-]/u',$value)?"'".$value:$value;}fputcsv($out,$values,';');}
+  fclose($out);exit;
  }
  public function opportunities():void{$this->show('opportunities');}
  public function interactions():void{$this->show('interactions');}
