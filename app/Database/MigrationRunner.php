@@ -34,12 +34,30 @@ class MigrationRunner
         $this->createCrmIdentityFields();
         $this->createCrmReferenceOptions();
         $this->createCrmVerificationOverrides();
+        $this->createCrmOpportunityDetails();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
     }
 
 
+
+    private function createCrmOpportunityDetails(): void
+    {
+        $this->addColumnIfMissing('crm_opportunities','description',"TEXT NULL");
+        $this->addColumnIfMissing('crm_opportunities','deadline',"DATE NULL");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS crm_opportunity_attachments (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            opportunity_id INT UNSIGNED NOT NULL,
+            original_name VARCHAR(255) NOT NULL,
+            storage_name VARCHAR(100) NOT NULL,
+            mime_type VARCHAR(100) NOT NULL,
+            file_size INT UNSIGNED NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_crm_opp_attachment (opportunity_id),
+            CONSTRAINT fk_crm_opp_attachment FOREIGN KEY (opportunity_id) REFERENCES crm_opportunities(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
 
     private function createCrmVerificationOverrides(): void
     {

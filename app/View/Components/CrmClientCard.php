@@ -30,7 +30,17 @@ final class CrmClientCard
 <div><dt>Téléphone</dt><dd><?php if ($phone !== '' && $phoneHref !== ''): ?><a href="tel:<?= $e($phoneHref) ?>"><?= $e($phone) ?></a><?php else: ?>Non renseigné<?php endif; ?></dd></div>
 <div><dt>Ville</dt><dd><?= $e($client['city'] ?: 'Non renseignée') ?></dd></div>
 </dl>
-<div class="crm-client-footer"><details class="crm-client-quick"><summary>Actions</summary><div class="crm-client-quick-menu"><a href="<?= $e(View::url('crm/clients/export')) ?>?id=<?= (int)$client['id'] ?>">Exporter CSV</a><form method="post" action="<?= $e(View::url('crm/clients/qualifier')) ?>"><input type="hidden" name="_csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="id" value="<?= (int)$client['id'] ?>"><label>Qualification<select name="type"><option value="prospect" <?= ($client['type']??'')==='prospect'?'selected':'' ?>>Prospect</option><option value="client" <?= ($client['type']??'')==='client'?'selected':'' ?>>Client</option><option value="partner" <?= ($client['type']??'')==='partner'?'selected':'' ?>>Partenaire</option></select></label><button type="submit">Appliquer</button></form></div></details><a class="crm-client-edit" href="<?= $e($editUrl) ?>">Modifier la fiche <span aria-hidden="true">→</span></a></div>
+<div class="crm-client-footer">
+<a class="crm-client-action primary" href="<?= $e(View::url('crm/opportunites/nouvelle')) ?>?client_id=<?= (int)$client['id'] ?>">+ Opportunité</a>
+<a class="crm-client-action" href="<?= $e($editUrl) ?>">Modifier</a>
+<a class="crm-client-action" href="<?= $e(View::url('crm/clients/export')) ?>?id=<?= (int)$client['id'] ?>">Exporter</a>
+</div>
+<form class="crm-client-qualification" method="post" action="<?= $e(View::url('crm/clients/qualifier')) ?>">
+<input type="hidden" name="_csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="id" value="<?= (int)$client['id'] ?>">
+<label for="qualify-<?= (int)$client['id'] ?>">Qualification</label>
+<select id="qualify-<?= (int)$client['id'] ?>" name="type"><option value="prospect" <?= ($client['type']??'')==='prospect'?'selected':'' ?>>Prospect</option><option value="client" <?= ($client['type']??'')==='client'?'selected':'' ?>>Client</option><option value="partner" <?= ($client['type']??'')==='partner'?'selected':'' ?>>Partenaire</option></select>
+<button type="submit">Mettre à jour</button>
+</form>
 </article>
         <?php
         return (string) ob_get_clean();

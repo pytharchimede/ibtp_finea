@@ -18,6 +18,9 @@ $router->group('/crm', function (Router $router): void {
     $router->post('/clients/qualifier', [ClientController::class, 'qualify']);
     $router->get('/clients/export', [ClientController::class, 'export']);
     $router->post('/clients', [ClientController::class, 'save']);
+    $router->get('/opportunites/nouvelle', [CrmRecordsController::class, 'newOpportunity']);
+    $router->post('/opportunites', [CrmRecordsController::class, 'saveOpportunity']);
+    $router->get('/opportunites/piece-jointe', [CrmRecordsController::class, 'downloadAttachment']);
     $router->get('/opportunites', [CrmRecordsController::class, 'opportunities']);
     $router->get('/interactions', [CrmRecordsController::class, 'interactions']);
 });
