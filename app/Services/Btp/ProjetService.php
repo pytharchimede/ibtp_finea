@@ -16,10 +16,7 @@ final class ProjetService
         if(!$opportunityId)throw new InvalidArgumentException('Sélectionnez une opportunité CRM.');
         $opportunity=$this->repository->opportunity((int)$opportunityId);
         if(!$opportunity)throw new InvalidArgumentException('Opportunité CRM introuvable.');
-        $reference=trim((string)($input['reference']??''));
-        if($reference===''||mb_strlen($reference)>40)throw new InvalidArgumentException('Référence du projet invalide.');
         return $this->repository->create([
-            'reference'=>$reference,
             'intitule'=>mb_substr((string)$opportunity['title'],0,180),
             'client_nom'=>mb_substr((string)$opportunity['client_name'],0,180),
             'client_id'=>(int)$opportunity['client_id'],

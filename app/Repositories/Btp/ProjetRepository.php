@@ -31,8 +31,21 @@ final class ProjetRepository
     }
     public function create(array $data, ?int $author): int
     {
-        $stmt = $this->pdo->prepare('INSERT INTO btp_projets(reference,intitule,client_nom,client_id,crm_opportunity_id,created_by) VALUES (:ref,:name,:client,:client_id,:opportunity,:author)');
-        $stmt->execute(['ref'=>$data['reference'],'name'=>$data['intitule'],'client'=>$data['client_nom'],'client_id'=>$data['client_id'],'opportunity'=>$data['opportunity_id'],'author'=>$author]);
-        return (int) $this->pdo->lastInsertId();
+        $this->pdo->beginTransaction();
+        try {
+            // Temporary unique token exists only within the transaction.
+            $temporaryReference = 'TMP-'.bin2hex(random_bytes(12));
+            $stmt = $this->pdo->prepare('INSERT INTO btp_projets(reference,intitule,client_nom,client_id,crm_opportunity_id,created_by) VALUES (:ref,:name,:client,:client_id,:opportunity,:author)');
+            $stmt->execute(['ref'=>$temporaryReference,'name'=>$data['intitule'],'client'=>$data['client_nom'],'client_id'=>$data['client_id'],'opportunity'=>$data['opportunity_id'],'author'=>$author]);
+            $id=(int)$this->pdo->lastInsertId();
+            $reference='PRJ-'.date('Y').'-'.str_pad((string)$id,6,'0',STR_PAD_LEFT);
+            $update=$this->pdo->prepare('UPDATE btp_projets SET reference=? WHERE id=?');
+            $update->execute([$reference,$id]);
+            $this->pdo->commit();
+            return $id;
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            throw $e;
+        }
     }
 }
