@@ -18,7 +18,7 @@ final class ModuleDashboardService
             'finance' => [
                 'slug' => 'finance', 'label' => 'Finance', 'code' => 'FIN', 'iconKey' => 'finance',
                 'accent' => '#2563eb', 'accent2' => '#1d2b57', 'gradient' => 'linear-gradient(135deg, #1d2b57, #2563eb)',
-                'description' => 'Pilotage financier, facturation, caisse, règlements et suivi des dépenses par dossier de transit.',
+                'description' => 'Pilotage financier, facturation, caisse, règlements et suivi des dépenses par projet.',
                 'kpis' => [
                     ['label' => 'Décaissements', 'value' => '0', 'meta' => 'Socle prêt pour les demandes à valider'],
                     ['label' => 'Factures', 'value' => '0', 'meta' => 'Espace prévu pour les pièces clients'],
@@ -31,26 +31,10 @@ final class ModuleDashboardService
                     ['label' => 'Trésorerie', 'hint' => 'Consulter les flux et prévisions', 'url' => '/finance/dashboard'],
                 ],
             ],
-            'colisage' => [
-                'slug' => 'colisage', 'label' => 'Colisage', 'code' => 'COL', 'iconKey' => 'colisage',
-                'accent' => '#f97316', 'accent2' => '#ca8a04', 'gradient' => 'linear-gradient(135deg, #ca8a04, #f97316)',
-                'description' => 'Packing-list, colis, volumes, poids, conteneurs et contrôle documentaire des marchandises.',
-                'kpis' => [
-                    ['label' => 'Dossiers colisage', 'value' => '0', 'meta' => 'Dossiers en préparation'],
-                    ['label' => 'Conteneurs', 'value' => '0', 'meta' => 'Unités à suivre'],
-                    ['label' => 'Documents', 'value' => '0', 'meta' => 'Pièces à contrôler'],
-                    ['label' => 'Anomalies', 'value' => '0', 'meta' => 'Écarts poids/volume à traiter'],
-                ],
-                'actions' => [
-                    ['label' => 'Créer packing-list', 'hint' => 'Préparer la liste de colisage', 'url' => '/colisage/dashboard'],
-                    ['label' => 'Contrôle documentaire', 'hint' => 'Vérifier BL, factures et références', 'url' => '/colisage/dashboard'],
-                    ['label' => 'Suivi conteneurs', 'hint' => 'Centraliser volumes et poids', 'url' => '/colisage/dashboard'],
-                ],
-            ],
             'logistique' => [
                 'slug' => 'logistique', 'label' => 'Logistique', 'code' => 'LOG', 'iconKey' => 'logistique',
                 'accent' => '#22c55e', 'accent2' => '#047857', 'gradient' => 'linear-gradient(135deg, #047857, #22c55e)',
-                'description' => 'Enlèvements, livraisons, transporteurs, véhicules et mouvements terrain des marchandises.',
+                'description' => 'Enlèvements, livraisons, transporteurs, véhicules et mouvements terrain des matériaux.',
                 'kpis' => [
                     ['label' => 'Mouvements', 'value' => '0', 'meta' => 'Enlèvements et livraisons'],
                     ['label' => 'Transporteurs', 'value' => '0', 'meta' => 'Prestataires actifs'],
@@ -82,7 +66,7 @@ final class ModuleDashboardService
             'crm' => [
                 'slug' => 'crm', 'label' => 'CRM', 'code' => 'CRM', 'iconKey' => 'crm',
                 'accent' => '#ec4899', 'accent2' => '#9d174d', 'gradient' => 'linear-gradient(135deg, #9d174d, #ec4899)',
-                'description' => 'Clients, prospects, relances, opportunités commerciales et suivi relationnel import-export.',
+                'description' => 'Clients, prospects, relances, opportunités commerciales et suivi relationnel BTP.',
                 'kpis' => [
                     ['label' => 'Clients', 'value' => '0', 'meta' => 'Clients et prospects enregistrés'],
                     ['label' => 'Relances', 'value' => '0', 'meta' => 'Actions commerciales à suivre'],
@@ -114,55 +98,23 @@ final class ModuleDashboardService
             'site-admin' => [
                 'slug' => 'site-admin', 'label' => 'Site internet', 'code' => 'WEB', 'iconKey' => 'website',
                 'accent' => '#14b8a6', 'accent2' => '#0f766e', 'gradient' => 'linear-gradient(135deg, #0f766e, #14b8a6)',
-                'description' => 'Pilotage du site vitrine transit, contenus, services, demandes clients et suivi colis public.',
+                'description' => 'Pilotage du site vitrine d’entreprise, contenus, services, demandes clients et demandes de contact.',
                 'kpis' => [
                     ['label' => 'Pages publiées', 'value' => '0', 'meta' => 'Contenus visibles sur le site'],
-                    ['label' => 'Services', 'value' => '0', 'meta' => 'Offres import-export mises en avant'],
+                    ['label' => 'Services', 'value' => '0', 'meta' => 'Offres et prestations mises en avant'],
                     ['label' => 'Leads web', 'value' => '0', 'meta' => 'Demandes reçues via le site'],
-                    ['label' => 'Suivis colis', 'value' => '0', 'meta' => 'Consultations tracking enregistrées'],
+                    ['label' => 'Contacts web', 'value' => '0', 'meta' => 'Demandes clients enregistrées'],
                 ],
                 'actions' => [
                     ['label' => 'Gérer les pages', 'hint' => 'Accueil, services, agences, FAQ', 'url' => '/site-admin/dashboard'],
-                    ['label' => 'Demandes web', 'hint' => 'Traiter devis, tracking et contacts', 'url' => '/site-admin/dashboard'],
+                    ['label' => 'Demandes web', 'hint' => 'Traiter devis et demandes de contact', 'url' => '/site-admin/dashboard'],
                     ['label' => 'Voir le site', 'hint' => 'Ouvrir la partie publique', 'url' => '/site'],
-                ],
-            ],
-            'transit-douane' => [
-                'slug' => 'transit-douane', 'label' => 'Transit Douane', 'code' => 'TDO', 'iconKey' => 'customs',
-                'accent' => '#7c3aed', 'accent2' => '#4c1d95', 'gradient' => 'linear-gradient(135deg, #4c1d95, #7c3aed)',
-                'description' => 'Déclarations, formalités douanières, documents réglementaires, mainlevées et conformité import-export.',
-                'kpis' => [
-                    ['label' => 'Dossiers douane', 'value' => '0', 'meta' => 'Dossiers ouverts ou à qualifier'],
-                    ['label' => 'Déclarations', 'value' => '0', 'meta' => 'Déclarations à suivre'],
-                    ['label' => 'Mainlevées', 'value' => '0', 'meta' => 'Mainlevées attendues'],
-                    ['label' => 'Alertes conformité', 'value' => '0', 'meta' => 'Contrôles documentaires à traiter'],
-                ],
-                'actions' => [
-                    ['label' => 'Nouveau dossier douane', 'hint' => 'Initier un dossier de transit réglementaire', 'url' => '/transit-douane/dashboard'],
-                    ['label' => 'Documents douaniers', 'hint' => 'Contrôler les pièces obligatoires', 'url' => '/transit-douane/dashboard'],
-                    ['label' => 'Mainlevées', 'hint' => 'Suivre les statuts de libération', 'url' => '/transit-douane/dashboard'],
-                ],
-            ],
-            'tracking-colis' => [
-                'slug' => 'tracking-colis', 'label' => 'Tracking Colis', 'code' => 'TRK', 'iconKey' => 'tracking',
-                'accent' => '#06b6d4', 'accent2' => '#155e75', 'gradient' => 'linear-gradient(135deg, #155e75, #06b6d4)',
-                'description' => 'Suivi interne et public des colis, statuts, événements, notifications clients et preuves de livraison.',
-                'kpis' => [
-                    ['label' => 'Colis suivis', 'value' => '0', 'meta' => 'Références actives'],
-                    ['label' => 'En transit', 'value' => '0', 'meta' => 'Colis en mouvement'],
-                    ['label' => 'Livrés', 'value' => '0', 'meta' => 'Preuves de livraison attendues'],
-                    ['label' => 'Demandes web', 'value' => '0', 'meta' => 'Recherches faites sur le site public'],
-                ],
-                'actions' => [
-                    ['label' => 'Rechercher un colis', 'hint' => 'Consulter une référence de suivi', 'url' => '/tracking-colis/dashboard'],
-                    ['label' => 'Ajouter événement', 'hint' => 'Mettre à jour un statut opérationnel', 'url' => '/tracking-colis/dashboard'],
-                    ['label' => 'Notifications client', 'hint' => 'Préparer les alertes automatiques', 'url' => '/tracking-colis/dashboard'],
                 ],
             ],
             'facturation' => [
                 'slug' => 'facturation', 'label' => 'Facturation', 'code' => 'FAC', 'iconKey' => 'billing',
                 'accent' => '#16a34a', 'accent2' => '#14532d', 'gradient' => 'linear-gradient(135deg, #14532d, #16a34a)',
-                'description' => 'Factures clients, proformas, avoirs, règlements, taxes, frais transit et rentabilité par dossier.',
+                'description' => 'Factures clients, proformas, avoirs, règlements, taxes et rentabilité par projet.',
                 'kpis' => [
                     ['label' => 'Proformas', 'value' => '0', 'meta' => 'Devis à convertir'],
                     ['label' => 'Factures', 'value' => '0', 'meta' => 'Pièces émises'],
@@ -178,10 +130,10 @@ final class ModuleDashboardService
             'entrepots' => [
                 'slug' => 'entrepots', 'label' => 'Entrepôts', 'code' => 'ENT', 'iconKey' => 'warehouse',
                 'accent' => '#a16207', 'accent2' => '#713f12', 'gradient' => 'linear-gradient(135deg, #713f12, #a16207)',
-                'description' => 'Gestion des magasins, emplacements, entrées/sorties, inventaires, stockage temporaire et anomalies.',
+                'description' => 'Gestion des magasins, emplacements, entrées/sorties, inventaires, stockage de matériaux et anomalies.',
                 'kpis' => [
                     ['label' => 'Entrepôts', 'value' => '0', 'meta' => 'Sites de stockage paramétrés'],
-                    ['label' => 'Entrées', 'value' => '0', 'meta' => 'Marchandises réceptionnées'],
+                    ['label' => 'Entrées', 'value' => '0', 'meta' => 'Matériaux réceptionnés'],
                     ['label' => 'Sorties', 'value' => '0', 'meta' => 'Livraisons préparées'],
                     ['label' => 'Anomalies', 'value' => '0', 'meta' => 'Écarts ou litiges de stock'],
                 ],
@@ -221,22 +173,6 @@ final class ModuleDashboardService
                     ['label' => 'Segmenter portefeuille', 'hint' => 'Classer les comptes par valeur', 'url' => '/portefeuille-clients/dashboard'],
                     ['label' => 'Contrats clients', 'hint' => 'Suivre engagements et conditions', 'url' => '/portefeuille-clients/dashboard'],
                     ['label' => 'Relances stratégiques', 'hint' => 'Préparer les actions de fidélisation', 'url' => '/portefeuille-clients/dashboard'],
-                ],
-            ],
-            'agents-correspondants' => [
-                'slug' => 'agents-correspondants', 'label' => 'Agents & Correspondants', 'code' => 'AGC', 'iconKey' => 'agents',
-                'accent' => '#6366f1', 'accent2' => '#312e81', 'gradient' => 'linear-gradient(135deg, #312e81, #6366f1)',
-                'description' => 'Réseau d’agents, correspondants internationaux, partenaires, zones couvertes et performance opérationnelle.',
-                'kpis' => [
-                    ['label' => 'Agents', 'value' => '0', 'meta' => 'Correspondants actifs'],
-                    ['label' => 'Pays couverts', 'value' => '0', 'meta' => 'Zones internationales'],
-                    ['label' => 'Dossiers confiés', 'value' => '0', 'meta' => 'Opérations externalisées'],
-                    ['label' => 'Évaluations', 'value' => '0', 'meta' => 'Qualité partenaire'],
-                ],
-                'actions' => [
-                    ['label' => 'Nouvel agent', 'hint' => 'Créer un correspondant international', 'url' => '/agents-correspondants/dashboard'],
-                    ['label' => 'Zones couvertes', 'hint' => 'Paramétrer pays, ports et contacts', 'url' => '/agents-correspondants/dashboard'],
-                    ['label' => 'Performance', 'hint' => 'Comparer délais et qualité de service', 'url' => '/agents-correspondants/dashboard'],
                 ],
             ],
             'pilotage-dg' => [

@@ -42,8 +42,8 @@ $user = Auth::user();
             <header class="app-topbar app-topbar--portal">
                 <div>
                     <span class="app-topbar-kicker">Portail ERP</span>
-                    <h1>Modules de gestion • ERP de transit</h1>
-                    <p class="app-topbar-subtitle">Accédez directement aux modules depuis une interface de type Odoo / Finea.</p>
+                    <h1>Modules de gestion • FINEA</h1>
+                    <p class="app-topbar-subtitle">Accédez aux modules de gestion de votre entreprise depuis FINEA.</p>
                 </div>
 
                 <div class="app-profile">

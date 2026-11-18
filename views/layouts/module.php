@@ -52,7 +52,7 @@ $moduleIconKey = $moduleTheme['iconKey'] ?? strtolower((string) ($moduleCode ?? 
                 <span class="module-brand-mark module-brand-mark--icon"><?= ModuleIcon::svg((string) $moduleIconKey) ?></span>
                 <span>
                     <strong><?= View::e($moduleName ?? 'Module') ?></strong>
-                    <small>ERP LBP Transit</small>
+                    <small>FINEA • Gestion d’entreprise</small>
                 </span>
             </a>
 
