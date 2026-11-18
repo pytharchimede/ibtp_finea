@@ -1,4 +1,5 @@
 RewriteEngine On
+# Aucun RewriteBase figé : le dossier de déploiement est indépendant du code.
 
 
 # Si le fichier ou dossier existe réellement, Apache le sert directement

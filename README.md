@@ -19,7 +19,8 @@ Ce projet est une application PHP MVC légère avec authentification, vues perso
 ## Démarrage rapide
 
 1. Placer le projet dans le dossier web et démarrer PHP et MySQL.
-2. Définir les variables DB_*, APP_URL, FINEA_BRAND_PROFILE et FINEA_MODULE_PROFILE.
+2. Définir les variables DB_*, APP_URL, APP_BASE_PATH, FINEA_BRAND_PROFILE et FINEA_MODULE_PROFILE.
+   APP_URL est l'adresse publique complète ; APP_BASE_PATH est le chemin URL du dossier (vide si installation à la racine). Le fichier .htaccess ne dépend d'aucun nom de dossier.
 3. Avant la première installation, définir FINEA_BOOTSTRAP_ADMIN_EMAIL et FINEA_BOOTSTRAP_ADMIN_PASSWORD avec un mot de passe fort (12 caractères minimum).
 4. Une fois le compte créé, retirer ces deux variables du serveur et se connecter avec les identifiants choisis.
 5. Consulter doc/architecture/branding-et-modularite.md pour personnaliser l’instance.

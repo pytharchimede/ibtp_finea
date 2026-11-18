@@ -157,9 +157,10 @@ class Router
 
         // Retire le chemin du dossier public quand le projet est dans un sous-dossier WAMP
         $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $basePath = str_replace('/index.php', '', $scriptName);
+        $configuredBase = trim((string) (getenv('APP_BASE_PATH') ?: ''), '/');
+        $basePath = $configuredBase !== '' ? '/' . $configuredBase : str_replace('/index.php', '', $scriptName);
 
-        if ($basePath !== '' && str_starts_with($uri, $basePath)) {
+        if ($basePath !== '' && ($uri === $basePath || str_starts_with($uri, $basePath . '/'))) {
             $uri = substr($uri, strlen($basePath));
         }
 

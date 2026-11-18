@@ -55,7 +55,8 @@ final class RouterTest extends TestCase
 
     public function test_public_subfolder_is_removed_from_request_uri(): void
     {
-        $_SERVER['SCRIPT_NAME'] = '/ERP_LBP_REFACTO/public/index.php';
+        $basePath = '/commercial-erp/public';
+        $_SERVER['SCRIPT_NAME'] = $basePath . '/index.php';
 
         $router = $this->routerWithoutMaintenance();
         $router->get('/portail', static function (): void {
@@ -63,7 +64,7 @@ final class RouterTest extends TestCase
         });
 
         ob_start();
-        $router->dispatch('/ERP_LBP_REFACTO/public/portail', 'GET');
+        $router->dispatch($basePath . '/portail', 'GET');
         $output = ob_get_clean();
 
         self::assertSame('portal', $output);
