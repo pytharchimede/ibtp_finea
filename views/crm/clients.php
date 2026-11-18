@@ -3,6 +3,7 @@ declare(strict_types=1);
 use App\Helpers\View;
 use App\View\Components\Form;
 $e=static fn($x):string=>htmlspecialchars((string)$x,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+$crmWizardSteps=[['id'=>'identity','label'=>'Identité','hint'=>'Identification officielle'],['id'=>'contact','label'=>'Coordonnées','hint'=>'Contact et localisation'],['id'=>'business','label'=>'Classification','hint'=>'Profil commercial']];
 ob_start();?>
 <style>
 .crm-wrap{max-width:1120px;margin:26px auto;padding:0 20px;color:#1e2b43}
@@ -82,12 +83,9 @@ ob_start();?>
 <?php if($successCrm):?><div class="crm-alert crm-success"><?= $e($successCrm) ?></div><?php endif;?>
 <div class="crm-grid">
 <?php if($crmFormMode):?><section class="crm-card"><h2><?= $clientEdit?'Modifier la fiche':($crmNewMode?'Créer un client / prospect':'Ajouter un client / prospect') ?></h2>
-<nav class="crm-tabbar" aria-label="Progression du formulaire">
-<div class="crm-tab" data-crm-tab="identity" aria-current="step"><span class="crm-step-dot"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M4.5 16c.6-2.2 6.4-2.2 7 0M14 9h5M14 13h5M14 16h3"/></svg></span><span class="crm-tab-title">1. Identité</span><small class="crm-step-hint">Identification officielle</small></div>
-<div class="crm-tab" data-crm-tab="contact"><span class="crm-step-dot"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="16" height="18" rx="2"/><path d="M2 7h5M2 12h5M2 17h5"/><circle cx="13" cy="9" r="2"/><path d="M9.5 17c0-3.2 7-3.2 7 0"/></svg></span><span class="crm-tab-title">2. Coordonnées</span><small class="crm-step-hint">Contact et localisation</small></div>
-<div class="crm-tab" data-crm-tab="business"><span class="crm-step-dot"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13c5 3 13 3 18 0M11 14h2"/></svg></span><span class="crm-tab-title">3. Classification</span><small class="crm-step-hint">Profil commercial</small></div>
-</nav>
-<form class="crm-form-layout" data-finea-wizard="1" novalidate method="post" action="<?= $e(View::url('crm/clients')) ?>">
+<?= \App\View\Components\FormWizard::progress($crmWizardSteps) ?>
+
+<?= \App\View\Components\FormWizard::formOpen(View::url('crm/clients'), $crmWizardSteps) ?>">
 <input type="hidden" name="_csrf" value="<?= $e($csrfCrm) ?>">
 <?php if($clientEdit):?><input type="hidden" name="id" value="<?= (int)$clientEdit['id'] ?>"><?php endif;?>
 <div class="crm-panel crm-full crm-form-layout" data-crm-panel="contact" hidden>
@@ -120,13 +118,7 @@ ob_start();?>
 <?= Form::selectSearch('status', 'Statut commercial', array_map(static fn($row)=>['value'=>$row['option_code'],'label'=>$row['label']],$crmReferences['status']), $clientEdit['status']??'new', ['required'=>true,'placeholder'=>'Rechercher et sélectionner...']) ?>
 <label class="crm-field crm-full">Notes<textarea name="notes" rows="3"><?= $e($clientEdit['notes']??'') ?></textarea></label>
 </div>
-<div class="crm-wizard-error" role="alert" aria-live="polite" data-wizard-error></div>
-<div class="crm-wizard-actions">
-<button class="crm-secondary" type="button" data-wizard-prev hidden><i class="fa-solid fa-arrow-left"></i> Précédent</button>
-<span data-wizard-counter aria-live="polite">Étape 1 sur 3</span>
-<button class="crm-submit" type="button" data-wizard-next>Suivant <i class="fa-solid fa-arrow-right"></i></button>
-<button class="crm-submit" type="submit" data-wizard-submit hidden><i class="fa-solid fa-floppy-disk"></i> <?= $clientEdit?'Enregistrer les modifications':'Créer la fiche' ?></button>
-</div>
+<?= \App\View\Components\FormWizard::controls($clientEdit ? 'Enregistrer les modifications' : 'Créer la fiche') ?>
 <?php if($clientEdit):?><a href="<?= $e(View::url('crm/clients')) ?>">Annuler</a><?php endif;?>
 </form></section><?php else:?><section class="crm-card"><h2>Répertoire CRM (<?= count($clients) ?>)</h2>
 <form class="crm-search" method="get"><input name="q" placeholder="Rechercher un client" value="<?= $e($_GET['q']??'') ?>"><button class="crm-submit" type="submit">Rechercher</button></form>

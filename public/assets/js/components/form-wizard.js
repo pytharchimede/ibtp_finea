@@ -4,7 +4,8 @@
  function init(form){
   if(form.dataset.wizardReady==='1')return;
   form.dataset.wizardReady='1';
-  const steps=['identity','contact','business'];
+  const steps=JSON.parse(form.dataset.wizardSteps||'[]');
+  if(!steps.length)return;
   const root=form.closest('.crm-card');
   const panels=steps.map(s=>form.querySelector('[data-crm-panel="'+s+'"]'));
   const markers=steps.map(s=>root.querySelector('[data-crm-tab="'+s+'"]'));
@@ -26,7 +27,7 @@
      return false;
     }
    }
-   if(i===0){
+   if(steps[i]==='identity'){
     const country=panel.querySelector('[name="identity_country"]');
     const legal=panel.querySelector('[name="legal_form"]');
     const kind=panel.querySelector('[name="identifier_kind"]');
@@ -49,7 +50,7 @@
     if(j===i)m.setAttribute('aria-current','step');else m.removeAttribute('aria-current');
     m.classList.toggle('is-complete',complete.has(j)&&j!==i);
     const dot=m.querySelector('.crm-step-dot');
-    if(dot){const svg=dot.querySelector('svg');if(svg)svg.style.display=complete.has(j)&&j!==i?'none':'';let check=dot.querySelector('.crm-step-check');if(!check){check=document.createElement('span');check.className='crm-step-check';check.textContent='✓';check.setAttribute('aria-hidden','true');dot.appendChild(check);}check.hidden=!(complete.has(j)&&j!==i);}
+    if(dot){const svg=dot.querySelector('svg');if(svg)svg.style.display=complete.has(j)&&j!==i?'none':'';const check=dot.querySelector('.crm-step-check');if(check)check.hidden=!(complete.has(j)&&j!==i);}
    });
    prev.hidden=i===0;next.hidden=i===steps.length-1;submit.hidden=i!==steps.length-1;
    counter.textContent='Étape '+(i+1)+' sur '+steps.length;
