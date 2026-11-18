@@ -16,10 +16,12 @@ $router->group('/btp', static function(Router $router): void {
     $router->get('/chantiers/nouveau/projet/{id}',[ProjetController::class,'chantierWizard']);
     $router->get('/chantiers/projet/{id}',[ProjetController::class,'chantierWizard']);
     $router->post('/chantiers/projet/{id}',[ProjetController::class,'chantierStart']);
+    $router->post('/plannings/{id}/finaliser',[ProjetController::class,'planningFinalize']);
     $router->get('/plannings',[ProjetController::class,'planningIndex']);
     $router->get('/plannings/nouveau',[ProjetController::class,'planningCreate']);
     $router->get('/plannings/projet/{id}',[ProjetController::class,'planningEditor']);
     $router->post('/plannings/projet/{id}',[ProjetController::class,'planningSave']);
+    $router->post('/devis/{id}/transition',[ProjetController::class,'quoteTransition']);
     $router->get('/devis',[ProjetController::class,'quoteIndex']);
     $router->get('/devis/projet/{id}',[ProjetController::class,'quoteEditor']);
     $router->post('/devis/projet/{id}',[ProjetController::class,'quoteSave']);

@@ -104,12 +104,32 @@ final class ProjetController extends BaseController
         try{(new \App\Services\Btp\ChantierStartService(Database::getConnection()))->start((int)$id,$_POST,isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);$this->redirect('/btp/chantiers');}
         catch(\Throwable $e){error_log('[BTP chantier] '.$e->getMessage());$_SESSION['btp_chantier_error']=$e instanceof \DomainException?$e->getMessage():'Création impossible.';$this->redirect('/btp/chantiers/projet/'.(int)$id);}
     }
+    public function quoteTransition(string $id): void {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'update')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        try{
+            (new \App\Services\Btp\OfferDraftService(Database::getConnection()))->transition((int)$id,(string)($_POST['action']??''),(int)Auth::id());
+            $_SESSION['btp_quote_notice']='Statut du devis mis à jour.';
+        }catch(\Throwable $e){error_log('[BTP devis validation] '.$e->getMessage());$_SESSION['btp_quote_notice']=$e instanceof InvalidArgumentException?$e->getMessage():'Validation impossible.';}
+        $this->redirect('/btp/devis');
+    }
+    public function planningFinalize(string $id): void {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'update')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        try{
+            (new \App\Services\Btp\PlanningService(Database::getConnection()))->finalize((int)$id,(int)Auth::id());
+            $_SESSION['btp_planning_notice']='Planning rendu définitif.';
+        }catch(\Throwable $e){error_log('[BTP planning final] '.$e->getMessage());$_SESSION['btp_planning_notice']=$e instanceof InvalidArgumentException?$e->getMessage():'Finalisation impossible.';}
+        $this->redirect('/btp/plannings');
+    }
     public function planningIndex(): void
     {
         AuthMiddleware::check();
         if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
         $service=new \App\Services\Btp\PlanningService(Database::getConnection());
-        $this->view('btp/plannings_liste',$this->context('Plannings prévisionnels','plannings')+['planningsBtp'=>$service->all(),'projetsBtp'=>$this->service()->list(500)]);
+        $this->view('btp/plannings_liste',$this->context('Plannings prévisionnels','plannings')+['planningsBtp'=>$service->all(),'projetsBtp'=>$this->service()->list(500),'csrfBtp'=>$this->csrf(),'canApproveBtp'=>Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'update'),'noticeBtp'=>$_SESSION['btp_planning_notice']??null]);
     }
     public function planningCreate(): void
     {
@@ -147,7 +167,7 @@ final class ProjetController extends BaseController
         if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
         $pdo=Database::getConnection();
         $q=$pdo->query("SELECT q.id,q.revision,q.title AS label,q.total_ht AS amount_ht,q.status,q.created_at,p.id AS projet_id,p.reference,p.intitule,p.client_nom FROM btp_offer_drafts q JOIN btp_projets p ON p.id=q.projet_id ORDER BY q.created_at DESC,q.id DESC LIMIT 500");
-        $this->view('btp/devis_liste',$this->context('Liste des devis','devis-liste')+['quotesBtp'=>$q->fetchAll(\PDO::FETCH_ASSOC)]);
+        $this->view('btp/devis_liste',$this->context('Liste des devis','devis-liste')+['quotesBtp'=>$q->fetchAll(\PDO::FETCH_ASSOC),'csrfBtp'=>$this->csrf(),'canApproveBtp'=>Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'update'),'noticeBtp'=>$_SESSION['btp_quote_notice']??null]);
     }
     public function quoteCreate(): void
     {

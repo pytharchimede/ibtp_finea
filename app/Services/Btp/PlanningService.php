@@ -15,6 +15,19 @@ final class PlanningService
         $q=$this->pdo->prepare("SELECT pl.id,pl.title,pl.revision,pl.created_at,COUNT(t.id) AS task_count,MIN(t.start_date) AS starts,MAX(t.end_date) AS ends FROM btp_project_plannings pl LEFT JOIN btp_project_planning_tasks t ON t.planning_id=pl.id WHERE pl.projet_id=? GROUP BY pl.id,pl.title,pl.revision,pl.created_at ORDER BY pl.revision DESC");
         $q->execute([$id]);return $q->fetchAll(PDO::FETCH_ASSOC);
     }
+    public function finalize(int $id,int $actor): void {
+        if($actor<1)throw new InvalidArgumentException('Utilisateur non identifié.');
+        $this->pdo->beginTransaction();
+        try{
+            $q=$this->pdo->prepare('SELECT id,projet_id,status FROM btp_project_plannings WHERE id=? FOR UPDATE');$q->execute([$id]);$p=$q->fetch(PDO::FETCH_ASSOC);
+            if(!$p||$p['status']!=='previsionnel')throw new InvalidArgumentException('Planning absent ou déjà définitif.');
+            $q=$this->pdo->prepare('SELECT COUNT(*) FROM btp_project_planning_tasks WHERE planning_id=?');$q->execute([$id]);
+            if(!(int)$q->fetchColumn())throw new InvalidArgumentException('Le planning doit contenir des tâches.');
+            $q=$this->pdo->prepare('SELECT COUNT(*) FROM btp_project_plannings WHERE projet_id=? AND revision>(SELECT revision FROM btp_project_plannings WHERE id=?)');
+            $q->execute([$p['projet_id'],$id]);if((int)$q->fetchColumn())throw new InvalidArgumentException('Finalisez la dernière révision du planning.');
+            $q=$this->pdo->prepare("UPDATE btp_project_plannings SET status='definitif' WHERE id=?");$q->execute([$id]);$this->pdo->commit();
+        }catch(\Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}
+    }
     public function save(int $projectId,array $data,?int $actor): int
     {
         $title=trim((string)($data['title']??''));

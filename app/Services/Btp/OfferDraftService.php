@@ -68,6 +68,30 @@ final class OfferDraftService
             $this->pdo->commit();return $id;
         }catch(\Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}
     }
+    public function transition(int $id,string $action,int $actor): void {
+        if($actor<1)throw new InvalidArgumentException('Utilisateur non identifié.');
+        $map=[
+            'soumettre_dt'=>['brouillon','soumis_dt'],
+            'valider_dt'=>['soumis_dt','valide_dt'],
+            'soumettre_dg'=>['valide_dt','soumis_dg'],
+            'valider_dg'=>['soumis_dg','valide_dg'],
+            'transmettre_client'=>['valide_dg','transmis_client'],
+            'accepter_client'=>['transmis_client','accepte_client'],
+        ];
+        if(!isset($map[$action]))throw new InvalidArgumentException('Transition de devis inconnue.');
+        [$from,$to]=$map[$action];
+        $this->pdo->beginTransaction();
+        try{
+            $q=$this->pdo->prepare('SELECT id,projet_id,status FROM btp_offer_drafts WHERE id=? FOR UPDATE');$q->execute([$id]);$offer=$q->fetch(PDO::FETCH_ASSOC);
+            if(!$offer||$offer['status']!==$from)throw new InvalidArgumentException('Le statut du devis ne permet pas cette validation.');
+            if($action==='accepter_client'){
+                $q=$this->pdo->prepare('SELECT COUNT(*) FROM btp_client_orders WHERE offer_id=? AND document_id IS NOT NULL');$q->execute([$id]);
+                if(!(int)$q->fetchColumn())throw new InvalidArgumentException('Un BC avec justificatif lié à ce devis est requis pour confirmer l’acceptation client.');
+            }
+            $q=$this->pdo->prepare('UPDATE btp_offer_drafts SET status=? WHERE id=? AND status=?');$q->execute([$to,$id,$from]);
+            $this->pdo->commit();
+        }catch(\Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}
+    }
     private static function validDate(string $s): bool
     {
         $d=\DateTimeImmutable::createFromFormat('!Y-m-d',$s);
