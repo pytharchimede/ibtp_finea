@@ -259,6 +259,13 @@ final class ModuleDashboardService
     private function navigation(array $module): array
     {
         $base = '/' . $module['slug'];
+        if ($module['slug'] === 'finance') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/finance/dashboard','group'=>'Pilotage','available'=>true],
+                ['key'=>'feb','label'=>'Fiches d’expression de besoin (FEB)','icon'=>'FEB','url'=>'/feb','group'=>'Décaissements','available'=>true],
+                ['key'=>'feb-nouvelle','label'=>'Nouvelle FEB','icon'=>'+','url'=>'/feb/nouvelle','group'=>'Décaissements','available'=>true],
+            ];
+        }
         if ($module['slug'] === 'btp') {
             return [
                 ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/btp/dashboard','group'=>'Pilotage','available'=>true],
