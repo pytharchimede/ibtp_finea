@@ -41,6 +41,7 @@ class MigrationRunner
         $this->createBtpTechnicalDossier();
         $this->createBtpDocuments();
         $this->createBtpOfferDrafts();
+        $this->upgradeBtpOfferEditor();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
@@ -102,6 +103,30 @@ class MigrationRunner
             CONSTRAINT fk_btp_documents_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
             CONSTRAINT fk_btp_documents_author FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function upgradeBtpOfferEditor(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_quote_units (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            code VARCHAR(30) NOT NULL UNIQUE,
+            label VARCHAR(100) NOT NULL,
+            active TINYINT(1) NOT NULL DEFAULT 1,
+            sort_order INT NOT NULL DEFAULT 0
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $units=[
+            ['u','Unité'],['ens','Ensemble'],['forf','Forfait'],['lot','Lot'],['ml','Mètre linéaire'],
+            ['m','Mètre'],['m2','Mètre carré'],['m3','Mètre cube'],['km','Kilomètre'],
+            ['kg','Kilogramme'],['t','Tonne'],['l','Litre'],['h','Heure'],['j','Jour'],
+            ['mois','Mois'],['pce','Pièce'],['sac','Sac'],['boite','Boîte'],
+            ['rouleau','Rouleau'],['jeu','Jeu'],['paire','Paire'],['poste','Poste'],
+            ['m2/j','Mètre carré par jour'],['m3/j','Mètre cube par jour'],['voy','Voyage']
+        ];
+        $q=$this->pdo->prepare('INSERT IGNORE INTO btp_quote_units(code,label,sort_order) VALUES(?,?,?)');
+        foreach($units as $i=>$unit)$q->execute([$unit[0],$unit[1],$i+1]);
+        $this->addColumnIfMissing('btp_offer_drafts','validity_days','INT UNSIGNED NULL');
+        $this->addColumnIfMissing('btp_offer_drafts','billing_date','DATE NULL');
+        $this->addColumnIfMissing('btp_offer_lines','group_name','VARCHAR(180) NULL');
     }
 
     private function createBtpOfferDrafts(): void

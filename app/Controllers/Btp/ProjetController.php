@@ -45,7 +45,7 @@ final class ProjetController extends BaseController
         $project=$service->project((int)$id);
         if(!$project){http_response_code(404);exit('Projet introuvable');}
         $error=$_SESSION['btp_offer_error']??null;unset($_SESSION['btp_offer_error']);
-        $this->view('btp/devis_editeur',$this->context('Éditeur de devis et planning','devis-nouveau')+['projectBtp'=>$project,'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
+        $this->view('btp/devis_editeur',$this->context('Éditeur de devis et planning','devis-nouveau')+['projectBtp'=>$project,'unitsBtp'=>$service->units(),'csrfBtp'=>$this->csrf(),'errorBtp'=>$error]);
     }
     public function quoteSave(string $id): void
     {

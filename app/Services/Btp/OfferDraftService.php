@@ -11,6 +11,10 @@ final class OfferDraftService
         $q=$this->pdo->prepare('SELECT p.id,p.reference,p.intitule,p.client_nom,o.currency,o.deadline FROM btp_projets p LEFT JOIN crm_opportunities o ON o.id=p.crm_opportunity_id WHERE p.id=?');
         $q->execute([$id]);return $q->fetch(PDO::FETCH_ASSOC)?:null;
     }
+    public function units(): array
+    {
+        return $this->pdo->query('SELECT code,label FROM btp_quote_units WHERE active=1 ORDER BY sort_order,label')->fetchAll(PDO::FETCH_ASSOC);
+    }
     public function save(int $projectId,array $data,?int $actor): int
     {
         $title=trim((string)($data['title']??''));
@@ -21,14 +25,17 @@ final class OfferDraftService
         $lines=$data['lines']??[];
         if(!is_array($lines)||count($lines)<1||count($lines)>200)throw new InvalidArgumentException('Ajoutez entre 1 et 200 lignes de devis.');
         $parsed=[];$totalCents=0;
+        $allowedUnits=array_column($this->units(),'code');
         foreach($lines as $line){
             if(!is_array($line))throw new InvalidArgumentException('Ligne invalide.');
             $desc=trim((string)($line['description']??''));$unit=trim((string)($line['unit']??''));
             $qty=(string)($line['quantity']??'');$price=(string)($line['unit_price']??'');
+            $group=trim((string)($line['group_name']??''));
+            if(mb_strlen($group)>180||!in_array($unit,$allowedUnits,true))throw new InvalidArgumentException('Groupe ou unité invalide.');
             if($desc===''||mb_strlen($desc)>500||$unit===''||mb_strlen($unit)>30||!preg_match('/^\d{1,10}(?:\.\d{1,3})?$/',$qty)||!preg_match('/^\d{1,12}(?:\.\d{1,2})?$/',$price)|| (float)$qty<=0)throw new InvalidArgumentException('Vérifiez la désignation, l’unité, la quantité et le prix.');
             $lineCents=(int)round((float)$qty*(float)$price*100);
             if($lineCents<0||$lineCents>9000000000000000)throw new InvalidArgumentException('Montant de ligne trop élevé.');
-            $totalCents+=$lineCents;$parsed[]=[$desc,$unit,$qty,$price,number_format($lineCents/100,2,'.','')];
+            $totalCents+=$lineCents;$parsed[]=[$desc,$unit,$qty,$price,number_format($lineCents/100,2,'.',''),$group!==''?$group:null];
         }
         $discount=(string)($data['discount_amount']??'0');
         if(!preg_match('/^\d{1,12}(?:\.\d{1,2})?$/',$discount))throw new InvalidArgumentException('Remise invalide.');
@@ -45,6 +52,11 @@ final class OfferDraftService
             if($label===''||mb_strlen($label)>250||!self::validDate($start)||!self::validDate($end)||$end<$start)throw new InvalidArgumentException('Vérifiez les tâches et leurs dates.');
             $tasks[]=[$label,$start,$end];
         }
+        $validityDays=trim((string)($data['validity_days']??'30'));
+        if($validityDays===''||!ctype_digit($validityDays)||(int)$validityDays>3650)throw new InvalidArgumentException('Durée de validité invalide.');
+        $valid=(new \DateTimeImmutable($date))->modify('+'.(int)$validityDays.' days')->format('Y-m-d');
+        $billingDate=(string)($data['billing_date']??'');
+        if(!self::validDate($billingDate))throw new InvalidArgumentException('Date de facturation invalide.');
         $days=trim((string)($data['delivery_days']??''));
         if($days!==''&&(!ctype_digit($days)||(int)$days>36500))throw new InvalidArgumentException('Délai invalide.');
         $correspondent=trim((string)($data['correspondent']??''));
@@ -55,10 +67,10 @@ final class OfferDraftService
             $lock=$this->pdo->prepare('SELECT id FROM btp_projets WHERE id=? FOR UPDATE');$lock->execute([$projectId]);
             if(!$lock->fetchColumn())throw new InvalidArgumentException('Projet introuvable.');
             $v=$this->pdo->prepare('SELECT COALESCE(MAX(revision),0)+1 FROM btp_offer_drafts WHERE projet_id=?');$v->execute([$projectId]);$revision=(int)$v->fetchColumn();
-            $q=$this->pdo->prepare('INSERT INTO btp_offer_drafts(projet_id,revision,title,issue_date,validity_date,delivery_days,correspondent,terms,vat_enabled,discount_amount,total_ht,vat_amount,total_ttc,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-            $q->execute([$projectId,$revision,$title,$date,$valid!==''?$valid:null,$days!==''?(int)$days:null,$correspondent,$terms,!empty($data['vat_enabled'])?1:0,number_format($discountCents/100,2,'.',''),number_format($taxable/100,2,'.',''),number_format($vat/100,2,'.',''),number_format(($taxable+$vat)/100,2,'.',''),$actor]);
+            $q=$this->pdo->prepare('INSERT INTO btp_offer_drafts(projet_id,revision,title,issue_date,validity_date,delivery_days,correspondent,terms,vat_enabled,discount_amount,total_ht,vat_amount,total_ttc,created_by,validity_days,billing_date) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+            $q->execute([$projectId,$revision,$title,$date,$valid!==''?$valid:null,$days!==''?(int)$days:null,$correspondent,$terms,!empty($data['vat_enabled'])?1:0,number_format($discountCents/100,2,'.',''),number_format($taxable/100,2,'.',''),number_format($vat/100,2,'.',''),number_format(($taxable+$vat)/100,2,'.',''),$actor,(int)$validityDays,$billingDate]);
             $id=(int)$this->pdo->lastInsertId();
-            $q=$this->pdo->prepare('INSERT INTO btp_offer_lines(offer_id,line_order,description,unit,quantity,unit_price,line_total) VALUES(?,?,?,?,?,?,?)');
+            $q=$this->pdo->prepare('INSERT INTO btp_offer_lines(offer_id,line_order,description,unit,quantity,unit_price,line_total,group_name) VALUES(?,?,?,?,?,?,?,?)');
             foreach($parsed as $i=>$line)$q->execute([$id,$i+1,...$line]);
             $q=$this->pdo->prepare('INSERT INTO btp_offer_planning(offer_id,task_order,label,start_date,end_date) VALUES(?,?,?,?,?)');
             foreach($tasks as $i=>$task)$q->execute([$id,$i+1,...$task]);
