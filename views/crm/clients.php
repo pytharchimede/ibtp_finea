@@ -17,7 +17,7 @@ ob_start();?>
 <label class="crm-field"><?= $e($label) ?><input name="<?= $e($key) ?>" value="<?= $e($clientEdit[$key]??'') ?>" <?= $key==='name'?'required':'' ?> maxlength="<?= $key==='name'?180:($key==='email'?150:160) ?>"></label>
 <?php endforeach;?>
 <h3>Identification légale</h3>
-<p style="color:#64748b;font-size:.83rem">L'enregistrement reste en attente de vérification officielle. Aucun numéro n'est considéré comme authentifié automatiquement.</p>
+<p style="color:#64748b;font-size:.83rem">Pour les sociétés ivoiriennes avec NCC, la vérification DGI est obligatoire avant enregistrement. Pour les autres identifiants, la vérification reste en attente.</p>
 <label class="crm-field">Nature juridique<select name="legal_form" required>
 <option value="personne_morale" <?= ($clientEdit['legal_form']??'personne_morale')==='personne_morale'?'selected':'' ?>>Personne morale (entreprise)</option>
 <option value="personne_physique" <?= ($clientEdit['legal_form']??'')==='personne_physique'?'selected':'' ?>>Personne physique</option></select></label>
