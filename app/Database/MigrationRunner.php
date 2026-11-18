@@ -37,12 +37,267 @@ class MigrationRunner
         $this->createCrmOpportunityDetails();
         $this->createCrmAoTables();
         $this->createCrmAoScoringSettings();
+        $this->createBtpCrmProjectLink();
+        $this->createBtpTechnicalDossier();
+        $this->createBtpDocuments();
+        $this->createBtpOfferDrafts();
+        $this->upgradeBtpOfferEditor();
+        $this->createBtpChantierStarts();
+        $this->createBtpStandalonePlannings();
+        $this->createBtpClientOrders();
+        $this->createBtpPrestartBudgets();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
     }
 
 
+
+    /** Idempotent CRM -> BTP project link, executed after CRM schema creation. */
+    /** Project technical dossier: immutable journal entries and quote revisions. */
+    private function createBtpTechnicalDossier(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_dossier_events (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            event_type ENUM('soumission','demande_client','reponse','negociation','reunion','decision','note') NOT NULL,
+            subject VARCHAR(180) NOT NULL,
+            details TEXT NULL,
+            occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_btp_events_project (projet_id,occurred_at),
+            CONSTRAINT fk_btp_events_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_events_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_dossier_quotes (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            revision INT UNSIGNED NOT NULL,
+            label VARCHAR(180) NOT NULL,
+            amount_ht DECIMAL(18,2) NOT NULL DEFAULT 0,
+            status ENUM('brouillon','soumis','en_negociation','retenu','refuse') NOT NULL DEFAULT 'brouillon',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_quote_revision (projet_id,revision),
+            KEY idx_btp_quote_project (projet_id),
+            CONSTRAINT fk_btp_quote_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_quote_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function createBtpPrestartBudgets(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_prestart_budgets (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            order_id BIGINT UNSIGNED NOT NULL,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            revision INT UNSIGNED NOT NULL,
+            status VARCHAR(30) NOT NULL DEFAULT 'brouillon',
+            total_cost DECIMAL(18,2) NOT NULL DEFAULT 0,
+            expected_margin DECIMAL(18,2) NOT NULL DEFAULT 0,
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_budget_revision (order_id,revision),
+            FOREIGN KEY (order_id) REFERENCES btp_client_orders(id) ON DELETE RESTRICT,
+            FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_prestart_budget_lines (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            budget_id BIGINT UNSIGNED NOT NULL,
+            order_line_id BIGINT UNSIGNED NOT NULL,
+            materials DECIMAL(18,2) NOT NULL DEFAULT 0,
+            labor DECIMAL(18,2) NOT NULL DEFAULT 0,
+            equipment DECIMAL(18,2) NOT NULL DEFAULT 0,
+            subcontracting DECIMAL(18,2) NOT NULL DEFAULT 0,
+            other_cost DECIMAL(18,2) NOT NULL DEFAULT 0,
+            total_cost DECIMAL(18,2) NOT NULL DEFAULT 0,
+            UNIQUE KEY uq_btp_budget_order_line (budget_id,order_line_id),
+            FOREIGN KEY (budget_id) REFERENCES btp_prestart_budgets(id) ON DELETE RESTRICT,
+            FOREIGN KEY (order_line_id) REFERENCES btp_client_order_lines(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function createBtpClientOrders(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_client_orders (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            offer_id BIGINT UNSIGNED NOT NULL,
+            reference VARCHAR(80) NOT NULL,
+            received_at DATE NOT NULL,
+            document_id BIGINT UNSIGNED NOT NULL,
+            amount_ht DECIMAL(18,2) NOT NULL,
+            status VARCHAR(30) NOT NULL DEFAULT 'enregistre',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_order_reference (projet_id,reference),
+            FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            FOREIGN KEY (offer_id) REFERENCES btp_offer_drafts(id) ON DELETE RESTRICT,
+            FOREIGN KEY (document_id) REFERENCES btp_documents(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_client_order_lines (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            order_id BIGINT UNSIGNED NOT NULL,
+            offer_line_id BIGINT UNSIGNED NOT NULL,
+            line_order INT NOT NULL,
+            group_name VARCHAR(180) NULL,
+            description VARCHAR(500) NOT NULL,
+            unit VARCHAR(30) NOT NULL,
+            quantity DECIMAL(15,3) NOT NULL,
+            unit_price DECIMAL(18,2) NOT NULL,
+            line_total DECIMAL(18,2) NOT NULL,
+            UNIQUE KEY uq_btp_order_line (order_id,offer_line_id),
+            FOREIGN KEY (order_id) REFERENCES btp_client_orders(id) ON DELETE RESTRICT,
+            FOREIGN KEY (offer_line_id) REFERENCES btp_offer_lines(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function createBtpDocuments(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_documents (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            category ENUM('dce','administratif','technique','financier','client','chantier','autre') NOT NULL DEFAULT 'autre',
+            label VARCHAR(180) NOT NULL,
+            version INT UNSIGNED NOT NULL,
+            original_name VARCHAR(255) NOT NULL,
+            storage_name VARCHAR(80) NOT NULL,
+            mime_type VARCHAR(120) NOT NULL,
+            file_size BIGINT UNSIGNED NOT NULL,
+            sha256 CHAR(64) NOT NULL,
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_document_version (projet_id,category,label,version),
+            UNIQUE KEY uq_btp_document_storage (storage_name),
+            KEY idx_btp_documents_project (projet_id,created_at),
+            CONSTRAINT fk_btp_documents_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_documents_author FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function upgradeBtpOfferEditor(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_quote_units (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            code VARCHAR(30) NOT NULL UNIQUE,
+            label VARCHAR(100) NOT NULL,
+            active TINYINT(1) NOT NULL DEFAULT 1,
+            sort_order INT NOT NULL DEFAULT 0
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $units=[
+            ['u','Unité'],['ens','Ensemble'],['forf','Forfait'],['lot','Lot'],['ml','Mètre linéaire'],
+            ['m','Mètre'],['m2','Mètre carré'],['m3','Mètre cube'],['km','Kilomètre'],
+            ['kg','Kilogramme'],['t','Tonne'],['l','Litre'],['h','Heure'],['j','Jour'],
+            ['mois','Mois'],['pce','Pièce'],['sac','Sac'],['boite','Boîte'],
+            ['rouleau','Rouleau'],['jeu','Jeu'],['paire','Paire'],['poste','Poste'],
+            ['m2/j','Mètre carré par jour'],['m3/j','Mètre cube par jour'],['voy','Voyage']
+        ];
+        $q=$this->pdo->prepare('INSERT IGNORE INTO btp_quote_units(code,label,sort_order) VALUES(?,?,?)');
+        foreach($units as $i=>$unit)$q->execute([$unit[0],$unit[1],$i+1]);
+        $this->addColumnIfMissing('btp_offer_drafts','validity_days','INT UNSIGNED NULL');
+        $this->addColumnIfMissing('btp_offer_drafts','billing_date','DATE NULL');
+        $this->addColumnIfMissing('btp_offer_lines','group_name','VARCHAR(180) NULL');
+    }
+
+    private function createBtpChantierStarts(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_chantier_starts (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL UNIQUE,
+            code VARCHAR(40) NOT NULL UNIQUE,
+            nom VARCHAR(180) NOT NULL,
+            devis_id BIGINT UNSIGNED NOT NULL,
+            planning_id BIGINT UNSIGNED NOT NULL,
+            status VARCHAR(30) NOT NULL DEFAULT 'preparation',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            FOREIGN KEY(devis_id) REFERENCES btp_offer_drafts(id) ON DELETE RESTRICT,
+            FOREIGN KEY(planning_id) REFERENCES btp_project_plannings(id) ON DELETE RESTRICT,
+            FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+    private function createBtpStandalonePlannings(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_project_plannings (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            revision INT UNSIGNED NOT NULL,
+            title VARCHAR(180) NOT NULL,
+            status ENUM('previsionnel','definitif') NOT NULL DEFAULT 'previsionnel',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_planning_revision(projet_id,revision),
+            CONSTRAINT fk_btp_planning_project FOREIGN KEY(projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_planning_author FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_project_planning_tasks (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            planning_id BIGINT UNSIGNED NOT NULL,
+            task_order INT UNSIGNED NOT NULL,
+            label VARCHAR(250) NOT NULL,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            KEY idx_btp_planning_tasks(planning_id,task_order),
+            CONSTRAINT fk_btp_planning_task_parent FOREIGN KEY(planning_id) REFERENCES btp_project_plannings(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+    private function createBtpOfferDrafts(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_offer_drafts (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            revision INT UNSIGNED NOT NULL,
+            title VARCHAR(180) NOT NULL,
+            issue_date DATE NOT NULL,
+            validity_date DATE NULL,
+            delivery_days INT UNSIGNED NULL,
+            correspondent VARCHAR(180) NULL,
+            terms TEXT NULL,
+            vat_enabled TINYINT(1) NOT NULL DEFAULT 1,
+            discount_amount DECIMAL(18,2) NOT NULL DEFAULT 0,
+            total_ht DECIMAL(18,2) NOT NULL,
+            vat_amount DECIMAL(18,2) NOT NULL,
+            total_ttc DECIMAL(18,2) NOT NULL,
+            status ENUM('brouillon','soumis_dt','valide_dt','soumis_dg','valide_dg','transmis_client','accepte_client','refuse') NOT NULL DEFAULT 'brouillon',
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_offer_revision(projet_id,revision),
+            KEY idx_btp_offer_project(projet_id),
+            CONSTRAINT fk_btp_offer_project FOREIGN KEY(projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_offer_user FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_offer_lines (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            offer_id BIGINT UNSIGNED NOT NULL,
+            line_order INT UNSIGNED NOT NULL,
+            description VARCHAR(500) NOT NULL,
+            unit VARCHAR(30) NOT NULL,
+            quantity DECIMAL(16,3) NOT NULL,
+            unit_price DECIMAL(18,2) NOT NULL,
+            line_total DECIMAL(18,2) NOT NULL,
+            KEY idx_btp_offer_line(offer_id,line_order),
+            CONSTRAINT fk_btp_offer_line_offer FOREIGN KEY(offer_id) REFERENCES btp_offer_drafts(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_offer_planning (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            offer_id BIGINT UNSIGNED NOT NULL,
+            task_order INT UNSIGNED NOT NULL,
+            label VARCHAR(250) NOT NULL,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            KEY idx_btp_offer_planning(offer_id,task_order),
+            CONSTRAINT fk_btp_offer_planning_offer FOREIGN KEY(offer_id) REFERENCES btp_offer_drafts(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function createBtpCrmProjectLink(): void
+    {
+        $this->addColumnIfMissing('btp_projets', 'crm_opportunity_id', 'INT UNSIGNED NULL');
+        $this->addUniqueIndexIfMissing('btp_projets', 'uq_btp_projets_crm_opportunity', 'crm_opportunity_id');
+        $this->addForeignKeyIfMissing('btp_projets', 'fk_btp_projets_crm_opportunity', 'crm_opportunity_id', 'crm_opportunities', 'id', 'RESTRICT');
+    }
 
     private function createCrmAoScoringSettings(): void
     {

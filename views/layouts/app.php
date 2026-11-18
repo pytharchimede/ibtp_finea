@@ -23,6 +23,7 @@ $branding = new BrandingService();
     <title><?= View::e($title) ?> - <?= View::e($appConfig['name']) ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link href="<?= View::asset('vendor/fontawesome/css/all.min.css') ?>" rel="stylesheet">
     <link href="<?= View::asset('css/app.css') ?>" rel="stylesheet">
     <link href="<?= View::asset('css/components.css') ?>" rel="stylesheet">
     <link href="<?= View::url('branding/theme.css') ?>" rel="stylesheet">

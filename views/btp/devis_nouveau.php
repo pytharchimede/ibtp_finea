@@ -1,0 +1,7 @@
+<?php
+declare(strict_types=1);
+use App\Helpers\View;
+$e=static fn(mixed $v):string=>htmlspecialchars((string)$v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+ob_start(); ?>
+<div class="btp-shell btp-workspace"><nav class="btp-breadcrumb"><a href="<?= $e(View::url('btp/dashboard')) ?>">Technique</a><span>/</span><a href="<?= $e(View::url('btp/devis')) ?>">Devis</a><span>/</span><strong>Nouveau devis</strong></nav><header class="btp-banner"><small>DEVIS & CHIFFRAGE</small><h1>Nouveau devis</h1><p>Choisissez le projet technique auquel rattacher le devis.</p></header><section class="btp-panel btp-section"><h2>Projet de rattachement</h2><p class="btp-help">Sélectionnez un projet pour créer un devis détaillé et son planning prévisionnel. Les visas et les exports seront ajoutés au workflow de validation.</p><label for="btp-quote-project">Projet</label><select id="btp-quote-project" data-select-search data-placeholder="Rechercher un projet..."><option value="">Sélectionner un projet</option><?php foreach($projetsBtp as $p): ?><option value="<?= (int)$p['id'] ?>"><?= $e($p['reference'].' — '.$p['intitule'].' · '.$p['client_nom']) ?></option><?php endforeach; ?></select><p><a id="btp-quote-open" class="btp-primary-link" href="<?= $e(View::url('btp/projets')) ?>">Ouvrir le dossier du projet</a></p></section></div>
+<?php $content=ob_get_clean();$additionalScripts=array_merge($additionalScripts??[],['js/components/form-components.js','js/components/btp-quote-list.js']);require BASE_PATH.'/views/layouts/module.php';

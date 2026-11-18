@@ -63,6 +63,12 @@ final class ModuleDashboardService
                     ['label' => 'Mon pointage', 'hint' => 'Voir mes présences et retards', 'url' => '/espace-employe/dashboard'],
                 ],
             ],
+            'btp' => [
+                'slug'=>'btp','label'=>'Projets & Chantiers','code'=>'BTP','iconKey'=>'logistique',
+                'accent'=>'#2563eb','accent2'=>'#172e58','gradient'=>'linear-gradient(135deg,#172e58,#2563eb)',
+                'description'=>'Études, appels d’offres, soumissions, devis, chantiers et suivi des projets.',
+                'kpis'=>[], 'actions'=>[],
+            ],
             'crm' => [
                 'slug' => 'crm', 'label' => 'CRM', 'code' => 'CRM', 'iconKey' => 'crm',
                 'accent' => '#ec4899', 'accent2' => '#9d174d', 'gradient' => 'linear-gradient(135deg, #9d174d, #ec4899)',
@@ -253,6 +259,23 @@ final class ModuleDashboardService
     private function navigation(array $module): array
     {
         $base = '/' . $module['slug'];
+        if ($module['slug'] === 'btp') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/btp/dashboard','group'=>'Pilotage','available'=>true],
+                ['key'=>'projets','label'=>'Tous les projets','icon'=>'PR','url'=>'/btp/projets','group'=>'Projets','available'=>true],
+                ['key'=>'nouveau-projet','label'=>'Nouveau projet','icon'=>'+','url'=>'/btp/projets/nouveau','group'=>'Projets','available'=>true],
+                ['key'=>'chantier-nouveau','label'=>'Préparer un chantier','icon'=>'+','url'=>'/btp/chantiers/nouveau','group'=>'Exécution','available'=>true],
+                ['key'=>'chantiers','label'=>'Liste des chantiers','icon'=>'CH','url'=>'/btp/chantiers','group'=>'Exécution','available'=>true],
+                ['key'=>'planning-nouveau','label'=>'Créer un planning','icon'=>'+','url'=>'/btp/plannings/nouveau','group'=>'Études & planning','available'=>true],
+                ['key'=>'plannings','label'=>'Liste des plannings','icon'=>'PL','url'=>'/btp/plannings','group'=>'Études & planning','available'=>true],
+                ['key'=>'debourses-nouveau','label'=>'Nouveau déboursé','icon'=>'+','url'=>'/btp/debourses/nouveau','group'=>'Budget prévisionnel','available'=>true],
+                ['key'=>'debourses-liste','label'=>'Liste des déboursés','icon'=>'FCFA','url'=>'/btp/debourses','group'=>'Budget prévisionnel','available'=>true],
+                ['key'=>'bc-nouveau','label'=>'Nouveau bon de commande','icon'=>'+','url'=>'/btp/bons-commande/nouveau','group'=>'Commandes clients','available'=>true],
+                ['key'=>'bc-liste','label'=>'Liste des bons de commande','icon'=>'BC','url'=>'/btp/bons-commande','group'=>'Commandes clients','available'=>true],
+                ['key'=>'devis-liste','label'=>'Liste des devis','icon'=>'DV','url'=>'/btp/devis','group'=>'Devis & chiffrage','available'=>true],
+                ['key'=>'devis-nouveau','label'=>'Nouveau devis','icon'=>'+','url'=>'/btp/devis/nouveau','group'=>'Devis & chiffrage','available'=>true],
+            ];
+        }
         if ($module['slug'] === 'crm') {
             return [
                 ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/crm/dashboard','group'=>'Pilotage','available'=>true],
