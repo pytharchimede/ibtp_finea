@@ -59,6 +59,8 @@ final class BrandingService
             . "  --finea-text: var(--brand-text);\n"
             . "  --finea-muted: var(--brand-muted);\n"
             . "}\n"
+            . ".finea-brand-logo { max-width: 140px; max-height: 48px; width: auto; height: auto; object-fit: contain; }\n"
+            . ".module-brand-mark .finea-brand-logo { max-width: 40px; max-height: 40px; }\n"
             . ".module-sidebar { background: var(--brand-primary); }\n"
             . ".module-brand-mark { background: var(--brand-accent); }\n"
             . ".finea-page-header { background: var(--brand-primary); }\n"

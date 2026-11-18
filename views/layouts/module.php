@@ -6,6 +6,7 @@ use App\Helpers\View;
 use App\Helpers\ModuleIcon;
 use App\View\Components\Ui;
 use App\View\Components\Navigation;
+use App\Services\Shared\BrandingService;
 
 /** @var \App\Support\ViewBag $viewData */ $viewData ??= \App\Support\ViewBag::from(get_defined_vars());
 $appConfig = require BASE_PATH . '/config/app.php';
@@ -21,6 +22,7 @@ $moduleAccent = $moduleTheme['accent'] ?? '#7c3aed';
 $moduleAccent2 = $moduleTheme['accent2'] ?? '#1d2b57';
 $moduleGradient = $moduleTheme['gradient'] ?? 'linear-gradient(135deg, #1d2b57, #7c3aed)';
 $moduleIconKey = $moduleTheme['iconKey'] ?? strtolower((string) ($moduleCode ?? 'admin'));
+$branding = new BrandingService();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -50,10 +52,10 @@ $moduleIconKey = $moduleTheme['iconKey'] ?? strtolower((string) ($moduleCode ?? 
     <div class="module-layout">
         <aside class="module-sidebar" id="moduleSidebar">
             <a class="module-brand" href="<?= View::url('selection_portail') ?>">
-                <span class="module-brand-mark module-brand-mark--icon"><?= ModuleIcon::svg((string) $moduleIconKey) ?></span>
+                <span class="module-brand-mark module-brand-mark--icon"><?php if ($branding->logoPath() !== ''): ?><img class="finea-brand-logo" src="<?= View::e(View::asset($branding->logoPath())) ?>" alt="Logo <?= View::e($branding->companyName()) ?>"><?php else: ?><?= ModuleIcon::svg((string) $moduleIconKey) ?><?php endif; ?></span>
                 <span>
                     <strong><?= View::e($moduleName ?? 'Module') ?></strong>
-                    <small><?= View::e($appConfig['name']) ?> • Gestion d’entreprise</small>
+                    <small><?= View::e($branding->companyName()) ?> · <?= View::e($appConfig['name']) ?></small>
                 </span>
             </a>
 

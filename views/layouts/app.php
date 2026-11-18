@@ -3,6 +3,7 @@
 use App\Helpers\Auth;
 use App\Helpers\Session;
 use App\Helpers\View;
+use App\Services\Shared\BrandingService;
 
 /** @var \App\Support\ViewBag $viewData */ $viewData ??= \App\Support\ViewBag::from(get_defined_vars());
 $appConfig = require BASE_PATH . '/config/app.php';
@@ -11,6 +12,7 @@ $title = $pageTitle ?? 'Tableau de bord';
 $successMessage = Session::getFlash('success');
 $errorMessage = Session::getFlash('error');
 $user = Auth::user();
+$branding = new BrandingService();
 ?>
 
 <!DOCTYPE html>
@@ -42,7 +44,10 @@ $user = Auth::user();
         <div class="app-main app-main--portal">
             <header class="app-topbar app-topbar--portal">
                 <div>
-                    <span class="app-topbar-kicker">Portail ERP</span>
+                    <span class="app-topbar-kicker">Portail ERP · <?= View::e($branding->companyName()) ?></span>
+                    <?php if ($branding->logoPath() !== ''): ?>
+                        <img class="finea-brand-logo" src="<?= View::e(View::asset($branding->logoPath())) ?>" alt="Logo <?= View::e($branding->companyName()) ?>">
+                    <?php endif; ?>
                     <h1>Modules de gestion • <?= View::e($appConfig['name']) ?></h1>
                     <p class="app-topbar-subtitle">Accédez aux modules de gestion de votre entreprise.</p>
                 </div>
