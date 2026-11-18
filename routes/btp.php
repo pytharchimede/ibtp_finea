@@ -10,5 +10,7 @@ $router->group('/btp', static function(Router $router): void {
     $router->post('/projets',[ProjetController::class,'store']);
     $router->get('/projets/{id}',[ProjetController::class,'show']);
     $router->post('/projets/{id}/evenements',[ProjetController::class,'addEvent']);
+    $router->post('/projets/{id}/documents',[ProjetController::class,'uploadDocument']);
+    $router->get('/projets/{id}/documents/{documentId}',[ProjetController::class,'downloadDocument']);
     $router->post('/projets/{id}/devis',[ProjetController::class,'addQuote']);
 });

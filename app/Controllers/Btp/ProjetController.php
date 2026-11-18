@@ -56,9 +56,37 @@ final class ProjetController extends BaseController
         if(!$project){http_response_code(404);exit('Projet introuvable');}
         $this->view('btp/dossier',$this->context('Dossier projet','projets')+[
             'projectBtp'=>$project,'eventsBtp'=>$service->events((int)$id),
-            'quotesBtp'=>$service->quotes((int)$id),'csrfBtp'=>$this->csrf(),
+            'quotesBtp'=>$service->quotes((int)$id),'documentsBtp'=>$service->documents((int)$id),'csrfBtp'=>$this->csrf(),
             'errorBtp'=>$_SESSION['btp_projet_error']??null]);
         unset($_SESSION['btp_projet_error']);
+    }
+    public function uploadDocument(string $id): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS,'create')){http_response_code(403);exit('Accès interdit');}
+        if(!hash_equals($this->csrf(),(string)($_POST['_csrf']??''))){http_response_code(403);exit('Jeton invalide');}
+        try {
+            (new \App\Services\Btp\DossierService(Database::getConnection()))->uploadDocument((int)$id,$_POST,$_FILES['document']??[],isset($_SESSION['auth_user_id'])?(int)$_SESSION['auth_user_id']:null);
+        } catch (\Throwable $e) {
+            error_log('[BTP upload] '.$e->getMessage());
+            $_SESSION['btp_projet_error']=$e instanceof InvalidArgumentException?$e->getMessage():'Impossible de conserver le document.';
+        }
+        $this->redirect('/btp/projets/'.(int)$id);
+    }
+    public function downloadDocument(string $id,string $documentId): void
+    {
+        AuthMiddleware::check();
+        if(!Auth::can(PermissionEntityRegistry::BTP_PROJECTS)){http_response_code(403);exit('Accès interdit');}
+        $doc=(new \App\Services\Btp\DossierService(Database::getConnection()))->document((int)$id,(int)$documentId);
+        if(!$doc){http_response_code(404);exit('Document introuvable');}
+        $path=BASE_PATH.'/storage/private/btp/'.$doc['storage_name'];
+        if(!is_file($path)){http_response_code(404);exit('Fichier indisponible');}
+        header('Content-Type: application/octet-stream');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Disposition: attachment; filename="document-'.(int)$documentId.'"');
+        header('Content-Length: '.filesize($path));
+        readfile($path);
+        exit;
     }
     public function addEvent(string $id): void
     {

@@ -39,6 +39,7 @@ class MigrationRunner
         $this->createCrmAoScoringSettings();
         $this->createBtpCrmProjectLink();
         $this->createBtpTechnicalDossier();
+        $this->createBtpDocuments();
         $this->createSystemTestTables();
         $this->createModuleMaintenanceTable();
         $this->linkUsersToRhEmployees();
@@ -76,6 +77,29 @@ class MigrationRunner
             KEY idx_btp_quote_project (projet_id),
             CONSTRAINT fk_btp_quote_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
             CONSTRAINT fk_btp_quote_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function createBtpDocuments(): void
+    {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS btp_documents (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            projet_id BIGINT UNSIGNED NOT NULL,
+            category ENUM('dce','administratif','technique','financier','client','chantier','autre') NOT NULL DEFAULT 'autre',
+            label VARCHAR(180) NOT NULL,
+            version INT UNSIGNED NOT NULL,
+            original_name VARCHAR(255) NOT NULL,
+            storage_name VARCHAR(80) NOT NULL,
+            mime_type VARCHAR(120) NOT NULL,
+            file_size BIGINT UNSIGNED NOT NULL,
+            sha256 CHAR(64) NOT NULL,
+            created_by INT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_btp_document_version (projet_id,category,label,version),
+            UNIQUE KEY uq_btp_document_storage (storage_name),
+            KEY idx_btp_documents_project (projet_id,created_at),
+            CONSTRAINT fk_btp_documents_project FOREIGN KEY (projet_id) REFERENCES btp_projets(id) ON DELETE RESTRICT,
+            CONSTRAINT fk_btp_documents_author FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     }
 
