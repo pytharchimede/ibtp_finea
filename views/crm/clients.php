@@ -58,16 +58,16 @@ ob_start();?>
 .crm-search{display:flex;gap:8px;margin-bottom:14px}
 .crm-search input{flex:1;min-width:0;padding:10px;border:1px solid #cbd5e1;border-radius:9px}
 @media(max-width:700px){.crm-wrap{padding:0 12px;margin:14px auto}.crm-card{padding:20px 15px}.crm-form-layout{grid-template-columns:1fr;gap:17px}.crm-tabbar{margin-bottom:26px;padding-left:0;padding-right:0}.crm-step-dot{width:39px;height:39px;font-size:15px}.crm-tabbar:before{top:31px}.crm-tab-title{font-size:.78rem}.crm-step-hint{display:none}.crm-wizard-actions{flex-wrap:wrap}.crm-wizard-actions [data-wizard-counter]{font-size:.74rem}}
-</style>
+.crm-step-check{font-size:23px;font-weight:900;line-height:1}.crm-step-check[hidden]{display:none!important}.crm-step-dot svg{display:block;flex-shrink:0}</style>
 <div class="crm-wrap"><div class="crm-hero"><h1>Clients &amp; Prospects</h1><p>Référentiel CRM partagé avec les projets BTP.</p><a href="<?= $e(View::url('crm/dashboard')) ?>">Tableau de bord CRM</a> · <a href="<?= $e(View::url('crm/clients/nouveau')) ?>">+ Nouveau client</a></div>
 <?php if($errorCrm):?><div class="crm-alert" role="alert"><?= $e($errorCrm) ?></div><?php endif;?>
 <?php if($successCrm):?><div class="crm-alert crm-success"><?= $e($successCrm) ?></div><?php endif;?>
 <div class="crm-grid">
 <?php if($crmFormMode):?><section class="crm-card"><h2><?= $clientEdit?'Modifier la fiche':($crmNewMode?'Créer un client / prospect':'Ajouter un client / prospect') ?></h2>
 <nav class="crm-tabbar" aria-label="Progression du formulaire">
-<div class="crm-tab" data-crm-tab="identity" aria-current="step"><span class="crm-step-dot"><i class="fa-solid fa-id-card"></i></span><span class="crm-tab-title">1. Identité</span><small class="crm-step-hint">Identification officielle</small></div>
-<div class="crm-tab" data-crm-tab="contact"><span class="crm-step-dot"><i class="fa-solid fa-address-book"></i></span><span class="crm-tab-title">2. Coordonnées</span><small class="crm-step-hint">Contact et localisation</small></div>
-<div class="crm-tab" data-crm-tab="business"><span class="crm-step-dot"><i class="fa-solid fa-briefcase"></i></span><span class="crm-tab-title">3. Classification</span><small class="crm-step-hint">Profil commercial</small></div>
+<div class="crm-tab" data-crm-tab="identity" aria-current="step"><span class="crm-step-dot"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M4.5 16c.6-2.2 6.4-2.2 7 0M14 9h5M14 13h5M14 16h3"/></svg></span><span class="crm-tab-title">1. Identité</span><small class="crm-step-hint">Identification officielle</small></div>
+<div class="crm-tab" data-crm-tab="contact"><span class="crm-step-dot"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="16" height="18" rx="2"/><path d="M2 7h5M2 12h5M2 17h5"/><circle cx="13" cy="9" r="2"/><path d="M9.5 17c0-3.2 7-3.2 7 0"/></svg></span><span class="crm-tab-title">2. Coordonnées</span><small class="crm-step-hint">Contact et localisation</small></div>
+<div class="crm-tab" data-crm-tab="business"><span class="crm-step-dot"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13c5 3 13 3 18 0M11 14h2"/></svg></span><span class="crm-tab-title">3. Classification</span><small class="crm-step-hint">Profil commercial</small></div>
 </nav>
 <form class="crm-form-layout" data-finea-wizard="1" novalidate method="post" action="<?= $e(View::url('crm/clients')) ?>">
 <input type="hidden" name="_csrf" value="<?= $e($csrfCrm) ?>">

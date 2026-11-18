@@ -48,9 +48,8 @@
    markers.forEach((m,j)=>{
     if(j===i)m.setAttribute('aria-current','step');else m.removeAttribute('aria-current');
     m.classList.toggle('is-complete',complete.has(j)&&j!==i);
-    const dot=m.querySelector('.crm-step-dot i');
-    if(dot)dot.className=complete.has(j)&&j!==i?'fa-solid fa-check':[
-     'fa-solid fa-id-card','fa-solid fa-address-book','fa-solid fa-briefcase'][j];
+    const dot=m.querySelector('.crm-step-dot');
+    if(dot){const svg=dot.querySelector('svg');if(svg)svg.style.display=complete.has(j)&&j!==i?'none':'';let check=dot.querySelector('.crm-step-check');if(!check){check=document.createElement('span');check.className='crm-step-check';check.textContent='✓';check.setAttribute('aria-hidden','true');dot.appendChild(check);}check.hidden=!(complete.has(j)&&j!==i);}
    });
    prev.hidden=i===0;next.hidden=i===steps.length-1;submit.hidden=i!==steps.length-1;
    counter.textContent='Étape '+(i+1)+' sur '+steps.length;
