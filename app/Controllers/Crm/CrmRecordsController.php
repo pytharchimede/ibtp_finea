@@ -24,7 +24,7 @@ final class CrmRecordsController extends BaseController {
   $this->guard();$pdo=Database::getConnection();
   $clients=$pdo->query('SELECT id,name FROM crm_clients ORDER BY name LIMIT 1000')->fetchAll(PDO::FETCH_ASSOC);
   $error=$_SESSION['crm_opp_error']??null;unset($_SESSION['crm_opp_error']);
-  $this->view('crm/opportunity_form',['pageTitle'=>'Nouvelle opportunité','clients'=>$clients,'selectedClient'=>(int)($_GET['client_id']??0),'csrfOpp'=>$this->csrf(),'errorOpp'=>$error] + \App\Services\Crm\CrmPageContext::forPage('Nouvelle opportunité','opportunites'));
+  $this->view('crm/opportunity_form',['pageTitle'=>'Nouvelle opportunité','clients'=>$clients,'selectedClient'=>(int)($_GET['client_id']??0),'csrfOpp'=>$this->csrf(),'errorOpp'=>$error] + \App\Services\Crm\CrmPageContext::forPage('Nouvelle opportunité','nouvelle-opportunite'));
  }
  public function saveOpportunity():void{
   $this->guard();

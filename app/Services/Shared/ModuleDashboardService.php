@@ -258,7 +258,8 @@ final class ModuleDashboardService
                 ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/crm/dashboard','group'=>'Pilotage','available'=>true],
                 ['key'=>'clients','label'=>'Liste des clients','icon'=>'CL','url'=>'/crm/clients','group'=>'Clients & prospects','available'=>true],
                 ['key'=>'nouveau-client','label'=>'Créer un client','icon'=>'+','url'=>'/crm/clients/nouveau','group'=>'Clients & prospects','available'=>true],
-                ['key'=>'opportunites','label'=>'Opportunités','icon'=>'OP','url'=>'/crm/opportunites','group'=>'Activité commerciale','available'=>true],
+                ['key'=>'opportunites','label'=>'Liste des opportunités','icon'=>'OP','url'=>'/crm/opportunites','group'=>'Opportunités','available'=>true],
+                ['key'=>'nouvelle-opportunite','label'=>'Créer une opportunité','icon'=>'+','url'=>'/crm/opportunites/nouvelle','group'=>'Opportunités','available'=>true],
                 ['key'=>'interactions','label'=>'Interactions','icon'=>'IN','url'=>'/crm/interactions','group'=>'Activité commerciale','available'=>true],
             ];
         }
