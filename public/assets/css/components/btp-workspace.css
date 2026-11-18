@@ -83,3 +83,19 @@
 .btp-aside-metrics span{font-size:.7rem;color:#64748b}
 @media(max-width:1150px){.btp-stepper{grid-template-columns:repeat(3,minmax(0,1fr))}.btp-workspace-layout{grid-template-columns:minmax(0,1fr)}.btp-workspace-aside .btp-panel{position:static}}
 @media(max-width:650px){.btp-stepper{grid-template-columns:1fr}.btp-heading{flex-direction:column}.btp-form-row,.btp-facts{grid-template-columns:1fr}.btp-workspace .btp-tabs{position:static}.btp-workspace .btp-section{scroll-margin-top:15px}.btp-workspace .btp-composer form{padding:14px}.btp-workspace .btp-banner nav a{flex:1 1 auto;text-align:center}}
+
+/* Searchable select: JS form-components.js uses -search-* class names.
+   Keep the native select available without JS, hide it only after enhancement. */
+.btp-workspace select.finea-select-native-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:0!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important}
+.btp-workspace .finea-select-search{position:relative;display:block;width:100%;min-width:0;font-weight:400}
+.btp-workspace .finea-select-search-control{display:flex;align-items:center;gap:8px;min-height:46px;padding:0 12px;background:#fff;border:1px solid #cbd8e9;border-radius:10px;cursor:text;transition:border-color .15s,box-shadow .15s}
+.btp-workspace .finea-select-search.is-open .finea-select-search-control,.btp-workspace .finea-select-search-control:focus-within{border-color:#24519b;box-shadow:0 0 0 3px #24519b19}
+.btp-workspace .finea-select-search-input{flex:1;min-width:0;width:100%;padding:10px 0!important;border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important;color:#203654;font:inherit}
+.btp-workspace .finea-select-search-arrow{flex:none;font-size:1.15rem;color:#54739a;pointer-events:none}
+.btp-workspace .finea-select-search-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;max-height:260px;overflow-y:auto;background:#fff;border:1px solid #d3dfed;border-radius:11px;box-shadow:0 15px 35px #1b365b26;z-index:35;padding:6px}
+.btp-workspace .finea-select-search.is-open .finea-select-search-menu{display:block}
+.btp-workspace .finea-select-search-option{display:flex;flex-direction:column;align-items:flex-start;width:100%;padding:11px 12px;background:transparent!important;color:#284566!important;border:0!important;border-radius:8px;text-align:left;cursor:pointer;font-size:.86rem;font-weight:500}
+.btp-workspace .finea-select-search-option strong{font-weight:650;white-space:normal;overflow-wrap:anywhere}
+.btp-workspace .finea-select-search-option small{color:#6c7d93}
+.btp-workspace .finea-select-search-option:hover,.btp-workspace .finea-select-search-option:focus-visible,.btp-workspace .finea-select-search-option.is-selected{background:#edf4ff!important;color:#194982!important}
+.btp-workspace .finea-select-search-empty{padding:12px;color:#6c7d93;font-size:.85rem}
