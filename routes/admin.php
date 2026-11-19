@@ -24,6 +24,7 @@ $router->group('/admin', function (Router $router): void {
     $router->post('/feb/affectations', [AdminFebController::class, 'accessSave']);
     $router->post('/feb/affectations-groupe', [AdminFebController::class, 'accessBulkSave']);
     $router->post('/feb/budgets', [AdminFebController::class, 'budgetSave']);
+    $router->post('/feb/budgets-bureau', [AdminFebController::class, 'officeBudgetSave']);
 
     $router->get('/system-tests', [AdminSystemTestController::class, 'index']);
     $router->get('/system-tests/latest', [AdminSystemTestController::class, 'latest']);
