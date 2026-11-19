@@ -13,7 +13,7 @@ final class EmployeeRequestCatalogTest extends TestCase
     {
         $catalog = EmployeeRequestCatalog::all();
         self::assertSame(
-            ['leave', 'absence', 'lateness', 'attendance_correction', 'salary_advance', 'document', 'other'],
+            ['feb', 'leave', 'absence', 'lateness', 'attendance_correction', 'salary_advance', 'document', 'other'],
             array_keys($catalog)
         );
     }
