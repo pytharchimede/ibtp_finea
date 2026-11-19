@@ -2,6 +2,7 @@
 declare(strict_types=1);
 use App\Helpers\View;
 use App\View\Components\WizardSteps;
+use App\View\Components\FormControls as Fc;
 $e = static fn(mixed $v):string => View::e((string)$v);
 $scope = ($febData['scope'] ?? 'chantier') === 'bureau' ? 'bureau' : 'chantier';
 $chantiers = $febData['chantiers'] ?? [];
@@ -11,6 +12,9 @@ $workflows = $febData['workflows'] ?? [];
 $services = $febData['officeServices'] ?? [];
 $allocations = $febData['officeAllocations'] ?? [];
 $csrf = $page->csrfToken;
+$selfEmployee = $febData['selfEmployee'] ?? null;
+$unitOptions = [];
+foreach(($febData['quoteUnits']??[]) as $unit)$unitOptions[(string)$unit['code']] = $unit['label'].' ('.$unit['code'].')';
 $quoteLines = [];
 $budgets = [];
 foreach($lines as $line){
@@ -116,7 +120,7 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
     <div class="feb-create-grid">
      <label>Désignation<input class="feb-field" name="lines[<?= $n ?>][description]" <?= $n===0?'required':'' ?> placeholder="Fourniture, prestation, main-d’œuvre…"></label>
      <label>Quantité<input class="feb-field feb-quantity" name="lines[<?= $n ?>][quantity]" type="number" min="0.001" step="0.001" value="<?= $n===0?'1':'' ?>"></label>
-     <label>Unité<input class="feb-field" name="lines[<?= $n ?>][unit]" value="u" maxlength="30"></label>
+     <div class="feb-unit-field"><label>Unité</label><?= Fc::searchable("lines[$n][unit]",$unitOptions,["placeholder"=>"Rechercher une unité…"]) ?></div>
      <label>Prix unitaire (FCFA)<input class="feb-field feb-price" name="lines[<?= $n ?>][unit_amount]" type="number" min="0" step="0.01"></label>
     </div>
     <p class="feb-line-total">Sous-total : <strong data-feb-line-total>0 FCFA</strong></p>
@@ -130,12 +134,23 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
  <section class="btp-panel btp-section" data-wizard-step="2" hidden>
   <h2><i class="fa-solid fa-user-check"></i> Bénéficiaire et motif</h2>
   <div class="feb-create-grid">
-   <label>Type de bénéficiaire<select class="feb-field" name="beneficiary_type" required><option value="fournisseur">Fournisseur</option><option value="beneficiaire">Autre bénéficiaire</option></select></label>
-   <label>Nom du bénéficiaire<input class="feb-field" name="beneficiary_name" required maxlength="180"></label>
+   <label>À qui est destinée la FEB ?<select class="feb-field" name="beneficiary_type" id="feb-beneficiary-type" required><option value="beneficiaire">Moi-même (salarié)</option><option value="fournisseur">Fournisseur</option></select></label>
+   <div id="feb-self-profile" class="feb-profile-card" <?= $selfEmployee?'':'data-unlinked="1"' ?>>
+    <?php if($selfEmployee): ?>
+     <strong><?= $e($selfEmployee['full_name']) ?></strong>
+     <span>Matricule : <?= $e($selfEmployee['employee_number']) ?></span>
+     <span>Service : <?= $e($selfEmployee['service_name']??'—') ?> · Fonction : <?= $e($selfEmployee['function_name']??'—') ?></span>
+     <span><?= $e($selfEmployee['email']??'') ?> <?= $e($selfEmployee['phone']??'') ?></span>
+    <?php else: ?><p class="feb-budget-warning">Votre compte n’est pas rattaché à une fiche salarié RH active. Contactez les RH.</p><?php endif; ?>
+   </div>
+   <div id="feb-supplier-fields" hidden>
+    <label>Nom du fournisseur<input class="feb-field" name="beneficiary_name" id="feb-beneficiary-name" maxlength="180" placeholder="Sélection du fournisseur à connecter au référentiel"></label>
+    <label>Coordonnées fournisseur<input class="feb-field" name="beneficiary_details" maxlength="500"></label>
+   </div>
    <label>Date souhaitée<input class="feb-field" name="needed_at" type="date" min="<?= date('Y-m-d') ?>" required></label>
-   <label>Coordonnées ou détails<input class="feb-field" name="beneficiary_details" maxlength="500"></label>
   </div>
   <label>Motif détaillé<textarea class="feb-field" name="purpose" rows="4" required></textarea></label>
+  <input type="hidden" id="feb-self-available" value="<?= $selfEmployee?'1':'0' ?>">
  </section>
  <section class="btp-panel btp-section" data-wizard-step="3" hidden>
   <h2><i class="fa-solid fa-file-arrow-up"></i> Justificatif de la FEB</h2>
@@ -165,6 +180,7 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
  <p class="feb-budget-warning">Aucun circuit FEB actif. Configurez-en un dans l’administration avant de créer la demande.</p>
  <?php endif; ?>
 </div>
+<?= Fc::assets() ?>
 <style>
-.feb-employee-create{min-width:0}.feb-scope-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:20px}.feb-scope-choice a{display:grid;gap:5px;padding:18px;border:1px solid #d4dfed;border-radius:16px;color:#233a57;text-decoration:none;background:#fff}.feb-scope-choice a i{font-size:25px;color:#3567b7}.feb-scope-choice a small{font-size:12px;color:#64748b}.feb-scope-choice a.is-selected{border:2px solid #2563eb;background:#eff6ff}.feb-chantier-selection{display:flex;flex-wrap:wrap;align-items:end;gap:14px;border:1px solid #dbe4f0;background:#fff;border-radius:14px;padding:16px;margin-bottom:18px}.feb-chantier-selection label{flex:1 1 260px}.feb-employee-create label{display:grid;gap:6px;font-weight:600;color:#344457;margin:12px 0}.feb-employee-create select,.feb-employee-create input,.feb-employee-create textarea{min-height:44px;width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#172337;font:inherit}.feb-employee-create button[type=submit]{border:0;background:#24519b;color:white;padding:12px 17px;border-radius:9px;cursor:pointer}.feb-employee-create button:disabled{opacity:.5;cursor:not-allowed}.feb-create-form{display:grid;gap:14px}.feb-create-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}.feb-line-card{border:1px solid #dbe4f0;border-radius:14px;padding:16px;margin:14px 0;background:#fff}.feb-line-card legend{color:#24519b;font-weight:700;padding:0 8px;width:100%}.feb-line-card legend button{border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}.feb-line-toggle{display:inline-flex;align-items:center;justify-content:space-between;gap:14px;min-height:40px;width:calc(100% - 50px);text-align:left}.feb-line-remove{float:right;color:#b91c1c!important;padding:9px}.feb-line-card.is-collapsed{background:#f8fafc}.feb-line-card.is-collapsed .feb-line-toggle i{transform:rotate(-90deg)}.feb-add-line{border:1px dashed #2563eb;background:#eff6ff;color:#1d4ed8;padding:13px 18px;border-radius:12px;font-weight:700;cursor:pointer;margin:5px 0 15px}.feb-add-line:hover{background:#dbeafe}.feb-dropzone{display:flex;align-items:center;flex-direction:column;gap:10px;text-align:center;padding:30px 20px;border:2px dashed #93b4e4;border-radius:18px;background:#f8fbff;color:#334155;transition:.2s}.feb-dropzone.is-dragover{background:#dbeafe;border-color:#2563eb}.feb-dropzone>i{font-size:32px;color:#2563eb}.feb-dropzone>small{color:#64748b}.feb-file-picker{display:inline-flex!important;position:relative;overflow:hidden;background:#24519b;color:#fff!important;padding:11px 18px;border-radius:10px;cursor:pointer}.feb-file-picker input{position:absolute;opacity:0;width:1px!important;height:1px!important;pointer-events:none}.feb-file-list{display:grid;gap:8px;padding:0;list-style:none}.feb-file-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid #dbe4f0;border-radius:10px;padding:10px 14px;overflow-wrap:anywhere}.feb-file-list button{border:0;background:#fee2e2;color:#b91c1c;border-radius:8px;padding:7px 10px;cursor:pointer}.feb-grand-total{display:flex;justify-content:space-between;gap:16px;padding:16px;background:#eff6ff;border-radius:13px;font-weight:700}.feb-line-total{text-align:right;color:#64748b}.feb-budget-warning{border:1px solid #f3cb80;background:#fffbeb;color:#92400e;padding:15px;border-radius:12px;margin:14px 0}.feb-budget-info{padding:12px;background:#eff6ff;border-radius:10px;color:#1e40af}.feb-employee-create [data-wizard-step][hidden]{display:none!important}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(5,minmax(0,1fr))}@media(max-width:760px){.feb-create-grid,.feb-scope-choice{grid-template-columns:1fr}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.feb-employee-create{min-width:0}.feb-scope-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:20px}.feb-scope-choice a{display:grid;gap:5px;padding:18px;border:1px solid #d4dfed;border-radius:16px;color:#233a57;text-decoration:none;background:#fff}.feb-scope-choice a i{font-size:25px;color:#3567b7}.feb-scope-choice a small{font-size:12px;color:#64748b}.feb-scope-choice a.is-selected{border:2px solid #2563eb;background:#eff6ff}.feb-chantier-selection{display:flex;flex-wrap:wrap;align-items:end;gap:14px;border:1px solid #dbe4f0;background:#fff;border-radius:14px;padding:16px;margin-bottom:18px}.feb-chantier-selection label{flex:1 1 260px}.feb-employee-create label{display:grid;gap:6px;font-weight:600;color:#344457;margin:12px 0}.feb-employee-create select,.feb-employee-create input,.feb-employee-create textarea{min-height:44px;width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#172337;font:inherit}.feb-employee-create button[type=submit]{border:0;background:#24519b;color:white;padding:12px 17px;border-radius:9px;cursor:pointer}.feb-employee-create button:disabled{opacity:.5;cursor:not-allowed}.feb-create-form{display:grid;gap:14px}.feb-create-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}.feb-line-card{border:1px solid #dbe4f0;border-radius:14px;padding:16px;margin:14px 0;background:#fff}.feb-line-card legend{color:#24519b;font-weight:700;padding:0 8px;width:100%}.feb-line-card legend button{border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}.feb-line-toggle{display:inline-flex;align-items:center;justify-content:space-between;gap:14px;min-height:40px;width:calc(100% - 50px);text-align:left}.feb-line-remove{float:right;color:#b91c1c!important;padding:9px}.feb-line-card.is-collapsed{background:#f8fafc}.feb-line-card.is-collapsed .feb-line-toggle i{transform:rotate(-90deg)}.feb-add-line{border:1px dashed #2563eb;background:#eff6ff;color:#1d4ed8;padding:13px 18px;border-radius:12px;font-weight:700;cursor:pointer;margin:5px 0 15px}.feb-add-line:hover{background:#dbeafe}.feb-dropzone{display:flex;align-items:center;flex-direction:column;gap:10px;text-align:center;padding:30px 20px;border:2px dashed #93b4e4;border-radius:18px;background:#f8fbff;color:#334155;transition:.2s}.feb-dropzone.is-dragover{background:#dbeafe;border-color:#2563eb}.feb-dropzone>i{font-size:32px;color:#2563eb}.feb-dropzone>small{color:#64748b}.feb-file-picker{display:inline-flex!important;position:relative;overflow:hidden;background:#24519b;color:#fff!important;padding:11px 18px;border-radius:10px;cursor:pointer}.feb-file-picker input{position:absolute;opacity:0;width:1px!important;height:1px!important;pointer-events:none}.feb-file-list{display:grid;gap:8px;padding:0;list-style:none}.feb-file-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid #dbe4f0;border-radius:10px;padding:10px 14px;overflow-wrap:anywhere}.feb-file-list button{border:0;background:#fee2e2;color:#b91c1c;border-radius:8px;padding:7px 10px;cursor:pointer}.feb-unit-field{display:grid;gap:6px;margin:12px 0}.feb-profile-card{display:grid;gap:5px;padding:17px;border:1px solid #bfdbfe;border-radius:13px;background:#eff6ff;color:#1e3a5f}.feb-profile-card strong{font-size:17px}.feb-grand-total{display:flex;justify-content:space-between;gap:16px;padding:16px;background:#eff6ff;border-radius:13px;font-weight:700}.feb-line-total{text-align:right;color:#64748b}.feb-budget-warning{border:1px solid #f3cb80;background:#fffbeb;color:#92400e;padding:15px;border-radius:12px;margin:14px 0}.feb-budget-info{padding:12px;background:#eff6ff;border-radius:10px;color:#1e40af}.feb-employee-create [data-wizard-step][hidden]{display:none!important}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(5,minmax(0,1fr))}@media(max-width:760px){.feb-create-grid,.feb-scope-choice{grid-template-columns:1fr}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
