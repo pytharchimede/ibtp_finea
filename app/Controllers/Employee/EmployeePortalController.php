@@ -73,8 +73,8 @@ final class EmployeePortalController extends EmployeeBaseController
             $userId = (int) Auth::id();
             $chantier = (int) ($_GET['chantier'] ?? 0);
             $scope = ($_GET['scope'] ?? 'chantier') === 'bureau' ? 'bureau' : 'chantier';
-            $allowed = $chantier > 0 && $repository->hasChantierAccess($userId, $chantier, 'demander');
-            $chantiers = $repository->chantiersFor($userId, 'demander');
+            $allowed = $scope === 'chantier' && $chantier > 0 && $repository->hasChantierAccess($userId, $chantier, 'demander');
+            $chantiers = $scope === 'chantier' ? $repository->chantiersFor($userId, 'demander') : [];
             if ($allowed && !in_array($chantier, array_map(static fn(array $row): int => (int) $row['id'], $chantiers), true)) $allowed = false;
             $febData = [
                 'scope' => $scope,
