@@ -13,6 +13,8 @@ $services = $febData['officeServices'] ?? [];
 $allocations = $febData['officeAllocations'] ?? [];
 $csrf = $page->csrfToken;
 $selfEmployee = $febData['selfEmployee'] ?? null;
+$supplierOptions = []; $supplierCards = [];
+foreach(($febData['approvedSuppliers']??[]) as $supplier){$supplierOptions[(string)$supplier['id']]=$supplier['legal_name'].' · '.$supplier['supplier_code'];$supplierCards[]=$supplier;}
 $unitOptions = [];
 foreach(($febData['quoteUnits']??[]) as $unit)$unitOptions[(string)$unit['code']] = $unit['label'].' ('.$unit['code'].')';
 $quoteLines = [];
@@ -134,7 +136,7 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
  <section class="btp-panel btp-section" data-wizard-step="2" hidden>
   <h2><i class="fa-solid fa-user-check"></i> Bénéficiaire et motif</h2>
   <div class="feb-create-grid">
-   <label>À qui est destinée la FEB ?<select class="feb-field" name="beneficiary_type" id="feb-beneficiary-type" required><option value="beneficiaire">Moi-même (salarié)</option><option value="fournisseur" disabled>Fournisseur — raccordement au référentiel en cours</option></select></label>
+   <label>À qui est destinée la FEB ?<select class="feb-field" name="beneficiary_type" id="feb-beneficiary-type" required><option value="beneficiaire">Moi-même (salarié)</option><option value="fournisseur">Fournisseur agréé</option></select></label>
    <div id="feb-self-profile" class="feb-profile-card" <?= $selfEmployee?'':'data-unlinked="1"' ?>>
     <?php if($selfEmployee): ?>
      <strong><?= $e($selfEmployee['full_name']) ?></strong>
@@ -144,9 +146,12 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
     <?php else: ?><p class="feb-budget-warning">Votre compte n’est pas rattaché à une fiche salarié RH active. Contactez les RH.</p><?php endif; ?>
    </div>
    <div id="feb-supplier-fields" hidden>
-    <label>Nom du fournisseur<input class="feb-field" name="beneficiary_name" id="feb-beneficiary-name" maxlength="180" placeholder="Sélection du fournisseur à connecter au référentiel"></label>
-    <label>Coordonnées fournisseur<input class="feb-field" name="beneficiary_details" maxlength="500"></label>
+    <label>Fournisseur approuvé</label>
+    <?= Fc::searchable('supplier_id',$supplierOptions,['placeholder'=>'Rechercher un fournisseur agréé…']) ?>
+    <div id="feb-supplier-card" class="feb-profile-card" hidden aria-live="polite"></div>
+    <?php if(!$supplierOptions): ?><p class="feb-budget-warning">Aucun fournisseur agréé. <a href="<?= $e(View::url('fournisseurs')) ?>">Créer ou faire approuver un dossier fournisseur</a>.</p><?php endif; ?>
    </div>
+   <script type="application/json" id="feb-supplier-data"><?= json_encode($supplierCards,JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_UNESCAPED_UNICODE) ?></script>
    <label>Date souhaitée<input class="feb-field" name="needed_at" type="date" min="<?= date('Y-m-d') ?>" required></label>
   </div>
   <label>Motif détaillé<textarea class="feb-field" name="purpose" rows="4" required></textarea></label>
