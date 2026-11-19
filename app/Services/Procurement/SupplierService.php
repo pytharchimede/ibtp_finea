@@ -9,8 +9,12 @@ final class SupplierService {
  public function users():array{return $this->db->query("SELECT id,full_name FROM users WHERE status='active' ORDER BY full_name")->fetchAll()?:[];}
  public function workflowSteps(int $id):array{$q=$this->db->prepare("SELECT s.*,u.full_name assigned_name FROM procurement_supplier_workflow_steps s JOIN users u ON u.id=s.assigned_user_id WHERE workflow_id=? ORDER BY step_order");$q->execute([$id]);return $q->fetchAll()?:[];}
  public function create(array $data,int $actor):int{
-  $type=(string)($data['person_type']??'');$name=trim((string)($data['legal_name']??''));
+  $type=(string)($data['person_type']??'');$name=trim((string)($type==='physique'?($data['individual_name']??''):($data['company_name']??'')));
   if(!in_array($type,['physique','morale'],true)||$name===''||mb_strlen($name)>200)throw new DomainException('Type et nom du fournisseur obligatoires.');
+  $data['tax_identifier']=$type==='physique'?($data['individual_tax_identifier']??''):($data['tax_identifier']??'');
+  $data['trade_register']=$type==='physique'?($data['individual_trade_register']??''):($data['trade_register']??'');
+  $data['trade_name']=$type==='physique'?($data['individual_activity']??''):($data['trade_name']??'');
+  $data['contact_name']=$type==='physique'?$name:($data['contact_name']??'');
   $code='FRN-'.bin2hex(random_bytes(6));$q=$this->db->prepare("INSERT INTO procurement_suppliers(supplier_code,person_type,legal_name,trade_name,contact_name,email,phone,address,country_code,tax_identifier,trade_register,bank_name,bank_iban,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
   $q->execute([$code,$type,$name,trim((string)($data['trade_name']??'')),trim((string)($data['contact_name']??'')),trim((string)($data['email']??'')),trim((string)($data['phone']??'')),trim((string)($data['address']??'')),strtoupper(substr((string)($data['country_code']??'CI'),0,2)),trim((string)($data['tax_identifier']??'')),trim((string)($data['trade_register']??'')),trim((string)($data['bank_name']??'')),trim((string)($data['bank_iban']??'')),$actor]);return (int)$this->db->lastInsertId();
  }
