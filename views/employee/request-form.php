@@ -15,7 +15,17 @@ ob_start();
             'Choisissez une catégorie : le formulaire affiche uniquement les informations nécessaires.',
             ['eyebrow' => 'Self-service RH', 'class' => 'employee-hero', 'actions' => [Ui::button('Mes demandes', ['href' => 'espace-employe/demandes', 'variant' => 'secondary', 'icon' => 'arrow-left'])]]
         ) ?>
-        <?= EmployeeRequestForms::render($page->csrfToken, $page->selectedType) ?>
+        <?php
+        $chantiers = $febData['chantiers'] ?? [];
+        $workflows = $febData['workflows'] ?? [];
+        $selectedChantier = $febData['selectedChantier'] ?? 0;
+        $lines = $febData['lines'] ?? [];
+        $csrf = $page->csrfToken;
+        ob_start();
+        require BASE_PATH . '/views/feb/employee-wizard.php';
+        $febHtml = ob_get_clean();
+        ?>
+        <?= EmployeeRequestForms::render($page->csrfToken, $page->selectedType, $febHtml) ?>
     </div>
 </div>
 <?php
