@@ -35,7 +35,7 @@ final class SupplierController extends BaseController {
  public function upload(string $id):void{
   $this->guard();$this->csrf();
   try{$this->service()->uploadDocument((int)$id,(string)($_POST['document_type']??''),$_FILES['document']??[],(int)Auth::id());Session::flash('success','Document ajouté.');}
-  catch(\\Throwable $e){Session::flash('error',$e instanceof \\DomainException?$e->getMessage():'Envoi impossible.');}
+  catch(\Throwable $e){Session::flash('error',$e instanceof \DomainException?$e->getMessage():'Envoi impossible.');}
   $this->redirect('/fournisseurs/'.$id);
  }
  public function download(string $id):void{
