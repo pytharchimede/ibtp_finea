@@ -78,6 +78,16 @@ document.addEventListener('DOMContentLoaded',()=>{
  });
  refreshTotal();
  const beneficiaryType=form.querySelector('#feb-beneficiary-type');
+ const supplierCards=JSON.parse(form.querySelector('#feb-supplier-data')?.textContent||'[]');
+ const supplierHidden=()=>form.querySelector('[name="supplier_id"]');
+ const syncSupplierCard=()=>{
+  const card=form.querySelector('#feb-supplier-card');if(!card)return;
+  const supplier=supplierCards.find(item=>String(item.id)===supplierHidden()?.value);
+  card.hidden=!supplier;card.replaceChildren();if(!supplier)return;
+  const values=[supplier.legal_name,supplier.supplier_code,'Type : '+supplier.person_type,'NCC : '+(supplier.tax_identifier||'—'),supplier.email||'',supplier.phone||'',supplier.address||''];
+  for(const value of values){const p=document.createElement('span');p.textContent=value;card.append(p);}
+ };
+ form.querySelector('#feb-supplier-fields')?.addEventListener('click',()=>queueMicrotask(syncSupplierCard));
  const syncBeneficiary=()=>{
   const supplier=beneficiaryType?.value==='fournisseur';
   const profile=form.querySelector('#feb-self-profile'),supplierFields=form.querySelector('#feb-supplier-fields');
@@ -134,6 +144,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  };
  const validate=i=>{
   const section=steps[i];if(!section)return false;
+  if(i===2&&beneficiaryType?.value==='fournisseur'&&!supplierHidden()?.value){alert('Sélectionnez un fournisseur agréé.');return false;}
   if(i===2&&beneficiaryType?.value==='beneficiaire'&&form.querySelector('#feb-self-available')?.value!=='1'){alert('Votre compte doit être lié à une fiche salarié RH active.');return false;}
   if(i===3&&attachments.length===0){alert('Ajoutez au moins un justificatif.');attachmentInput?.focus();return false;}
   if(i===1){
@@ -160,7 +171,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    ['Périmètre',scope==='bureau'?'FEB Bureau':'FEB Chantier'],
    ['Affectation',scope==='bureau'?selectedText(field('office_allocation_id')): 'Chantier #'+field('chantier_id').value],
    ['Circuit','Circuit défini dans les paramètres FEB'],
-   ['Bénéficiaire',beneficiaryType?.value==='beneficiaire'?'Moi-même (salarié)':field('beneficiary_name')?.value||''],
+   ['Bénéficiaire',beneficiaryType?.value==='beneficiaire'?'Moi-même (salarié)':supplierCards.find(s=>String(s.id)===supplierHidden()?.value)?.legal_name||''],
    ['Date souhaitée',field('needed_at')?.value||''],
    ['Motif',field('purpose')?.value||''],
    ['Montant estimé',money(refreshTotal())],
