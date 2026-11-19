@@ -10,7 +10,7 @@ $lineOptions=[];foreach($lines as $l)$lineOptions[(string)$l['id']]=$l['descript
 ob_start();
 ?>
 <?=Fc::assets()?>
-<div class="finea-shell feb-employee-create"><div class="finea-container">
+<div class="finea-shell feb-employee-create btp-workspace btp-chantier-wizard"><div class="finea-container">
 <?=Ui::pageHeader('Nouvelle fiche d’expression de besoin','Décrivez votre besoin et joignez les pièces nécessaires. La demande sera transmise au circuit de validation après soumission.',['eyebrow'=>'Espace employé · Mes demandes','actions'=>[Ui::button('Mes FEB',['href'=>'feb','variant'=>'secondary','icon'=>'arrow-left'])]])?>
 <?php ob_start(); ?>
 <form method="get" action="<?=$e(View::url('feb/nouvelle'))?>" class="feb-create-form">
@@ -21,7 +21,13 @@ ob_start();
 <?php if(!$chantiers): ?><?=Ui::emptyState('Aucun chantier accessible','Demandez à l’administrateur FEB de vous attribuer le rôle Demandeur sur un chantier disposant d’un budget validé.')?><?php endif; ?>
 <?=Ui::section('1. Sélection du chantier',(string)ob_get_clean(),'Seuls les chantiers auxquels vous êtes affecté sont proposés.')?>
 <?php if($selectedChantier): ?>
-<form method="post" enctype="multipart/form-data" action="<?=$e(View::url('feb'))?>" class="feb-create-form">
+<?= \App\View\Components\WizardSteps::render([
+ ['label'=>'Besoin','icon'=>'fa-solid fa-clipboard-list'],
+ ['label'=>'Fournisseur','icon'=>'fa-solid fa-truck'],
+ ['label'=>'Justificatif','icon'=>'fa-solid fa-file-arrow-up'],
+ ['label'=>'Récapitulatif','icon'=>'fa-solid fa-circle-check'],
+],'Étapes de la fiche de besoin') ?>
+<form method="post" id="feb-wizard-form" enctype="multipart/form-data" action="<?=$e(View::url('feb'))?>" class="feb-create-form">
 <input type="hidden" name="_csrf_token" value="<?=$e($csrf)?>">
 <input type="hidden" name="chantier_id" value="<?=(int)$selectedChantier?>">
 <?php ob_start(); ?>
@@ -31,10 +37,10 @@ ob_start();
 <label>Nom du fournisseur ou bénéficiaire<input class="feb-field" name="beneficiary_name" required maxlength="180" placeholder="Nom du bénéficiaire"></label>
 <label>Date souhaitée<input class="feb-field" type="date" name="needed_at" required min="<?=date('Y-m-d')?>"></label>
 <label>Détails du bénéficiaire<input class="feb-field" name="beneficiary_details" maxlength="500" placeholder="Référence, contact, informations utiles"></label>
-<label>Justificatif (PDF, JPG, PNG ou DOCX — 10 Mo)<input class="feb-field" type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.docx" required></label>
+
 </div>
 <label>Motif de la demande<textarea class="feb-field" name="purpose" required rows="4" placeholder="Expliquez pourquoi cette dépense est nécessaire au chantier…"></textarea></label>
-<?php echo Ui::section('2. Informations de la demande',(string)ob_get_clean(),'Précisez le bénéficiaire, la date et le motif.'); ?>
+<?php echo '<div class="btp-panel" data-wizard-step="1" hidden>'.Ui::section('2. Informations de la demande',(string)ob_get_clean(),'Précisez le bénéficiaire, la date et le motif.').'</div>'; ?>
 <?php ob_start(); ?>
 <?php if(!$lines): ?><?=Ui::emptyState('Aucune ligne budgétaire','Le chantier ne possède pas de déboursés validés disponibles pour une FEB.')?><?php endif; ?>
 <div class="feb-lines" id="feb-lines">
@@ -52,9 +58,9 @@ ob_start();
 <?php endfor; ?>
 </div>
 <div class="feb-grand-total"><span>Montant total estimé</span><strong id="feb-grand-total">0 FCFA</strong></div>
-<?php echo Ui::section('3. Lignes de besoin',(string)ob_get_clean(),'Rattachez chaque dépense à une ligne du budget validé.'); ?>
-<div class="feb-form-actions"><?=Ui::button('Enregistrer le brouillon',['type'=>'submit','variant'=>'primary','icon'=>'save'])?></div>
-<p class="feb-form-help">L’enregistrement ne soumet pas encore la FEB : vous pourrez vérifier votre brouillon avant de l’envoyer aux validateurs.</p>
+<?php echo '<div class="btp-panel" data-wizard-step="0">'.Ui::section('3. Lignes de besoin',(string)ob_get_clean(),'Rattachez chaque dépense à une ligne du budget validé.').'</div>'; ?>
+<div class="btp-panel" data-wizard-step="2" hidden><h2>Justificatif</h2><label>Justificatif (PDF, JPG, PNG ou DOCX — 10 Mo)<input class="feb-field" type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.docx" required></label></div><div class="btp-panel" data-wizard-step="3" hidden><h2>Vérification de la FEB</h2><div id="feb-wizard-review" aria-live="polite"></div><p>Le brouillon devra ensuite être soumis au circuit de validation.</p><div class="feb-form-actions"><?=Ui::button('Enregistrer le brouillon',['type'=>'submit','variant'=>'primary','icon'=>'save'])?></div>
+<p class="feb-form-help">L’enregistrement ne soumet pas encore la FEB : vous pourrez vérifier votre brouillon avant de l’envoyer aux validateurs.</p></div><div class="btp-wizard-controls"><button type="button" data-wizard-prev>← Précédent</button><span data-wizard-progress>Étape 1 / 4</span><button type="button" data-wizard-next>Suivant →</button></div>
 </form>
 <?php endif; ?>
 </div></div>
@@ -70,4 +76,4 @@ document.addEventListener('DOMContentLoaded',()=>{
  document.querySelectorAll('.feb-quantity,.feb-price').forEach(el=>el.addEventListener('input',update));update();
 });
 </script>
-<?php $content=ob_get_clean();require BASE_PATH.'/views/layouts/module.php';
+<?php $content=ob_get_clean();$additionalStyles=array_merge($additionalStyles??[],['css/components/btp-workspace.css']);$additionalScripts=array_merge($additionalScripts??[],['js/components/feb-wizard.js']);require BASE_PATH.'/views/layouts/module.php';
