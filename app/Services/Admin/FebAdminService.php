@@ -19,7 +19,7 @@ final class FebAdminService {
    if(!$q->fetchColumn())throw new DomainException('Service RH inexistant ou inactif.');
    $q=$pdo->prepare('INSERT INTO feb_office_budget_allocations(service_id,fiscal_year,code,label,budget_amount,created_by) VALUES(?,?,?,?,?,?)');
    $q->execute([$service,$year,$code,$label,$budget,$actor]);
-   $id=(int)$pdo->lastInsertId();$pdo->commit();return $id;
+   $id=(int)$pdo->lastInsertId();$this->repo->log($actor,'office_budget',$id,'creation',null,['service_id'=>$service,'fiscal_year'=>$year,'code'=>$code,'label'=>$label,'budget_amount'=>$budget]);$pdo->commit();return $id;
   }catch(\PDOException $e){
    if($pdo->inTransaction())$pdo->rollBack();
    if($e->getCode()==='23000')throw new DomainException('Cette affectation existe déjà pour ce service et cet exercice.',0,$e);
