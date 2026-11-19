@@ -65,7 +65,15 @@ final class EmployeePortalController extends EmployeeBaseController
     public function createRequest(): void
     {
         AuthMiddleware::check();
+        $febRepository = new \App\Repositories\Feb\FebRepository(Database::getConnection());
+        $userId = (int) Auth::id();
+        $chantiers = $febRepository->chantiersFor($userId, 'demander');
+        $chantier = (int) ($_GET['chantier'] ?? 0);
+        $allowed = $chantier > 0 && $febRepository->hasChantierAccess($userId, $chantier, 'demander');
         $this->employeeView('employee/request-form', 'Nouvelle demande RH', 'new_request', [
+            'febData' => ['chantiers' => $chantiers, 'workflows' => $febRepository->workflows(), 'selectedChantier' => $allowed ? $chantier : 0, 'lines' => $allowed ? $febRepository->budgetLines($chantier) : []],
+            'additionalStyles' => ['css/finea-ui.css', 'css/employee.css', 'css/components/btp-workspace.css', 'css/components/feb-workspace.css'],
+            'additionalScripts' => ['js/employee.js', 'js/components/feb-wizard.js'],
             'page' => new RequestFormPage(Csrf::token(), (string) ($_GET['type'] ?? '')),
         ]);
     }
