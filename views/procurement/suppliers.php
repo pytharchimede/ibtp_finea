@@ -68,13 +68,27 @@ ob_start();
  <div class="supplier-actions"><strong><?= $e($workflow['label']) ?></strong><small><?= (int)$workflow['active']?'Actif':'Inactif' ?></small>
  <?php if(!(int)$workflow['active']): ?><form method="post" action="<?= $e(View::url('fournisseurs/circuits/'.$workflow['id'].'/activer')) ?>"><input type="hidden" name="_csrf_token" value="<?= $e($csrf) ?>"><button class="secondary">Activer</button></form><?php endif; ?></div>
  <?php endforeach; ?>
+ <?php foreach(['physique'=>'Personne physique','morale'=>'Personne morale'] as $type=>$label): ?>
+ <h3>Exigences · <?= $e($label) ?></h3>
+ <?php foreach($service->requirements($type) as $req): ?>
+ <form method="post" action="<?= $e(View::url('fournisseurs/exigences')) ?>" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:10px 0">
+ <input type="hidden" name="_csrf_token" value="<?= $e($csrf) ?>">
+ <input type="hidden" name="person_type" value="<?= $e($type) ?>">
+ <input type="hidden" name="document_type" value="<?= $e($req['document_type']) ?>">
+ <strong><?= $e($req['label']) ?></strong>
+ <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="required" <?= (int)$req['required']?'checked':'' ?> style="width:auto;min-height:0"> Obligatoire</label>
+ <input type="hidden" name="active" value="1">
+ <button type="submit">Enregistrer</button>
+ </form>
+ <?php endforeach; ?>
+ <?php endforeach; ?>
 </div>
 <?php else: ?>
 <div class="supplier-panel"><div class="supplier-panel-heading"><span class="supplier-panel-icon"><i class="fa-solid fa-list-check"></i></span><div><h2>Dossiers fournisseurs</h2><p>Les fournisseurs sont sélectionnables dans les FEB uniquement après agrément final.</p></div></div>
 <div style="overflow-x:auto"><table><thead><tr><th>Fournisseur</th><th>Type</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
  <?php foreach($suppliers as $supplier): ?>
- <tr><td><strong><?= $e($supplier['legal_name']) ?></strong><div><small><?= $e($supplier['supplier_code']) ?> · <?= $e($supplier['email']) ?></small></div></td><td><?= $e($supplier['person_type']) ?></td><td class="status"><?= $e(str_replace('_',' ',$supplier['status'])) ?></td><td>
- <div class="supplier-actions">
+ <tr><td><a href="<?= $e(View::url('fournisseurs/'.$supplier['id'])) ?>"><strong><?= $e($supplier['legal_name']) ?></strong></a><div><small><?= $e($supplier['supplier_code']) ?> · <?= $e($supplier['email']) ?></small></div></td><td><?= $e($supplier['person_type']) ?></td><td class="status"><?= $e(str_replace('_',' ',$supplier['status'])) ?></td><td>
+ <div class="supplier-actions"><a href="<?= $e(View::url('fournisseurs/'.$supplier['id'])) ?>">Voir le dossier / pièces</a>
  <?php if(in_array($supplier['status'],['brouillon','complement_requis'],true)&&(int)$supplier['created_by']===(int)\App\Helpers\Auth::id()): ?>
  <form method="post" action="<?= $e(View::url('fournisseurs/'.$supplier['id'].'/soumettre')) ?>"><input type="hidden" name="_csrf_token" value="<?= $e($csrf) ?>"><button>Soumettre</button></form>
  <?php endif; ?>
