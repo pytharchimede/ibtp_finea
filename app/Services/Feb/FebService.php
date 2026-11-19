@@ -70,7 +70,7 @@ final class FebService {
    foreach($request['items'] as $item)if((int)($item['office_allocation_id']??0)!==$allocationId || $item['budget_line_id']!==null)throw new DomainException('Poste bureau incohérent.');
    $q=$pdo->prepare("SELECT COALESCE(SUM(i.total_amount),0) FROM feb_request_items i JOIN feb_requests r ON r.id=i.request_id WHERE i.office_allocation_id=? AND r.id<>? AND r.scope='bureau' AND r.status NOT IN ('brouillon','refuse','annule')");
    $q->execute([$allocationId,(int)$request['id']]);
-   FebSecurityRules::assertBudget([$allocationId=>(float)$allocation['budget_amount']],[$allocationId=>$requested],[$allocationId=>(float)$q->fetchColumn()]);
+   FebSecurityRules::assertBudget([$allocationId=>(float)$allocation['budget_amount']],[$allocationId=>$requested],[$allocationId=>(float)$q->fetchColumn()],'bureau');
    return;
   }
   $allowed=array_column($this->repo->budgetLines((int)$request['chantier_id'],true),null,'id');
