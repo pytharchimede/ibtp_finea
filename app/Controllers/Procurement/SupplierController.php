@@ -21,6 +21,7 @@ final class SupplierController extends BaseController {
  public function dossier(string $id):void{
   $this->guard();$service=$this->service();$supplier=$service->dossier((int)$id);
   if(!$supplier){http_response_code(404);exit('Fournisseur introuvable');}
+  if(!$service->canReadDossier((int)$id,(int)Auth::id(),(bool)(Auth::user()?->isAdmin??false))){http_response_code(403);exit('Accès refusé');}
   $m=(new ModuleDashboardService())->dashboard('fournisseurs');
   $this->view('procurement/dossier',[
    'pageTitle'=>'Dossier fournisseur','moduleName'=>$m['label'],'moduleCode'=>$m['code'],
@@ -40,6 +41,7 @@ final class SupplierController extends BaseController {
  public function download(string $id):void{
   $this->guard();$doc=$this->service()->documentRecord((int)$id);
   if(!$doc){http_response_code(404);exit('Document introuvable');}
+  if(!$this->service()->canReadDossier((int)$doc['supplier_id'],(int)Auth::id(),(bool)(Auth::user()?->isAdmin??false))){http_response_code(403);exit('Accès refusé');}
   $path=BASE_PATH.'/storage/private/suppliers/'.(int)$doc['supplier_id'].'/'.basename($doc['storage_name']);
   if(!is_file($path)){http_response_code(404);exit('Fichier indisponible');}
   header('Content-Type: '.$doc['mime_type']);header('X-Content-Type-Options: nosniff');
