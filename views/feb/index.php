@@ -12,7 +12,7 @@ ob_start();
 <div class="feb-approval-cards">
 <?php foreach($requests as $r):
  $state=$states[(string)$r['status']]??[(string)$r['status'],'neutral'];
- $canAct=($canApprove??false)&&$r['status']==='soumis'&&(int)$r['requester_id']!==(int)($currentUserId??0);
+ $canAct=(bool)($r['can_decide']??false);
 ?>
 <article class="feb-approval-card">
  <div class="feb-card-head"><div><small>FICHE DE BESOIN · <?= $e($r['reference']?:'#'.$r['id']) ?></small><h2><?= $e($r['reference']?:'FEB #'.$r['id']) ?></h2></div><?= Ui::badge($state[0],$state[1]) ?></div>
