@@ -85,6 +85,17 @@ final class ModuleDashboardService
                     ['label' => 'Interactions', 'hint' => 'Historique appels, mails et visites', 'url' => '/crm/interactions'],
                 ],
             ],
+            'fournisseurs' => [
+                'slug'=>'fournisseurs','label'=>'Fournisseurs & Achats','code'=>'FRN','iconKey'=>'logistique',
+                'accent'=>'#0f766e','accent2'=>'#164e63','gradient'=>'linear-gradient(135deg,#164e63,#0f766e)',
+                'description'=>'Référencement des fournisseurs, dossiers administratifs, agrément et circuits de validation.',
+                'kpis'=>[],
+                'actions'=>[
+                    ['label'=>'Répertoire fournisseurs','hint'=>'Consulter les fournisseurs et leurs statuts','url'=>'/fournisseurs'],
+                    ['label'=>'Nouveau fournisseur','hint'=>'Créer un dossier fournisseur','url'=>'/fournisseurs/nouveau'],
+                    ['label'=>'Circuits d’agrément','hint'=>'Configurer les étapes et approbateurs','url'=>'/fournisseurs/circuits'],
+                ],
+            ],
             'tickets' => [
                 'slug' => 'tickets', 'label' => 'Tickets', 'code' => 'TIC', 'iconKey' => 'tickets',
                 'accent' => '#ef4444', 'accent2' => '#991b1b', 'gradient' => 'linear-gradient(135deg, #991b1b, #ef4444)',
@@ -288,6 +299,14 @@ final class ModuleDashboardService
                 ['key'=>'bc-liste','label'=>'Liste des bons de commande','icon'=>'BC','url'=>'/btp/bons-commande','group'=>'Commandes clients','available'=>true],
                 ['key'=>'devis-liste','label'=>'Liste des devis','icon'=>'DV','url'=>'/btp/devis','group'=>'Devis & chiffrage','available'=>true],
                 ['key'=>'devis-nouveau','label'=>'Nouveau devis','icon'=>'+','url'=>'/btp/devis/nouveau','group'=>'Devis & chiffrage','available'=>true],
+            ];
+        }
+        if ($module['slug'] === 'fournisseurs') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/fournisseurs/dashboard','group'=>'Pilotage','available'=>true],
+                ['key'=>'repertoire','label'=>'Répertoire fournisseurs','icon'=>'FR','url'=>'/fournisseurs','group'=>'Référentiel','available'=>true],
+                ['key'=>'nouveau','label'=>'Nouveau fournisseur','icon'=>'+','url'=>'/fournisseurs/nouveau','group'=>'Référentiel','available'=>true],
+                ['key'=>'circuits','label'=>'Circuits d’agrément','icon'=>'CFG','url'=>'/fournisseurs/circuits','group'=>'Administration','available'=>true],
             ];
         }
         if ($module['slug'] === 'crm') {
