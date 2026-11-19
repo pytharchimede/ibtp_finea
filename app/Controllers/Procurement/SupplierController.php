@@ -5,7 +5,7 @@ use App\Controllers\BaseController;
 use App\Helpers\Auth;use App\Helpers\Csrf;use App\Helpers\Session;use App\Middleware\AuthMiddleware;use App\Models\Database;use App\Services\Procurement\SupplierService;
 final class SupplierController extends BaseController {
  private function service():SupplierService{return new SupplierService(Database::getConnection());}
- private function guard(bool $admin=false):void{AuthMiddleware::check();if($admin&&!Auth::user()?->isAdmin){http_response_code(403);exit('Administration réservée');}}
+ private function guard(bool $admin=false):void{AuthMiddleware::check();if($admin&&!(Auth::user()?->isAdmin??false)){http_response_code(403);exit('Administration réservée');}}
  private function csrf():void{if(!Csrf::verify($_POST['_csrf_token']??null)){http_response_code(403);exit('CSRF invalide');}}
  private function run(callable $action,string $success):void{try{$action();Session::flash('success',$success);}catch(\Throwable $e){Session::flash('error',$e instanceof \DomainException?$e->getMessage():'Opération fournisseur impossible.');}$this->redirect('/fournisseurs');}
  public function index():void{$this->guard();$s=$this->service();$this->view('procurement/suppliers',['suppliers'=>$s->list(),'workflows'=>$s->workflows(),'users'=>$s->users(),'service'=>$s,'csrf'=>Csrf::token(),'isAdmin'=>Auth::user()?->isAdmin??false]);}
