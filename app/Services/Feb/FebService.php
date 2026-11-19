@@ -25,7 +25,7 @@ final class FebService {
   if($scope==='bureau'&&(!$service||!$allocation))throw new DomainException('Sélectionnez un service et son affectation budgétaire.');
   $lines=$this->parseLines((array)($data['lines']??[]),$scope);
   if(!$lines)throw new DomainException('Ajoutez au moins une ligne de besoin.');
-  $pdo=$this->repo->pdo();$upload=null;$uploader=new FebUploadService();
+  $pdo=$this->repo->pdo();$uploads=[];$uploader=new FebUploadService();
   $pdo->beginTransaction();
   try{
    if($scope==='chantier'){
@@ -47,11 +47,23 @@ final class FebService {
    foreach($lines as $line){
     $ins->execute([$id,$scope==='chantier'?$line['budget_line_id']:null,$scope==='bureau'?$allocation:null,$line['description'],$line['quantity'],$line['unit'],$line['unit_amount'],$line['total_amount']]);
    }
-   $upload=$uploader->store($files['attachment']??null);
-   if($upload){$q=$pdo->prepare('INSERT INTO feb_documents(request_id,category,original_name,storage_name,mime_type,file_size,sha256,uploaded_by) VALUES(?,?,?,?,?,?,?,?)');$q->execute([$id,'justificatif',$upload['original_name'],$upload['storage_name'],$upload['mime_type'],$upload['file_size'],$upload['sha256'],$actor]);}
+   $attachments=$files['attachments']??null;
+   if(is_array($attachments)&&isset($attachments['name'])&&is_array($attachments['name'])){
+    $count=count($attachments['name']);
+    if($count>10)throw new DomainException('Maximum 10 justificatifs par FEB.');
+    for($i=0;$i<$count;$i++){
+     $file=[];foreach(['name','type','tmp_name','error','size'] as $key)$file[$key]=$attachments[$key][$i]??null;
+     $upload=$uploader->store($file);if($upload)$uploads[]=$upload;
+    }
+   }else{
+    $upload=$uploader->store($files['attachment']??null);if($upload)$uploads[]=$upload;
+   }
+   if(!$uploads)throw new DomainException('Ajoutez au moins un justificatif.');
+   $q=$pdo->prepare('INSERT INTO feb_documents(request_id,category,original_name,storage_name,mime_type,file_size,sha256,uploaded_by) VALUES(?,?,?,?,?,?,?,?)');
+   foreach($uploads as $upload)$q->execute([$id,'justificatif',$upload['original_name'],$upload['storage_name'],$upload['mime_type'],$upload['file_size'],$upload['sha256'],$actor]);
    $this->history($id,$actor,'creation',null,'brouillon',['scope'=>$scope]);
    $pdo->commit();return $id;
-  }catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();$uploader->discard($upload);throw $e;}
+  }catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();foreach($uploads as $uploaded)$uploader->discard($uploaded);throw $e;}
  }
  public function submit(int $id,int $actor):void{$pdo=$this->repo->pdo();$pdo->beginTransaction();try{$r=$this->repo->find($id,true);if(!$r||!in_array($r['status'],['brouillon','complement'],true)||(int)$r['requester_id']!==$actor||!$this->repo->canActOnRequest($r,$actor,'demander'))throw new DomainException('FEB non soumettable.');if(!$r['documents'])throw new DomainException('Un justificatif est obligatoire.');$this->assertBudget($r);$step=$r['current_step_id'];if(!$step){$q=$pdo->prepare('SELECT id FROM feb_workflow_steps WHERE workflow_id=? AND active=1 ORDER BY step_order LIMIT 1');$q->execute([$r['workflow_id']]);$step=(int)$q->fetchColumn();}if(!$step)throw new DomainException('Workflow sans étape active.');$ref=$r['reference']?:sprintf('FEB-%s-%06d',date('Y'),$id);$q=$pdo->prepare("UPDATE feb_requests SET reference=?,status='soumis',current_step_id=?,submitted_at=COALESCE(submitted_at,NOW()),version=version+1 WHERE id=? AND version=?");$q->execute([$ref,$step,$id,$r['version']]);if(!$q->rowCount())throw new DomainException('La FEB a été modifiée simultanément.');$this->history($id,$actor,$r['status']==='complement'?'complement_soumis':'soumission',$r['status'],'soumis');$pdo->commit();}catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}}
  public function addDocument(int $id,array $file,int $actor):void{
