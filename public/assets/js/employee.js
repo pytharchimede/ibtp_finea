@@ -8,6 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const panels = Array.from(workspace.querySelectorAll("[data-request-panel]"));
 
   const activate = (type, focus = true) => {
+    if (type === "feb" && !document.getElementById("feb-wizard-form") && !document.querySelector(".feb-scope-choice")) {
+      window.location.assign(new URL("espace-employe/demandes/nouvelle?type=feb", window.location.origin + window.location.pathname.split("espace-employe/")[0]).href);
+      return;
+    }
     choices.forEach((choice) =>
       choice.classList.toggle(
         "is-active",
