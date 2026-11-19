@@ -4,7 +4,28 @@ namespace App\Services\Admin;
 use App\Repositories\Admin\FebAdminRepository;use DomainException;
 final class FebAdminService {
  public function __construct(private FebAdminRepository $repo){}
- public function dashboard():array{return ['workflows'=>$this->repo->workflows(),'users'=>$this->repo->users(),'chantiers'=>$this->repo->chantiers(),'accesses'=>$this->repo->accesses(),'budgets'=>$this->repo->budgets(),'history'=>$this->repo->history()];}
+ public function dashboard():array{return ['workflows'=>$this->repo->workflows(),'users'=>$this->repo->users(),'chantiers'=>$this->repo->chantiers(),'accesses'=>$this->repo->accesses(),'budgets'=>$this->repo->budgets(),'history'=>$this->repo->history(),'officeServices'=>$this->repo->officeServices(),'officeAllocations'=>$this->repo->officeAllocations()];}
+ public function createOfficeAllocation(array $input,int $actor):int{
+  $service=(int)($input['service_id']??0);
+  $year=(int)($input['fiscal_year']??0);
+  $code=strtoupper(trim((string)($input['code']??'')));
+  $label=trim((string)($input['label']??''));
+  $budget=trim((string)($input['budget_amount']??''));
+  if(!$service||$year<(int)date('Y')||$year>(int)date('Y')+1||!preg_match('/^[A-Z0-9_-]{2,50}$/',$code)||$label===''||mb_strlen($label)>180||!preg_match('/^\\d{1,12}(?:\\.\\d{1,2})?$/',$budget)||(float)$budget<=0)
+   throw new DomainException('Service, exercice, code ou montant budgétaire invalide.');
+  $pdo=$this->repo->pdo();$pdo->beginTransaction();
+  try{
+   $q=$pdo->prepare("SELECT id FROM rh_services WHERE id=? AND is_active=1 FOR UPDATE");$q->execute([$service]);
+   if(!$q->fetchColumn())throw new DomainException('Service RH inexistant ou inactif.');
+   $q=$pdo->prepare('INSERT INTO feb_office_budget_allocations(service_id,fiscal_year,code,label,budget_amount,created_by) VALUES(?,?,?,?,?,?)');
+   $q->execute([$service,$year,$code,$label,$budget,$actor]);
+   $id=(int)$pdo->lastInsertId();$pdo->commit();return $id;
+  }catch(\\PDOException $e){
+   if($pdo->inTransaction())$pdo->rollBack();
+   if($e->getCode()==='23000')throw new DomainException('Cette affectation existe déjà pour ce service et cet exercice.',0,$e);
+   throw $e;
+  }catch(\\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+ }
  public function workflow(?int $id):?array{return $id?$this->repo->workflow($id):null;}
  public function eligibleBudgets(int $chantier):array{return $chantier?$this->repo->eligibleBudgets($chantier):[];}
  public function saveWorkflow(?int $id,array $input,int $actor):int{$code=strtolower(trim((string)($input['code']??'')));$label=trim((string)($input['label']??''));$steps=$this->steps((array)($input['steps']??[]));if(!preg_match('/^[a-z0-9_-]{2,50}$/',$code)||$label===''||mb_strlen($label)>120||!$steps)throw new DomainException('Workflow ou étapes invalides.');$pdo=$this->repo->pdo();$pdo->beginTransaction();try{$before=$id?$this->repo->workflow($id,true):null;if($id&&!$before)throw new DomainException('Workflow introuvable.');if($before&&(int)$before['usage_count']>0){$old=array_map(static fn($s)=>[$s['code'],(int)$s['step_order'],$s['permission_action'],$s['assigned_user_id']],$before['steps']);$new=array_map(static fn($s)=>[$s['code'],$s['order'],$s['permission'],$s['user']],$steps);if($old!==$new)throw new DomainException('Les étapes d’un workflow déjà utilisé sont immuables.');}$q=$pdo->prepare($id?'UPDATE feb_workflows SET code=?,label=? WHERE id=?':'INSERT INTO feb_workflows(code,label) VALUES(?,?)');$q->execute($id?[$code,$label,$id]:[$code,$label]);$id=$id?:((int)$pdo->lastInsertId());if(!$before||!(int)$before['usage_count']){$pdo->prepare('DELETE FROM feb_workflow_steps WHERE workflow_id=?')->execute([$id]);$q=$pdo->prepare('INSERT INTO feb_workflow_steps(workflow_id,step_order,code,label,permission_action,assigned_user_id,active) VALUES(?,?,?,?,?,?,1)');foreach($steps as $s)$q->execute([$id,$s['order'],$s['code'],$s['label'],$s['permission'],$s['user']]);}$after=$this->repo->workflow($id);$this->repo->log($actor,'workflow',$id,$before?'modification':'creation',$before,$after);$pdo->commit();return $id;}catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}}
