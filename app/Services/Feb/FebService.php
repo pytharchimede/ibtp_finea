@@ -11,7 +11,10 @@ final class FebService {
   $chantier=(int)($data['chantier_id']??0);
   $service=(int)($data['service_id']??0);
   $allocation=(int)($data['office_allocation_id']??0);
-  $workflow=(int)($data['workflow_id']??0);
+  // Le circuit FEB est un paramètre administrateur, jamais un choix du demandeur.
+  $activeWorkflows=$this->repo->workflows();
+  if(!$activeWorkflows)throw new DomainException('Aucun circuit FEB actif. Contactez l’administrateur.');
+  $workflow=(int)$activeWorkflows[0]['id'];
   $name=trim((string)($data['beneficiary_name']??''));
   $purpose=trim((string)($data['purpose']??''));
   $date=(string)($data['needed_at']??'');
