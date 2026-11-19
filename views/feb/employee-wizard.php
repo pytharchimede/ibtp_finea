@@ -81,20 +81,16 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
    </div>
    <p class="feb-budget-info">Les montants demandés seront contrôlés au regard du crédit annuel disponible, en tenant compte des autres FEB engagées.</p>
   <?php endif; ?>
-  <label>Circuit de validation
-   <select class="feb-field" name="workflow_id" required>
-    <option value="">Sélectionner un circuit…</option>
-    <?php foreach($workflows as $w): ?><option value="<?= (int)$w['id'] ?>" <?= count($workflows)===1?'selected':'' ?>><?= $e($w['label']) ?></option><?php endforeach; ?>
-   </select>
-  </label>
+  <input type="hidden" name="workflow_id" value="<?= (int)$workflows[0]['id'] ?>">
+  <p class="feb-budget-info"><i class="fa-solid fa-lock"></i> Circuit imposé par les paramètres FEB : <strong><?= $e($workflows[0]['label']) ?></strong></p>
  </section>
  <section class="btp-panel btp-section" data-wizard-step="1" hidden>
   <h2><i class="fa-solid fa-list-check"></i> Lignes de besoin</h2>
   <p><?= $scope==='chantier'?'Rattachez chaque besoin à son devis et à sa ligne de déboursé validée.':'Décrivez les besoins financés par l’affectation du service.' ?></p>
   <div class="feb-lines" id="feb-lines">
-   <?php for($n=0;$n<3;$n++): ?>
+   <?php for($n=0;$n<1;$n++): ?>
    <fieldset class="feb-line-card" data-feb-line>
-    <legend>Besoin <?= $n+1 ?><?= $n?' · facultatif':'' ?></legend>
+    <legend><button type="button" class="feb-line-toggle" data-feb-toggle aria-expanded="true"><span data-feb-line-title>Besoin <?= $n+1 ?></span><i class="fa-solid fa-chevron-down"></i></button><button type="button" class="feb-line-remove" data-feb-remove hidden aria-label="Supprimer ce besoin"><i class="fa-solid fa-trash"></i></button></legend><div class="feb-line-body" data-feb-line-body>
     <?php if($scope==='chantier'): ?>
     <div class="feb-create-grid">
      <label>Ligne de devis
@@ -124,9 +120,11 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
      <label>Prix unitaire (FCFA)<input class="feb-field feb-price" name="lines[<?= $n ?>][unit_amount]" type="number" min="0" step="0.01"></label>
     </div>
     <p class="feb-line-total">Sous-total : <strong data-feb-line-total>0 FCFA</strong></p>
+    </div>
    </fieldset>
    <?php endfor; ?>
   </div>
+  <button type="button" class="feb-add-line" id="feb-add-line"><i class="fa-solid fa-plus"></i> Ajouter un besoin</button>
   <div class="feb-grand-total"><span>Montant estimé</span><strong id="feb-grand-total">0 FCFA</strong></div>
  </section>
  <section class="btp-panel btp-section" data-wizard-step="2" hidden>
@@ -163,5 +161,5 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
  <?php endif; ?>
 </div>
 <style>
-.feb-employee-create{min-width:0}.feb-scope-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:20px}.feb-scope-choice a{display:grid;gap:5px;padding:18px;border:1px solid #d4dfed;border-radius:16px;color:#233a57;text-decoration:none;background:#fff}.feb-scope-choice a i{font-size:25px;color:#3567b7}.feb-scope-choice a small{font-size:12px;color:#64748b}.feb-scope-choice a.is-selected{border:2px solid #2563eb;background:#eff6ff}.feb-chantier-selection{display:flex;flex-wrap:wrap;align-items:end;gap:14px;border:1px solid #dbe4f0;background:#fff;border-radius:14px;padding:16px;margin-bottom:18px}.feb-chantier-selection label{flex:1 1 260px}.feb-employee-create label{display:grid;gap:6px;font-weight:600;color:#344457;margin:12px 0}.feb-employee-create select,.feb-employee-create input,.feb-employee-create textarea{min-height:44px;width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#172337;font:inherit}.feb-employee-create button[type=submit]{border:0;background:#24519b;color:white;padding:12px 17px;border-radius:9px;cursor:pointer}.feb-employee-create button:disabled{opacity:.5;cursor:not-allowed}.feb-create-form{display:grid;gap:14px}.feb-create-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}.feb-line-card{border:1px solid #dbe4f0;border-radius:14px;padding:16px;margin:14px 0;background:#fff}.feb-line-card legend{color:#24519b;font-weight:700;padding:0 8px}.feb-grand-total{display:flex;justify-content:space-between;gap:16px;padding:16px;background:#eff6ff;border-radius:13px;font-weight:700}.feb-line-total{text-align:right;color:#64748b}.feb-budget-warning{border:1px solid #f3cb80;background:#fffbeb;color:#92400e;padding:15px;border-radius:12px;margin:14px 0}.feb-budget-info{padding:12px;background:#eff6ff;border-radius:10px;color:#1e40af}.feb-employee-create [data-wizard-step][hidden]{display:none!important}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(5,minmax(0,1fr))}@media(max-width:760px){.feb-create-grid,.feb-scope-choice{grid-template-columns:1fr}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.feb-employee-create{min-width:0}.feb-scope-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:20px}.feb-scope-choice a{display:grid;gap:5px;padding:18px;border:1px solid #d4dfed;border-radius:16px;color:#233a57;text-decoration:none;background:#fff}.feb-scope-choice a i{font-size:25px;color:#3567b7}.feb-scope-choice a small{font-size:12px;color:#64748b}.feb-scope-choice a.is-selected{border:2px solid #2563eb;background:#eff6ff}.feb-chantier-selection{display:flex;flex-wrap:wrap;align-items:end;gap:14px;border:1px solid #dbe4f0;background:#fff;border-radius:14px;padding:16px;margin-bottom:18px}.feb-chantier-selection label{flex:1 1 260px}.feb-employee-create label{display:grid;gap:6px;font-weight:600;color:#344457;margin:12px 0}.feb-employee-create select,.feb-employee-create input,.feb-employee-create textarea{min-height:44px;width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#172337;font:inherit}.feb-employee-create button[type=submit]{border:0;background:#24519b;color:white;padding:12px 17px;border-radius:9px;cursor:pointer}.feb-employee-create button:disabled{opacity:.5;cursor:not-allowed}.feb-create-form{display:grid;gap:14px}.feb-create-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}.feb-line-card{border:1px solid #dbe4f0;border-radius:14px;padding:16px;margin:14px 0;background:#fff}.feb-line-card legend{color:#24519b;font-weight:700;padding:0 8px;width:100%}.feb-line-card legend button{border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}.feb-line-toggle{display:inline-flex;align-items:center;justify-content:space-between;gap:14px;min-height:40px;width:calc(100% - 50px);text-align:left}.feb-line-remove{float:right;color:#b91c1c!important;padding:9px}.feb-line-card.is-collapsed{background:#f8fafc}.feb-line-card.is-collapsed .feb-line-toggle i{transform:rotate(-90deg)}.feb-add-line{border:1px dashed #2563eb;background:#eff6ff;color:#1d4ed8;padding:13px 18px;border-radius:12px;font-weight:700;cursor:pointer;margin:5px 0 15px}.feb-add-line:hover{background:#dbeafe}.feb-grand-total{display:flex;justify-content:space-between;gap:16px;padding:16px;background:#eff6ff;border-radius:13px;font-weight:700}.feb-line-total{text-align:right;color:#64748b}.feb-budget-warning{border:1px solid #f3cb80;background:#fffbeb;color:#92400e;padding:15px;border-radius:12px;margin:14px 0}.feb-budget-info{padding:12px;background:#eff6ff;border-radius:10px;color:#1e40af}.feb-employee-create [data-wizard-step][hidden]{display:none!important}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(5,minmax(0,1fr))}@media(max-width:760px){.feb-create-grid,.feb-scope-choice{grid-template-columns:1fr}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
