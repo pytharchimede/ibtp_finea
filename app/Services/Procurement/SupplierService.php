@@ -87,6 +87,13 @@ final class SupplierService {
  public function dossier(int $id):?array{
   $q=$this->db->prepare("SELECT * FROM procurement_suppliers WHERE id=?");$q->execute([$id]);return $q->fetch(PDO::FETCH_ASSOC)?:null;
  }
+ public function canReadDossier(int $id,int $actor,bool $admin):bool{
+  if($admin)return true;
+  $q=$this->db->prepare("SELECT 1 FROM procurement_suppliers WHERE id=? AND created_by=?");
+  $q->execute([$id,$actor]);if($q->fetchColumn())return true;
+  $q=$this->db->prepare("SELECT 1 FROM procurement_supplier_approval_runs r JOIN procurement_supplier_approval_run_steps st ON st.run_id=r.id WHERE r.supplier_id=? AND st.assigned_user_id=? LIMIT 1");
+  $q->execute([$id,$actor]);return (bool)$q->fetchColumn();
+ }
  public function documentRecord(int $id):?array{
   $q=$this->db->prepare("SELECT d.*,s.created_by,s.status FROM procurement_supplier_documents d JOIN procurement_suppliers s ON s.id=d.supplier_id WHERE d.id=?");
   $q->execute([$id]);return $q->fetch(PDO::FETCH_ASSOC)?:null;
