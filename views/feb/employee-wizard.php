@@ -134,7 +134,7 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
  <section class="btp-panel btp-section" data-wizard-step="2" hidden>
   <h2><i class="fa-solid fa-user-check"></i> Bénéficiaire et motif</h2>
   <div class="feb-create-grid">
-   <label>À qui est destinée la FEB ?<select class="feb-field" name="beneficiary_type" id="feb-beneficiary-type" required><option value="beneficiaire">Moi-même (salarié)</option><option value="fournisseur">Fournisseur</option></select></label>
+   <label>À qui est destinée la FEB ?<select class="feb-field" name="beneficiary_type" id="feb-beneficiary-type" required><option value="beneficiaire">Moi-même (salarié)</option><option value="fournisseur" disabled>Fournisseur — raccordement au référentiel en cours</option></select></label>
    <div id="feb-self-profile" class="feb-profile-card" <?= $selfEmployee?'':'data-unlinked="1"' ?>>
     <?php if($selfEmployee): ?>
      <strong><?= $e($selfEmployee['full_name']) ?></strong>
