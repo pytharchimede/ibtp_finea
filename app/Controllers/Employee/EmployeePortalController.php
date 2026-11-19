@@ -65,17 +65,24 @@ final class EmployeePortalController extends EmployeeBaseController
     public function createRequest(): void
     {
         AuthMiddleware::check();
-        $febData = ['chantiers' => [], 'workflows' => [], 'selectedChantier' => 0, 'lines' => []];
+        $febData = ['scope' => 'chantier', 'chantiers' => [], 'workflows' => [], 'selectedChantier' => 0, 'lines' => [], 'officeServices' => [], 'officeAllocations' => [], 'userId' => 0];
         if (($_GET['type'] ?? '') === 'feb') {
-            $febRepository = new \App\Repositories\Feb\FebRepository(Database::getConnection());
+            $repository = new \App\Repositories\Feb\FebRepository(Database::getConnection());
             $userId = (int) Auth::id();
             $chantier = (int) ($_GET['chantier'] ?? 0);
-            $allowed = $chantier > 0 && $febRepository->hasChantierAccess($userId, $chantier, 'demander');
+            $scope = ($_GET['scope'] ?? 'chantier') === 'bureau' ? 'bureau' : 'chantier';
+            $allowed = $chantier > 0 && $repository->hasChantierAccess($userId, $chantier, 'demander');
+            $chantiers = $repository->chantiersFor($userId, 'demander');
+            if ($allowed && !in_array($chantier, array_map(static fn(array $row): int => (int) $row['id'], $chantiers), true)) $allowed = false;
             $febData = [
-                'chantiers' => $febRepository->chantiersFor($userId, 'demander'),
-                'workflows' => $febRepository->workflows(),
+                'scope' => $scope,
+                'chantiers' => $chantiers,
+                'workflows' => $repository->workflows(),
                 'selectedChantier' => $allowed ? $chantier : 0,
-                'lines' => $allowed ? $febRepository->budgetLines($chantier) : [],
+                'lines' => $allowed ? $repository->budgetLines($chantier) : [],
+                'officeServices' => $repository->officeServices(),
+                'officeAllocations' => $repository->officeAllocations(),
+                'userId' => $userId,
             ];
         }
         $this->employeeView('employee/request-form', 'Nouvelle demande RH', 'new_request', [
