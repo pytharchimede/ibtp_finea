@@ -78,14 +78,24 @@ final class EmployeePortalController extends EmployeeBaseController
             if ($allowed && !in_array($chantier, array_map(static fn(array $row): int => (int) $row['id'], $chantiers), true)) $allowed = false;
             $febData = [
                 'scope' => $scope,
-                'chantiers' => $chantiers,
+                'chantiers' => $scope === 'chantier' ? $chantiers : [],
                 'workflows' => $repository->workflows(),
-                'selectedChantier' => $allowed ? $chantier : 0,
-                'lines' => $allowed ? $repository->budgetLines($chantier) : [],
-                'officeServices' => $repository->officeServices(),
-                'officeAllocations' => $repository->officeAllocations(),
+                'selectedChantier' => $scope === 'chantier' && $allowed ? $chantier : 0,
+                'lines' => $scope === 'chantier' && $allowed ? $repository->budgetLines($chantier) : [],
+                'officeServices' => [],
+                'officeAllocations' => [],
                 'userId' => $userId,
+                'setupError' => '',
             ];
+            if ($scope === 'bureau') {
+                try {
+                    $febData['officeServices'] = $repository->officeServices();
+                    $febData['officeAllocations'] = $repository->officeAllocations();
+                } catch (\PDOException $e) {
+                    error_log('[FEB bureau] Configuration SQL indisponible : ' . $e->getMessage());
+                    $febData['setupError'] = 'Le paramétrage budgétaire FEB Bureau est indisponible. Vérifiez la migration 20261119_002_feb_office_budget.sql et les services RH.';
+                }
+            }
         }
         $this->employeeView('employee/request-form', 'Nouvelle demande RH', 'new_request', [
             'febData' => $febData,
