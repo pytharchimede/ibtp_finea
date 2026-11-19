@@ -15,10 +15,12 @@ final class FebService {
   $activeWorkflows=$this->repo->workflows();
   if(!$activeWorkflows)throw new DomainException('Aucun circuit FEB actif. Contactez l’administrateur.');
   $workflow=(int)$activeWorkflows[0]['id'];
-  $name=trim((string)($data['beneficiary_name']??''));
+  $type=(string)($data['beneficiary_type']??'');
+  $employee=$type==='beneficiaire'?$this->repo->employeeForUser($actor):null;
+  if($type==='beneficiaire'&&!$employee)throw new DomainException('Votre compte doit être rattaché à une fiche salarié RH active.');
+  $name=$employee?(string)$employee['full_name']:trim((string)($data['beneficiary_name']??''));
   $purpose=trim((string)($data['purpose']??''));
   $date=(string)($data['needed_at']??'');
-  $type=(string)($data['beneficiary_type']??'');
   $parsedDate=\DateTimeImmutable::createFromFormat('!Y-m-d',$date);
   if(!$workflow||$name===''||$purpose===''||!in_array($type,['fournisseur','beneficiaire'],true)||!$parsedDate||$parsedDate->format('Y-m-d')!==$date)throw new DomainException('Informations générales incomplètes.');
   if($scope==='chantier'&&!$chantier)throw new DomainException('Sélectionnez un chantier.');
@@ -41,7 +43,7 @@ final class FebService {
     if(!$this->repo->officeAllocation($allocation,$service,true))throw new DomainException('Affectation budgétaire bureau indisponible ou non validée.');
    }
    $q=$pdo->prepare("INSERT INTO feb_requests(requester_id,chantier_id,workflow_id,beneficiary_type,beneficiary_name,beneficiary_details,purpose,needed_at,scope,service_id,office_allocation_id) SELECT ?,?,?,?,?,?,?,?,?,?,? FROM feb_workflows w WHERE w.id=? AND w.active=1");
-   $q->execute([$actor,$scope==='chantier'?$chantier:null,$workflow,$type,$name,trim((string)($data['beneficiary_details']??'')),$purpose,$date,$scope,$scope==='bureau'?$service:null,$scope==='bureau'?$allocation:null,$workflow]);
+   $q->execute([$actor,$scope==='chantier'?$chantier:null,$workflow,$type,$name,($employee?('Matricule : '.$employee['employee_number'].' · Service : '.($employee['service_name']??'').' · Fonction : '.($employee['function_name']??'').' · '.($employee['email']??'').' · '.($employee['phone']??'')):trim((string)($data['beneficiary_details']??''))),$purpose,$date,$scope,$scope==='bureau'?$service:null,$scope==='bureau'?$allocation:null,$workflow]);
    if(!$q->rowCount())throw new DomainException('Workflow invalide.');$id=(int)$pdo->lastInsertId();
    $ins=$pdo->prepare('INSERT INTO feb_request_items(request_id,budget_line_id,office_allocation_id,description,quantity,unit,unit_amount,total_amount) VALUES(?,?,?,?,?,?,?,?)');
    foreach($lines as $line){
