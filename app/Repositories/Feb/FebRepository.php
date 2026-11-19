@@ -5,6 +5,8 @@ use PDO;
 final class FebRepository {
  public function __construct(private PDO $pdo){}
  public function pdo():PDO{return $this->pdo;}
+ public function approvedSuppliers():array{return $this->pdo->query("SELECT id,supplier_code,legal_name,person_type,email,phone,address,tax_identifier FROM procurement_suppliers WHERE status='approuve' ORDER BY legal_name")->fetchAll()?:[];}
+ public function approvedSupplier(int $id,bool $lock=false):?array{$q=$this->pdo->prepare("SELECT id,supplier_code,legal_name,person_type,email,phone,address,tax_identifier FROM procurement_suppliers WHERE id=? AND status='approuve'".($lock?' FOR UPDATE':''));$q->execute([$id]);return $q->fetch()?:null;}
  public function quoteUnits():array{return $this->pdo->query("SELECT code,label FROM btp_quote_units WHERE active=1 ORDER BY sort_order,label")->fetchAll()?:[];}
  public function employeeForUser(int $user):?array{
   $q=$this->pdo->prepare("SELECT e.id,e.employee_number,e.full_name,e.email,e.phone,s.name service_name,f.name function_name FROM users u JOIN rh_employees e ON e.id=u.rh_employee_id AND e.is_active=1 LEFT JOIN rh_services s ON s.id=e.service_id LEFT JOIN rh_functions f ON f.id=e.function_id WHERE u.id=?");
