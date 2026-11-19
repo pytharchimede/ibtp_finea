@@ -4,6 +4,9 @@ use App\Router;use App\Controllers\Procurement\SupplierController;
 /** @var Router $router */
 $router->group('/fournisseurs',static function(Router $router):void{
  $router->get('/',[SupplierController::class,'index']);
+ $router->get('/dashboard',[SupplierController::class,'dashboard']);
+ $router->get('/nouveau',[SupplierController::class,'newSupplier']);
+ $router->get('/circuits',[SupplierController::class,'circuits']);
  $router->post('/',[SupplierController::class,'create']);
  $router->post('/circuits',[SupplierController::class,'workflow']);
  $router->post('/circuits/{id}/activer',[SupplierController::class,'activate']);
