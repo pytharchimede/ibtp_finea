@@ -9,6 +9,7 @@ use App\View\Pages\Admin\FebAdminPage;
 $e=static fn(mixed $v):string=>View::e((string)$v);
 ob_start();
 $chantierOptions=[];foreach($page->chantiers as $c)$chantierOptions[(string)$c['id']]=$c['code'].' · '.$c['nom'];
+$serviceOptions=[];foreach($page->officeServices as $srv)$serviceOptions[(string)$srv['id']]=$srv['name'];
 $userOptions=[];foreach($page->users as $u)$userOptions[(string)$u['id']]=$u['full_name'].' · '.$u['email'];
 ?>
 <?=Fc::assets()?>
@@ -46,10 +47,10 @@ $userOptions=[];foreach($page->users as $u)$userOptions[(string)$u['id']]=$u['fu
 <div class="finea-table-wrap"><table class="finea-table"><thead><tr><th>Chantier</th><th>Budget</th><th>Montant</th><th>Utilisation</th></tr></thead><tbody><?php foreach($page->budgets as $b): ?><tr><td><?=$e($b['code'].' · '.$b['nom'])?></td><td>#<?=(int)$b['budget_id']?> · révision <?=(int)$b['revision']?></td><td><?=number_format((float)$b['total_cost'],0,',',' ')?> FCFA</td><td><?=(int)$b['usage_count']?> FEB</td></tr><?php endforeach; ?><?php if(!$page->budgets): ?><tr><td colspan="4"><?=Ui::emptyState('Aucun budget rattaché','Chaque chantier FEB exige un budget validé explicite.')?></td></tr><?php endif; ?></tbody></table></div><?php echo Ui::section('Budgets d’exécution',(string)ob_get_clean()); ?>
 
 <?php ob_start(); ?>
-<form method="post" action="<?=View::url('admin/feb/budgets-bureau')?>" class="admin-user-form">
+<form method="post" action="<?=View::url('admin/feb/budgets-bureau')?>" class="admin-user-form feb-office-form">
 <?=Csrf::input()?>
 <div class="admin-form-grid">
- <label>Service bénéficiaire<select class="feb-enhanced-select" name="service_id" required><option value="">Sélectionner un service RH actif</option><?php foreach($page->officeServices as $srv): ?><option value="<?=(int)$srv['id']?>"><?=$e($srv['name'])?></option><?php endforeach; ?></select></label>
+ <div class="feb-office-field"><label>Service bénéficiaire</label><?=Fc::searchable("service_id",$serviceOptions,["placeholder"=>"Rechercher un service RH actif…"])?></div>
  <label>Exercice budgétaire<input type="number" name="fiscal_year" min="<?=date('Y')?>" max="<?=(int)date('Y')+1?>" value="<?=date('Y')?>" required></label>
  <label>Code du poste<input type="text" name="code" required maxlength="50" pattern="[a-zA-Z0-9_-]{2,50}" placeholder="FOURNITURES"></label>
  <label>Poste budgétaire<input type="text" name="label" required maxlength="180" placeholder="Fournitures et consommables"></label>
@@ -68,12 +69,12 @@ $userOptions=[];foreach($page->users as $u)$userOptions[(string)$u['id']]=$u['fu
 <style>
 .feb-admin-shell .finea-section-card{border:1px solid #dbe4f0;border-radius:18px;box-shadow:0 8px 28px rgba(15,23,42,.045);margin-bottom:22px}
 .feb-admin-shell .admin-user-form{padding:8px 0 16px}
-.feb-admin-shell .admin-user-form label{font-weight:600;color:#334155}
+.feb-admin-shell .admin-user-form label{font-weight:600;color:#334155}.feb-admin-shell .feb-office-form .admin-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 22px;align-items:end}.feb-admin-shell .feb-office-form .admin-form-grid>label,.feb-admin-shell .feb-office-field{display:grid;gap:8px;margin:0;min-width:0}.feb-admin-shell .feb-office-form input{display:block;width:100%;min-height:46px;padding:11px 14px;border:1px solid #cbd5e1;border-radius:11px;background:#fff;color:#0f172a;font:inherit;box-sizing:border-box}.feb-admin-shell .feb-office-form input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.14)}.feb-admin-shell .feb-office-form .fc-searchable{min-width:0}
 .feb-admin-shell .feb-enhanced-select{display:block;width:100%;min-height:46px;max-width:100%;padding:10px 42px 10px 14px;border:1px solid #cbd5e1;border-radius:11px;background-color:#fff;color:#0f172a;font:inherit;box-shadow:0 1px 3px rgba(15,23,42,.04);transition:border-color .15s,box-shadow .15s}
 .feb-admin-shell .feb-enhanced-select:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.14)}
 .feb-admin-shell .finea-table-wrap{border-radius:12px;overflow-x:auto}
 .feb-admin-shell .admin-form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
-@media(max-width:720px){.feb-admin-shell .admin-form-grid{grid-template-columns:1fr}.feb-admin-shell .feb-role-picker{display:grid;gap:12px}}
+@media(max-width:720px){.feb-admin-shell .feb-office-form .admin-form-grid,.feb-admin-shell .admin-form-grid{grid-template-columns:1fr}.feb-admin-shell .feb-role-picker{display:grid;gap:12px}}
 .fc-workflow-toggle.finea-action-btn--danger{background:#fee2e2!important;color:#b91c1c!important;border:1px solid #fecaca!important;font-weight:700}.fc-workflow-toggle.finea-action-btn--danger:hover{background:#fecaca!important}.fc-config-submit{margin-top:10px;padding:10px 16px;border-radius:10px;border:0;background:#1d4ed8;color:#fff;font-weight:700;cursor:pointer}.feb-user-picker,.feb-role-picker{border:1px solid #dbe4f0;border-radius:12px;padding:16px;margin:14px 0}.feb-role-picker{display:flex;flex-wrap:wrap;gap:20px}
 .finea-btn-centered{display:inline-flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:8px;vertical-align:middle;min-height:40px}.finea-btn-centered .finea-btn-content{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;line-height:1.25}.finea-btn-centered .finea-btn-label{text-align:center}.finea-btn-centered .finea-btn-icon{flex-shrink:0}.feb-admin-shell .admin-row-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.feb-admin-shell .admin-row-actions form{margin:0}.feb-admin-shell .finea-action-btn--danger{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}.feb-admin-shell .finea-action-btn--danger:hover{background:#fecaca}
 </style>
