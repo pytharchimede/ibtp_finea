@@ -11,7 +11,7 @@ $lineOptions=[];foreach($lines as $l)$lineOptions[(string)$l['id']]=$l['descript
 <div class="feb-employee-create btp-workspace btp-chantier-wizard">
 <?=Fc::assets()?>
 <?php ob_start(); ?>
-<form method="get" action="<?=$e(View::url('feb/nouvelle'))?>" class="feb-create-form">
+<form method="get" action="<?=$e(View::url('espace-employe/demandes/nouvelle?type=feb'))?>" class="feb-create-form">
 <label for="feb-chantier-picker">Chantier concerné</label>
 <div id="feb-chantier-picker"><?=Fc::searchable('chantier',$chantierOptions,['selected'=>$selectedChantier?[(string)$selectedChantier]:[],'placeholder'=>'Rechercher un chantier autorisé…'])?></div>
 <div class="feb-form-actions"><?=Ui::button('Charger les déboursés',['type'=>'submit','variant'=>'primary','icon'=>'search'])?></div>
