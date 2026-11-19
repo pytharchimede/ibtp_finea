@@ -27,7 +27,7 @@ Après sauvegarde en recette, appliquer explicitement `database/migrations/20261
 
 Le même assistant employé (/espace-employe/demandes/nouvelle?type=feb) propose deux affectations distinctes :
 
-- **Chantier** : chantier autorisé via feb_chantier_access (rôle demander) → ligne de devis, représentée dans le périmètre BTP par btp_client_order_lines → déboursé validé (btp_prestart_budgets, relié par feb_chantier_budgets) → ligne de déboursé (btp_prestart_budget_lines). Les quatre identifiants sont recoupés côté serveur avant création. Une ligne de besoin ne peut pas être rattachée à un autre devis ou déboursé.
+- **Chantier** : chantier autorisé via feb_chantier_access (rôle demander) → ligne de devis d’origine (btp_offer_lines, via btp_client_order_lines.offer_line_id) → déboursé validé (btp_prestart_budgets, relié par feb_chantier_budgets) → ligne de déboursé (btp_prestart_budget_lines). Les quatre identifiants sont recoupés côté serveur avant création. Une ligne de besoin ne peut pas être rattachée à un autre devis ou déboursé.
 - **Bureau** : service RH actif (rh_services) → ligne d'affectation financière annualisée dans feb_office_budget_allocations. Seul l'administrateur peut créer ces allocations ; le montant budgété constitue un plafond lors de la soumission et de chaque validation/paiement. La FEB bureau utilise scope='bureau', service_id et office_allocation_id avec chantier_id NULL et budget_line_id NULL.
 
 Les FEB Bureau restent protégées par les permissions FEB globales, le demandeur propriétaire et les validations ordonnées du workflow. Les FEB Chantier conservent en plus les restrictions chantier. Les deux sont conservées dans feb_requests et listées sous « Mes demandes » sans collision avec employee_legal_requests.
