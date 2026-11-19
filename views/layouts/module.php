@@ -36,6 +36,7 @@ $branding = new BrandingService();
     <link href="<?= View::asset('vendor/fontawesome/css/all.min.css') ?>" rel="stylesheet">
     <link href="<?= View::asset('css/app.css') ?>" rel="stylesheet">
     <link href="<?= View::asset('css/components.css') ?>" rel="stylesheet">
+    <link href="<?= View::asset('css/finea-ui.css') ?>" rel="stylesheet">
     <link href="<?= View::url('branding/theme.css') ?>" rel="stylesheet">
     <?php foreach ($styles as $style): ?>
         <?php $styleUrl = preg_match('#^https?://#i', (string) $style) ? (string) $style : View::asset((string) $style); ?>
