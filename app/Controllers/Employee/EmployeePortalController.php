@@ -48,10 +48,62 @@ final class EmployeePortalController extends EmployeeBaseController
         }
     }
 
+    public function listRequests(): void
+    {
+        AuthMiddleware::check();
+        try {
+            $dashboard = $this->dashboardService->dashboard(Auth::user());
+            $febRepository = new \App\Repositories\Feb\FebRepository(Database::getConnection());
+            $this->employeeView('employee/request-list', 'Mes demandes', 'requests', [
+                'requests' => $dashboard['requests'] ?? [],
+                'febRequests' => $febRepository->listOwn((int) Auth::id()),
+            ]);
+        } catch (RuntimeException $e) {
+            Session::flash('error', $e->getMessage());
+            $this->redirect('/espace-employe');
+        }
+    }
+
     public function createRequest(): void
     {
         AuthMiddleware::check();
-        $this->employeeView('employee/request-form', 'Nouvelle demande RH', 'requests', [
+        $febData = ['scope' => 'chantier', 'chantiers' => [], 'workflows' => [], 'selectedChantier' => 0, 'lines' => [], 'officeServices' => [], 'officeAllocations' => [], 'userId' => 0, 'quoteUnits' => [], 'selfEmployee' => null, 'approvedSuppliers' => []];
+        if (($_GET['type'] ?? '') === 'feb') {
+            $repository = new \App\Repositories\Feb\FebRepository(Database::getConnection());
+            $userId = (int) Auth::id();
+            $chantier = (int) ($_GET['chantier'] ?? 0);
+            $scope = ($_GET['scope'] ?? 'chantier') === 'bureau' ? 'bureau' : 'chantier';
+            $allowed = $scope === 'chantier' && $chantier > 0 && $repository->hasChantierAccess($userId, $chantier, 'demander');
+            $chantiers = $scope === 'chantier' ? $repository->chantiersFor($userId, 'demander') : [];
+            if ($allowed && !in_array($chantier, array_map(static fn(array $row): int => (int) $row['id'], $chantiers), true)) $allowed = false;
+            $febData = [
+                'scope' => $scope,
+                'chantiers' => $scope === 'chantier' ? $chantiers : [],
+                'workflows' => $repository->workflows(),
+                'selectedChantier' => $scope === 'chantier' && $allowed ? $chantier : 0,
+                'lines' => $scope === 'chantier' && $allowed ? $repository->budgetLines($chantier) : [],
+                'officeServices' => [],
+                'officeAllocations' => [],
+                'userId' => $userId,
+                'quoteUnits' => $repository->quoteUnits(),
+                'selfEmployee' => $repository->employeeForUser($userId),
+                'approvedSuppliers' => $repository->approvedSuppliers(),
+                'setupError' => '',
+            ];
+            if ($scope === 'bureau') {
+                try {
+                    $febData['officeServices'] = $repository->officeServices();
+                    $febData['officeAllocations'] = $repository->officeAllocations();
+                } catch (\PDOException $e) {
+                    error_log('[FEB bureau] Configuration SQL indisponible : ' . $e->getMessage());
+                    $febData['setupError'] = 'Le paramétrage budgétaire FEB Bureau est indisponible. Vérifiez la migration 20261119_002_feb_office_budget.sql et les services RH.';
+                }
+            }
+        }
+        $this->employeeView('employee/request-form', 'Nouvelle demande RH', 'new_request', [
+            'febData' => $febData,
+            'additionalStyles' => ['css/finea-ui.css', 'css/employee.css', 'css/components/btp-workspace.css', 'css/components/feb-workspace.css'],
+            'additionalScripts' => ['js/employee.js', 'js/components/feb-wizard.js'],
             'page' => new RequestFormPage(Csrf::token(), (string) ($_GET['type'] ?? '')),
         ]);
     }

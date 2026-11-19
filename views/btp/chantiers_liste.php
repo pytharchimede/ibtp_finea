@@ -1,0 +1,28 @@
+<?php
+declare(strict_types=1);
+use App\Helpers\View;
+$e=static fn(mixed $v):string=>htmlspecialchars((string)$v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+$statuses=['preparation'=>'Préparation','actif'=>'En cours','suspendu'=>'Suspendu','termine'=>'Terminé','archive'=>'Archivé'];
+$counts=array_count_values(array_map(static fn($c)=>(string)$c['status'],$chantiersBtp));
+ob_start(); ?>
+<div class="btp-shell btp-workspace btp-chantier-list-page">
+<nav class="btp-breadcrumb"><a href="<?= $e(View::url('btp/dashboard')) ?>">BTP</a><span>/</span><strong>Liste des chantiers</strong></nav>
+<header class="btp-banner"><small>EXÉCUTION DES PROJETS</small><h1><i class="fa-solid fa-helmet-safety" aria-hidden="true"></i> Chantiers</h1><p>Retrouvez vos chantiers, leurs projets et leurs clients.</p></header>
+<div class="btp-chantier-topline"><div class="btp-chantier-kpis"><span><i class="fa-solid fa-layer-group" aria-hidden="true"></i> <?= count($chantiersBtp) ?> chantier(s)</span><span><i class="fa-solid fa-person-digging" aria-hidden="true"></i> <?= (int)($counts['actif']??0) ?> en cours</span><span><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> <?= (int)($counts['preparation']??0) ?> en préparation</span></div><a class="btp-primary-link" href="<?= $e(View::url('btp/chantiers/nouveau')) ?>"><i class="fa-solid fa-plus" aria-hidden="true"></i> Préparer un chantier</a></div>
+<section class="btp-panel btp-section btp-chantier-filters"><div class="btp-section-heading"><h2><i class="fa-solid fa-filter" aria-hidden="true"></i> Recherche multicritères</h2><button type="button" id="btp-chantier-reset" class="btp-chantier-reset"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Réinitialiser</button></div>
+<form id="btp-chantier-search-form" role="search" autocomplete="off"><div class="btp-chantier-filter-grid">
+<label><span><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Recherche globale</span><input type="search" name="q" placeholder="Code, chantier, projet, client..."></label>
+<label><span><i class="fa-solid fa-list-check" aria-hidden="true"></i> Statut</span><select name="status"><option value="">Tous les statuts</option><?php foreach($statuses as $key=>$label): ?><option value="<?= $e($key) ?>"><?= $e($label) ?></option><?php endforeach; ?></select></label>
+<label><span><i class="fa-solid fa-building" aria-hidden="true"></i> Projet</span><select name="project"><option value="">Tous les projets</option><?php $seen=[];foreach($chantiersBtp as $c):if(isset($seen[$c['projet_id']]))continue;$seen[$c['projet_id']]=true; ?><option value="<?= (int)$c['projet_id'] ?>"><?= $e($c['reference'].' · '.$c['intitule']) ?></option><?php endforeach; ?></select></label>
+<label><span><i class="fa-solid fa-user-tie" aria-hidden="true"></i> Client</span><select name="client"><option value="">Tous les clients</option><?php $clients=[];foreach($chantiersBtp as $c):$client=(string)$c['client_nom'];if(isset($clients[$client]))continue;$clients[$client]=true; ?><option value="<?= $e($client) ?>"><?= $e($client) ?></option><?php endforeach; ?></select></label>
+<label><span><i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Créé à partir du</span><input type="date" name="from"></label>
+<label><span><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Créé jusqu'au</span><input type="date" name="to"></label>
+</div></form><p class="btp-chantier-results" aria-live="polite" id="btp-chantier-results"></p></section>
+<div class="btp-chantier-card-grid" id="btp-chantier-cards"><?php foreach($chantiersBtp as $c):$status=(string)$c['status'];$date=substr((string)$c['created_at'],0,10); ?><article class="btp-chantier-card" data-chantier-card data-search="<?= $e(mb_strtolower($c['code'].' '.$c['nom'].' '.$c['reference'].' '.$c['intitule'].' '.$c['client_nom'])) ?>" data-status="<?= $e($status) ?>" data-project="<?= (int)$c['projet_id'] ?>" data-client="<?= $e($c['client_nom']) ?>" data-created="<?= $e($date) ?>">
+<div class="btp-chantier-card-head"><span class="btp-chantier-card-code"><i class="fa-solid fa-hashtag" aria-hidden="true"></i> <?= $e($c['code']) ?></span><span class="btp-chantier-status btp-chantier-status--<?= $e($status) ?>"><?= $e($statuses[$status]??$status) ?></span></div>
+<h3><i class="fa-solid fa-helmet-safety" aria-hidden="true"></i> <?= $e($c['nom']) ?></h3><div class="btp-chantier-card-meta"><p><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span><small>Projet</small><?= $e($c['reference'].' · '.$c['intitule']) ?></span></p><p><i class="fa-solid fa-user-tie" aria-hidden="true"></i><span><small>Client</small><?= $e($c['client_nom']) ?></span></p><p><i class="fa-regular fa-calendar" aria-hidden="true"></i><span><small>Création</small><?= $e($date) ?></span></p></div>
+<div class="btp-chantier-card-footer"><a href="<?= $e(View::url('btp/projets/'.(int)$c['projet_id'])) ?>"><i class="fa-solid fa-folder-open" aria-hidden="true"></i> Voir le projet <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div></article><?php endforeach; ?></div>
+<p class="btp-panel btp-empty" id="btp-chantier-no-results" hidden><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Aucun chantier ne correspond aux critères sélectionnés.</p>
+<?php if(!$chantiersBtp): ?><p class="btp-panel btp-empty"><i class="fa-solid fa-folder-plus" aria-hidden="true"></i> Aucun chantier généré pour le moment. <a href="<?= $e(View::url('btp/chantiers/nouveau')) ?>">Préparer le premier chantier</a>.</p><?php endif; ?>
+</div>
+<?php $content=ob_get_clean();$additionalScripts=array_merge($additionalScripts??[],['js/components/btp-chantier-list.js']);require BASE_PATH.'/views/layouts/module.php';

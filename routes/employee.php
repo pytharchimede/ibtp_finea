@@ -10,6 +10,7 @@ use App\Controllers\Employee\EmployeePortalController;
 $router->group('/espace-employe', function (Router $router): void {
     $router->get('/', [EmployeePortalController::class, 'index']);
     $router->get('/dashboard', [EmployeePortalController::class, 'index']);
+    $router->get('/demandes', [EmployeePortalController::class, 'listRequests']);
     $router->get('/demandes/nouvelle', [EmployeePortalController::class, 'createRequest']);
     $router->post('/demandes', [EmployeePortalController::class, 'storeRequest']);
     $router->get('/demandes/{id}', [EmployeePortalController::class, 'showRequest']);

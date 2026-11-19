@@ -33,8 +33,10 @@ $branding = new BrandingService();
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="<?= View::asset('vendor/fontawesome/css/all.min.css') ?>" rel="stylesheet">
     <link href="<?= View::asset('css/app.css') ?>" rel="stylesheet">
     <link href="<?= View::asset('css/components.css') ?>" rel="stylesheet">
+    <link href="<?= View::asset('css/finea-ui.css') ?>" rel="stylesheet">
     <link href="<?= View::url('branding/theme.css') ?>" rel="stylesheet">
     <?php foreach ($styles as $style): ?>
         <?php $styleUrl = preg_match('#^https?://#i', (string) $style) ? (string) $style : View::asset((string) $style); ?>

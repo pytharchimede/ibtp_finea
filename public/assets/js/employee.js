@@ -8,6 +8,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const panels = Array.from(workspace.querySelectorAll("[data-request-panel]"));
 
   const activate = (type, focus = true) => {
+    if (type === "feb" && new URL(window.location.href).searchParams.get("type") !== "feb") {
+      const target = new URL(window.location.href);
+      target.searchParams.set("type", "feb");
+      target.searchParams.delete("chantier");
+      target.searchParams.delete("scope");
+      window.location.assign(target.href);
+      return;
+    }
     choices.forEach((choice) =>
       choice.classList.toggle(
         "is-active",

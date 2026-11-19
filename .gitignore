@@ -34,3 +34,5 @@ wamp64.conf
 /public/uploads/*
 !/public/uploads/.gitkeep
 config/database.php
+
+/storage/private/

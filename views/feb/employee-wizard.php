@@ -1,0 +1,191 @@
+<?php
+declare(strict_types=1);
+use App\Helpers\View;
+use App\View\Components\WizardSteps;
+use App\View\Components\FormControls as Fc;
+$e = static fn(mixed $v):string => View::e((string)$v);
+$scope = ($febData['scope'] ?? 'chantier') === 'bureau' ? 'bureau' : 'chantier';
+$chantiers = $febData['chantiers'] ?? [];
+$selectedChantier = (int)($febData['selectedChantier'] ?? 0);
+$lines = $febData['lines'] ?? [];
+$workflows = $febData['workflows'] ?? [];
+$services = $febData['officeServices'] ?? [];
+$allocations = $febData['officeAllocations'] ?? [];
+$csrf = $page->csrfToken;
+$selfEmployee = $febData['selfEmployee'] ?? null;
+$supplierOptions = []; $supplierCards = [];
+foreach(($febData['approvedSuppliers']??[]) as $supplier){$supplierOptions[(string)$supplier['id']]=$supplier['legal_name'].' · '.$supplier['supplier_code'];$supplierCards[]=$supplier;}
+$unitOptions = [];
+foreach(($febData['quoteUnits']??[]) as $unit)$unitOptions[(string)$unit['code']] = $unit['label'].' ('.$unit['code'].')';
+$quoteLines = [];
+$budgets = [];
+foreach($lines as $line){
+ $quoteId = (int)$line['quote_line_id'];
+ $quoteLines[$quoteId] = (string)$line['description'];
+ $budgetId = (int)$line['budget_id'];
+ $budgets[$budgetId] = 'Déboursé validé #'.$budgetId;
+}
+$ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && count($lines)>0;
+?>
+<div class="feb-employee-create btp-workspace btp-chantier-wizard">
+ <?php if(!empty($febData['setupError'])): ?><p class="feb-budget-warning" role="alert"><?= $e($febData['setupError']) ?></p><?php endif; ?>
+ <div class="feb-scope-choice" aria-label="Type de fiche de besoin">
+  <a class="<?= $scope==='chantier'?'is-selected':'' ?>" href="<?= $e(View::url('espace-employe/demandes/nouvelle?type=feb&scope=chantier')) ?>"><i class="fa-solid fa-helmet-safety"></i><strong>FEB Chantier</strong><small>Projet et déboursé d’exécution</small></a>
+  <a class="<?= $scope==='bureau'?'is-selected':'' ?>" href="<?= $e(View::url('espace-employe/demandes/nouvelle?type=feb&scope=bureau')) ?>"><i class="fa-solid fa-building"></i><strong>FEB Bureau</strong><small>Service et budget administratif</small></a>
+ </div>
+ <?php if($scope==='chantier'): ?>
+ <form method="get" action="<?= $e(View::url('espace-employe/demandes/nouvelle')) ?>" class="feb-chantier-selection">
+  <input type="hidden" name="type" value="feb"><input type="hidden" name="scope" value="chantier">
+  <label>Chantier concerné
+   <select name="chantier" required>
+    <option value="">Sélectionnez un chantier autorisé…</option>
+    <?php foreach($chantiers as $c): ?>
+     <option value="<?= (int)$c['id'] ?>" <?= (int)$c['id']===$selectedChantier?'selected':'' ?>><?= $e($c['code'].' — '.$c['nom']) ?></option>
+    <?php endforeach; ?>
+   </select>
+  </label>
+  <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> Charger l’affectation budgétaire</button>
+ </form>
+ <?php if(!$chantiers): ?><p class="feb-budget-warning" role="status">Aucun chantier FEB accessible pour l’utilisateur connecté (ID <?= (int)($febData['userId']??0) ?>). Vérifiez que cet identifiant figure dans les affectations « demander » et que son budget est validé.</p><?php endif; ?>
+ <?php if($selectedChantier&&!$lines): ?><p class="feb-budget-warning">Ce chantier ne contient aucune ligne de déboursé exploitable.</p><?php endif; ?>
+ <?php else: ?>
+ <p class="feb-budget-info">Pour une FEB de fonctionnement, sélectionnez d’abord le service bénéficiaire, puis une affectation financière budgétisée.</p>
+ <?php if(!$services): ?><p class="feb-budget-warning">Aucun service RH actif n’est configuré.</p><?php endif; ?>
+ <?php if(!$allocations): ?><p class="feb-budget-warning">Aucun poste budgétaire Bureau disponible pour l’exercice en cours. L’administrateur doit définir le budget du service avant toute demande.</p><?php endif; ?>
+ <?php endif; ?>
+ <?php if($ready && $workflows): ?>
+ <?= WizardSteps::render([
+ ['label'=>'Affectation','icon'=>'fa-solid fa-layer-group'],
+ ['label'=>'Besoins','icon'=>'fa-solid fa-list-check'],
+ ['label'=>'Bénéficiaire','icon'=>'fa-solid fa-user-check'],
+ ['label'=>'Justificatif','icon'=>'fa-solid fa-file-arrow-up'],
+ ['label'=>'Validation finale','icon'=>'fa-solid fa-flag-checkered'],
+ ], 'Étapes de la FEB') ?>
+ <form method="post" id="feb-wizard-form" novalidate enctype="multipart/form-data" action="<?= $e(View::url('feb')) ?>" class="feb-create-form" data-scope="<?= $scope ?>">
+ <input type="hidden" name="_csrf_token" value="<?= $e($csrf) ?>">
+ <input type="hidden" name="scope" value="<?= $scope ?>">
+ <input type="hidden" name="chantier_id" value="<?= $scope==='chantier'?$selectedChantier:0 ?>">
+ <section class="btp-panel btp-section" data-wizard-step="0">
+  <h2><i class="fa-solid fa-layer-group"></i> Affectation financière — <?= $scope==='chantier'?'chantier':'bureau' ?></h2>
+  <?php if($scope==='chantier'): ?>
+   <p><strong>Chantier sélectionné :</strong> <?php foreach($chantiers as $c)if((int)$c['id']===$selectedChantier)echo $e($c['code'].' — '.$c['nom']); ?></p>
+   <p>Chaque besoin sera associé à la chaîne <strong>ligne de devis → déboursé validé → ligne de déboursé</strong> à l’étape suivante.</p>
+  <?php else: ?>
+   <div class="feb-create-grid">
+    <label>Service bénéficiaire
+     <select class="feb-field" name="service_id" id="feb-office-service" required>
+      <option value="">Sélectionner un service</option>
+      <?php foreach($services as $service): ?><option value="<?= (int)$service['id'] ?>"><?= $e($service['name']) ?></option><?php endforeach; ?>
+     </select>
+    </label>
+    <label>Affectation budgétaire
+     <select class="feb-field" name="office_allocation_id" id="feb-office-allocation" required>
+      <option value="">Sélectionner un poste budgété</option>
+      <?php foreach($allocations as $allocation): ?><option value="<?= (int)$allocation['id'] ?>" data-service="<?= (int)$allocation['service_id'] ?>" data-budget="<?= $e($allocation['budget_amount']) ?>"><?= $e($allocation['code'].' — '.$allocation['label'].' · '.number_format((float)$allocation['budget_amount'],0,',',' ').' FCFA') ?></option><?php endforeach; ?>
+     </select>
+    </label>
+   </div>
+   <p class="feb-budget-info">Les montants demandés seront contrôlés au regard du crédit annuel disponible, en tenant compte des autres FEB engagées.</p>
+  <?php endif; ?>
+  <input type="hidden" name="workflow_id" value="<?= (int)$workflows[0]['id'] ?>">
+  <p class="feb-budget-info"><i class="fa-solid fa-lock"></i> Circuit imposé par les paramètres FEB : <strong><?= $e($workflows[0]['label']) ?></strong></p>
+ </section>
+ <section class="btp-panel btp-section" data-wizard-step="1" hidden>
+  <h2><i class="fa-solid fa-list-check"></i> Lignes de besoin</h2>
+  <p><?= $scope==='chantier'?'Rattachez chaque besoin à son devis et à sa ligne de déboursé validée.':'Décrivez les besoins financés par l’affectation du service.' ?></p>
+  <div class="feb-lines" id="feb-lines">
+   <?php for($n=0;$n<1;$n++): ?>
+   <fieldset class="feb-line-card" data-feb-line>
+    <legend><button type="button" class="feb-line-toggle" data-feb-toggle aria-expanded="true"><span data-feb-line-title>Besoin <?= $n+1 ?></span><i class="fa-solid fa-chevron-down"></i></button><button type="button" class="feb-line-remove" data-feb-remove hidden aria-label="Supprimer ce besoin"><i class="fa-solid fa-trash"></i></button></legend><div class="feb-line-body" data-feb-line-body>
+    <?php if($scope==='chantier'): ?>
+    <div class="feb-create-grid">
+     <label>Ligne de devis
+      <select class="feb-field" name="lines[<?= $n ?>][quote_line_id]" data-quote-line>
+       <option value="">Sélectionner une ligne de devis</option>
+       <?php foreach($quoteLines as $id=>$name): ?><option value="<?= $id ?>"><?= $e($name) ?></option><?php endforeach; ?>
+      </select>
+     </label>
+     <label>Déboursé
+      <select class="feb-field" name="lines[<?= $n ?>][debourse_id]" data-debourse>
+       <option value="">Sélectionner un déboursé validé</option>
+       <?php foreach($budgets as $id=>$label): ?><option value="<?= $id ?>"><?= $e($label) ?></option><?php endforeach; ?>
+      </select>
+     </label>
+     <label>Ligne de déboursé
+      <select class="feb-field" name="lines[<?= $n ?>][budget_line_id]" data-budget-line>
+       <option value="">Sélectionner un poste de dépense</option>
+       <?php foreach($lines as $l): ?><option value="<?= (int)$l['id'] ?>" data-quote="<?= (int)$l['quote_line_id'] ?>" data-debourse="<?= (int)$l['budget_id'] ?>"><?= $e($l['description'].' — '.number_format((float)$l['total_cost'],0,',',' ').' FCFA') ?></option><?php endforeach; ?>
+      </select>
+     </label>
+    </div>
+    <?php endif; ?>
+    <div class="feb-create-grid">
+     <label>Désignation<input class="feb-field" name="lines[<?= $n ?>][description]" <?= $n===0?'required':'' ?> placeholder="Fourniture, prestation, main-d’œuvre…"></label>
+     <label>Quantité<input class="feb-field feb-quantity" name="lines[<?= $n ?>][quantity]" type="number" min="0.001" step="0.001" value="<?= $n===0?'1':'' ?>"></label>
+     <div class="feb-unit-field"><label>Unité</label><?= Fc::searchable("lines[$n][unit]",$unitOptions,["placeholder"=>"Rechercher une unité…"]) ?></div>
+     <label>Prix unitaire (FCFA)<input class="feb-field feb-price" name="lines[<?= $n ?>][unit_amount]" type="number" min="0" step="0.01"></label>
+    </div>
+    <p class="feb-line-total">Sous-total : <strong data-feb-line-total>0 FCFA</strong></p>
+    </div>
+   </fieldset>
+   <?php endfor; ?>
+  </div>
+  <button type="button" class="feb-add-line" id="feb-add-line"><i class="fa-solid fa-plus"></i> Ajouter un besoin</button>
+  <div class="feb-grand-total"><span>Montant estimé</span><strong id="feb-grand-total">0 FCFA</strong></div>
+ </section>
+ <section class="btp-panel btp-section" data-wizard-step="2" hidden>
+  <h2><i class="fa-solid fa-user-check"></i> Bénéficiaire et motif</h2>
+  <div class="feb-create-grid">
+   <label>À qui est destinée la FEB ?<select class="feb-field" name="beneficiary_type" id="feb-beneficiary-type" required><option value="beneficiaire">Moi-même (salarié)</option><option value="fournisseur">Fournisseur agréé</option></select></label>
+   <div id="feb-self-profile" class="feb-profile-card" <?= $selfEmployee?'':'data-unlinked="1"' ?>>
+    <?php if($selfEmployee): ?>
+     <strong><?= $e($selfEmployee['full_name']) ?></strong>
+     <span>Matricule : <?= $e($selfEmployee['employee_number']) ?></span>
+     <span>Service : <?= $e($selfEmployee['service_name']??'—') ?> · Fonction : <?= $e($selfEmployee['function_name']??'—') ?></span>
+     <span><?= $e($selfEmployee['email']??'') ?> <?= $e($selfEmployee['phone']??'') ?></span>
+    <?php else: ?><p class="feb-budget-warning">Votre compte n’est pas rattaché à une fiche salarié RH active. Contactez les RH.</p><?php endif; ?>
+   </div>
+   <div id="feb-supplier-fields" hidden>
+    <label>Fournisseur approuvé</label>
+    <?= Fc::searchable('supplier_id',$supplierOptions,['placeholder'=>'Rechercher un fournisseur agréé…']) ?>
+    <div id="feb-supplier-card" class="feb-profile-card" hidden aria-live="polite"></div>
+    <?php if(!$supplierOptions): ?><p class="feb-budget-warning">Aucun fournisseur agréé. <a href="<?= $e(View::url('fournisseurs')) ?>">Créer ou faire approuver un dossier fournisseur</a>.</p><?php endif; ?>
+   </div>
+   <script type="application/json" id="feb-supplier-data"><?= json_encode($supplierCards,JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_UNESCAPED_UNICODE) ?></script>
+   <label>Date souhaitée<input class="feb-field" name="needed_at" type="date" min="<?= date('Y-m-d') ?>" required></label>
+  </div>
+  <label>Motif détaillé<textarea class="feb-field" name="purpose" rows="4" required></textarea></label>
+  <input type="hidden" id="feb-self-available" value="<?= $selfEmployee?'1':'0' ?>">
+ </section>
+ <section class="btp-panel btp-section" data-wizard-step="3" hidden>
+  <h2><i class="fa-solid fa-file-arrow-up"></i> Justificatif de la FEB</h2>
+  <p>Joindre un devis, une proforma, une facture ou un justificatif admissible.</p>
+  <div class="feb-dropzone" id="feb-dropzone" role="group" aria-label="Déposer des justificatifs">
+   <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+   <strong>Glissez vos justificatifs ici</strong>
+   <span>ou sélectionnez plusieurs fichiers depuis votre appareil</span>
+   <label class="feb-file-picker">Parcourir les fichiers<input id="feb-attachments" name="attachments[]" type="file" accept=".pdf,.jpg,.jpeg,.png,.docx" multiple required></label>
+   <small>PDF, JPG, PNG, DOCX · 10 Mo maximum par fichier · 10 fichiers maximum</small>
+  </div>
+  <ul class="feb-file-list" id="feb-file-list" aria-live="polite"></ul>
+ </section>
+ <section class="btp-panel btp-section" data-wizard-step="4" hidden>
+  <h2><i class="fa-solid fa-flag-checkered"></i> Vérification finale</h2>
+  <div id="feb-wizard-review" aria-live="polite"></div>
+  <p>Choisissez d’enregistrer un brouillon ou de transmettre immédiatement votre FEB au circuit d’approbation.</p>
+  <button type="submit" name="submit_mode" value="draft" class="feb-submit"><i class="fa-solid fa-floppy-disk"></i> Enregistrer le brouillon</button><button type="submit" name="submit_mode" value="submit" class="feb-submit"><i class="fa-solid fa-paper-plane"></i> Créer et soumettre la FEB</button>
+ </section>
+ <div class="btp-wizard-controls">
+  <button type="button" data-wizard-prev><i class="fa-solid fa-arrow-left"></i> Précédent</button>
+  <span data-wizard-progress>Étape 1 / 5</span>
+  <button type="button" data-wizard-next>Suivant <i class="fa-solid fa-arrow-right"></i></button>
+ </div>
+ </form>
+ <?php elseif(!$workflows): ?>
+ <p class="feb-budget-warning">Aucun circuit FEB actif. Configurez-en un dans l’administration avant de créer la demande.</p>
+ <?php endif; ?>
+</div>
+<?= Fc::assets() ?>
+<style>
+.feb-employee-create{min-width:0}.feb-scope-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:20px}.feb-scope-choice a{display:grid;gap:5px;padding:18px;border:1px solid #d4dfed;border-radius:16px;color:#233a57;text-decoration:none;background:#fff}.feb-scope-choice a i{font-size:25px;color:#3567b7}.feb-scope-choice a small{font-size:12px;color:#64748b}.feb-scope-choice a.is-selected{border:2px solid #2563eb;background:#eff6ff}.feb-chantier-selection{display:flex;flex-wrap:wrap;align-items:end;gap:14px;border:1px solid #dbe4f0;background:#fff;border-radius:14px;padding:16px;margin-bottom:18px}.feb-chantier-selection label{flex:1 1 260px}.feb-employee-create label{display:grid;gap:6px;font-weight:600;color:#344457;margin:12px 0}.feb-employee-create select,.feb-employee-create input,.feb-employee-create textarea{min-height:44px;width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#172337;font:inherit}.feb-employee-create button[type=submit]{border:0;background:#24519b;color:white;padding:12px 17px;border-radius:9px;cursor:pointer}.feb-employee-create button:disabled{opacity:.5;cursor:not-allowed}.feb-create-form{display:grid;gap:14px}.feb-create-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}.feb-line-card{border:1px solid #dbe4f0;border-radius:14px;padding:16px;margin:14px 0;background:#fff}.feb-line-card legend{color:#24519b;font-weight:700;padding:0 8px;width:100%}.feb-line-card legend button{border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}.feb-line-toggle{display:inline-flex;align-items:center;justify-content:space-between;gap:14px;min-height:40px;width:calc(100% - 50px);text-align:left}.feb-line-remove{float:right;color:#b91c1c!important;padding:9px}.feb-line-card.is-collapsed{background:#f8fafc}.feb-line-card.is-collapsed .feb-line-toggle i{transform:rotate(-90deg)}.feb-add-line{border:1px dashed #2563eb;background:#eff6ff;color:#1d4ed8;padding:13px 18px;border-radius:12px;font-weight:700;cursor:pointer;margin:5px 0 15px}.feb-add-line:hover{background:#dbeafe}.feb-dropzone{display:flex;align-items:center;flex-direction:column;gap:10px;text-align:center;padding:30px 20px;border:2px dashed #93b4e4;border-radius:18px;background:#f8fbff;color:#334155;transition:.2s}.feb-dropzone.is-dragover{background:#dbeafe;border-color:#2563eb}.feb-dropzone>i{font-size:32px;color:#2563eb}.feb-dropzone>small{color:#64748b}.feb-file-picker{display:inline-flex!important;position:relative;overflow:hidden;background:#24519b;color:#fff!important;padding:11px 18px;border-radius:10px;cursor:pointer}.feb-file-picker input{position:absolute;opacity:0;width:1px!important;height:1px!important;pointer-events:none}.feb-file-list{display:grid;gap:8px;padding:0;list-style:none}.feb-file-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid #dbe4f0;border-radius:10px;padding:10px 14px;overflow-wrap:anywhere}.feb-file-list button{border:0;background:#fee2e2;color:#b91c1c;border-radius:8px;padding:7px 10px;cursor:pointer}.feb-unit-field{display:grid;gap:6px;margin:12px 0}.feb-profile-card{display:grid;gap:5px;padding:17px;border:1px solid #bfdbfe;border-radius:13px;background:#eff6ff;color:#1e3a5f}.feb-profile-card strong{font-size:17px}.feb-grand-total{display:flex;justify-content:space-between;gap:16px;padding:16px;background:#eff6ff;border-radius:13px;font-weight:700}.feb-line-total{text-align:right;color:#64748b}.feb-budget-warning{border:1px solid #f3cb80;background:#fffbeb;color:#92400e;padding:15px;border-radius:12px;margin:14px 0}.feb-budget-info{padding:12px;background:#eff6ff;border-radius:10px;color:#1e40af}.feb-employee-create [data-wizard-step][hidden]{display:none!important}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(5,minmax(0,1fr))}@media(max-width:760px){.feb-create-grid,.feb-scope-choice{grid-template-columns:1fr}.feb-employee-create .btp-wizard-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>

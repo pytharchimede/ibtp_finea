@@ -30,6 +30,7 @@ ob_start();
         ]) ?>
 
         <?= Ui::section('Mes demandes', EmployeeRequestList::render($page->requests), '', ['id' => 'demandes']) ?>
+        <p><a class="employee-inline-action" href="<?= View::url('espace-employe/demandes') ?>">Voir toutes mes demandes</a></p>
 
         <div class="employee-two-columns">
             <?= Ui::section(

@@ -51,6 +51,7 @@ class EmployeePortalService
     {
         $type = (string) ($input['request_type'] ?? '');
         if (EmployeeRequestCatalog::get($type) === null) throw new RuntimeException('Le type de demande est invalide.');
+        if ($type === 'feb') throw new RuntimeException('La FEB doit être transmise depuis son assistant budgétaire.');
         $reason = $this->requiredText($input['reason'] ?? null, 'Le motif de la demande est obligatoire.');
         $start = null;
         $end = null;

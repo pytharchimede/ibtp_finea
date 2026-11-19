@@ -26,7 +26,7 @@ final class ModuleDashboardService
                     ['label' => 'Alertes', 'value' => '0', 'meta' => 'Anomalies financières à surveiller'],
                 ],
                 'actions' => [
-                    ['label' => 'Nouvelle dépense', 'hint' => 'Préparer une demande de décaissement', 'url' => '/finance/dashboard'],
+                    ['label' => 'FEB à traiter', 'hint' => 'Valider les demandes et suivre les décaissements', 'url' => '/feb'],
                     ['label' => 'Facturation', 'hint' => 'Suivre les factures et avoirs', 'url' => '/finance/dashboard'],
                     ['label' => 'Trésorerie', 'hint' => 'Consulter les flux et prévisions', 'url' => '/finance/dashboard'],
                 ],
@@ -58,10 +58,16 @@ final class ModuleDashboardService
                     ['label' => 'Présence', 'value' => '0%', 'meta' => 'Indicateur personnel mensuel'],
                 ],
                 'actions' => [
-                    ['label' => 'Mes demandes', 'hint' => 'Absence, attestation, congé, avance', 'url' => '/espace-employe/dashboard'],
-                    ['label' => 'Mes documents', 'hint' => 'Consulter et compléter mon dossier', 'url' => '/espace-employe/dashboard'],
+                    ['label' => 'Créer une FEB', 'hint' => 'Demander un besoin pour un chantier autorisé', 'url' => '/feb/nouvelle'],
+                    ['label' => 'Mes FEB', 'hint' => 'Suivre mes demandes et leurs décisions', 'url' => '/feb'],
                     ['label' => 'Mon pointage', 'hint' => 'Voir mes présences et retards', 'url' => '/espace-employe/dashboard'],
                 ],
+            ],
+            'btp' => [
+                'slug'=>'btp','label'=>'Projets & Chantiers','code'=>'BTP','iconKey'=>'logistique',
+                'accent'=>'#2563eb','accent2'=>'#172e58','gradient'=>'linear-gradient(135deg,#172e58,#2563eb)',
+                'description'=>'Études, appels d’offres, soumissions, devis, chantiers et suivi des projets.',
+                'kpis'=>[], 'actions'=>[],
             ],
             'crm' => [
                 'slug' => 'crm', 'label' => 'CRM', 'code' => 'CRM', 'iconKey' => 'crm',
@@ -77,6 +83,17 @@ final class ModuleDashboardService
                     ['label' => 'Nouveau client', 'hint' => 'Créer une fiche client/prospect', 'url' => '/crm/clients/nouveau'],
                     ['label' => 'Pipeline', 'hint' => 'Suivre les opportunités et relances', 'url' => '/crm/opportunites'],
                     ['label' => 'Interactions', 'hint' => 'Historique appels, mails et visites', 'url' => '/crm/interactions'],
+                ],
+            ],
+            'fournisseurs' => [
+                'slug'=>'fournisseurs','label'=>'Fournisseurs & Achats','code'=>'FRN','iconKey'=>'logistique',
+                'accent'=>'#0f766e','accent2'=>'#164e63','gradient'=>'linear-gradient(135deg,#164e63,#0f766e)',
+                'description'=>'Référencement des fournisseurs, dossiers administratifs, agrément et circuits de validation.',
+                'kpis'=>[],
+                'actions'=>[
+                    ['label'=>'Répertoire fournisseurs','hint'=>'Consulter les fournisseurs et leurs statuts','url'=>'/fournisseurs'],
+                    ['label'=>'Nouveau fournisseur','hint'=>'Créer un dossier fournisseur','url'=>'/fournisseurs/nouveau'],
+                    ['label'=>'Circuits d’agrément','hint'=>'Configurer les étapes et approbateurs','url'=>'/fournisseurs/circuits'],
                 ],
             ],
             'tickets' => [
@@ -253,6 +270,45 @@ final class ModuleDashboardService
     private function navigation(array $module): array
     {
         $base = '/' . $module['slug'];
+        if ($module['slug'] === 'finance') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/finance/dashboard','group'=>'Pilotage','available'=>true],
+                ['key'=>'feb','label'=>'Fiches d’expression de besoin (FEB)','icon'=>'FEB','url'=>'/feb','group'=>'Décaissements','available'=>true],
+                ['key'=>'feb-admin','label'=>'Paramétrage FEB','icon'=>'CFG','url'=>'/admin/feb','group'=>'Décaissements','available'=>true],
+            ];
+        }
+        if ($module['slug'] === 'espace-employe') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/espace-employe/dashboard','group'=>'Mon espace','available'=>true],
+                ['key'=>'feb-nouvelle','label'=>'Créer une FEB','icon'=>'+','url'=>'/feb/nouvelle','group'=>'Mes demandes','available'=>true],
+                ['key'=>'feb','label'=>'Mes FEB','icon'=>'FEB','url'=>'/feb','group'=>'Mes demandes','available'=>true],
+            ];
+        }
+        if ($module['slug'] === 'btp') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/btp/dashboard','group'=>'Pilotage','available'=>true],
+                ['key'=>'projets','label'=>'Tous les projets','icon'=>'PR','url'=>'/btp/projets','group'=>'Projets','available'=>true],
+                ['key'=>'nouveau-projet','label'=>'Nouveau projet','icon'=>'+','url'=>'/btp/projets/nouveau','group'=>'Projets','available'=>true],
+                ['key'=>'chantier-nouveau','label'=>'Préparer un chantier','icon'=>'+','url'=>'/btp/chantiers/nouveau','group'=>'Exécution','available'=>true],
+                ['key'=>'chantiers','label'=>'Liste des chantiers','icon'=>'CH','url'=>'/btp/chantiers','group'=>'Exécution','available'=>true],
+                ['key'=>'planning-nouveau','label'=>'Créer un planning','icon'=>'+','url'=>'/btp/plannings/nouveau','group'=>'Études & planning','available'=>true],
+                ['key'=>'plannings','label'=>'Liste des plannings','icon'=>'PL','url'=>'/btp/plannings','group'=>'Études & planning','available'=>true],
+                ['key'=>'debourses-nouveau','label'=>'Nouveau déboursé','icon'=>'+','url'=>'/btp/debourses/nouveau','group'=>'Budget prévisionnel','available'=>true],
+                ['key'=>'debourses-liste','label'=>'Liste des déboursés','icon'=>'FCFA','url'=>'/btp/debourses','group'=>'Budget prévisionnel','available'=>true],
+                ['key'=>'bc-nouveau','label'=>'Nouveau bon de commande','icon'=>'+','url'=>'/btp/bons-commande/nouveau','group'=>'Commandes clients','available'=>true],
+                ['key'=>'bc-liste','label'=>'Liste des bons de commande','icon'=>'BC','url'=>'/btp/bons-commande','group'=>'Commandes clients','available'=>true],
+                ['key'=>'devis-liste','label'=>'Liste des devis','icon'=>'DV','url'=>'/btp/devis','group'=>'Devis & chiffrage','available'=>true],
+                ['key'=>'devis-nouveau','label'=>'Nouveau devis','icon'=>'+','url'=>'/btp/devis/nouveau','group'=>'Devis & chiffrage','available'=>true],
+            ];
+        }
+        if ($module['slug'] === 'fournisseurs') {
+            return [
+                ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/fournisseurs/dashboard','group'=>'Pilotage','available'=>true],
+                ['key'=>'repertoire','label'=>'Répertoire fournisseurs','icon'=>'FR','url'=>'/fournisseurs','group'=>'Référentiel','available'=>true],
+                ['key'=>'nouveau','label'=>'Nouveau fournisseur','icon'=>'+','url'=>'/fournisseurs/nouveau','group'=>'Référentiel','available'=>true],
+                ['key'=>'circuits','label'=>'Circuits d’agrément','icon'=>'CFG','url'=>'/fournisseurs/circuits','group'=>'Administration','available'=>true],
+            ];
+        }
         if ($module['slug'] === 'crm') {
             return [
                 ['key'=>'dashboard','label'=>'Tableau de bord','icon'=>'DB','url'=>'/crm/dashboard','group'=>'Pilotage','available'=>true],

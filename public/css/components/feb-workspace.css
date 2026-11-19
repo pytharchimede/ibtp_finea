@@ -1,0 +1,26 @@
+/* FINEA IBTP — FEB workspace */
+.btp-shell{max-width:1320px;margin:0 auto;display:grid;gap:22px;color:#172b4d}
+.btp-banner{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:28px 32px;border-radius:18px;background:linear-gradient(125deg,#14264b,#315c8d);color:#fff;box-shadow:0 12px 28px #14264b1c}
+.btp-banner small{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#d7e8ff}
+.btp-banner h1{margin:8px 0;font-size:clamp(23px,3vw,34px);color:inherit}
+.btp-banner p{margin:0;color:#e0ebfa}
+.btp-banner a,.btp-primary{display:inline-block;border:0;border-radius:10px;padding:12px 18px;background:#f4bb45;color:#172b4d;font-weight:700;text-decoration:none;cursor:pointer}
+.btp-panel{background:#fff;border:1px solid #e1e8f2;border-radius:16px;padding:24px;box-shadow:0 4px 16px #14264b0a;min-width:0}
+.btp-panel h2{font-size:19px;margin:0 0 18px;color:#172b4d}
+.btp-table-wrap{overflow-x:auto;width:100%}
+.btp-panel table{width:100%;border-collapse:collapse;min-width:620px}
+.btp-panel th,.btp-panel td{padding:14px 12px;text-align:left;border-bottom:1px solid #e8edf5}
+.btp-panel th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#51617c;background:#f5f8fc}
+.btp-panel td a{font-weight:700;color:#2257a4}
+.btp-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.btp-stats article{background:#fff;border:1px solid #e1e8f2;border-radius:14px;padding:20px;min-width:0}
+.btp-stats span{display:block;color:#62718a;font-size:13px;margin-bottom:10px}
+.btp-stats strong{font-size:clamp(16px,2vw,23px);overflow-wrap:anywhere}
+.btp-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.btp-panel label{display:grid;gap:7px;font-weight:600;margin-bottom:14px}
+.btp-panel input,.btp-panel select,.btp-panel textarea{width:100%;max-width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #cbd6e5;border-radius:9px;background:#fff;color:#172b4d;font:inherit}
+.btp-panel input:focus,.btp-panel select:focus,.btp-panel textarea:focus{outline:2px solid #b7d2f4;border-color:#3165a4}
+.btp-panel button{cursor:pointer;border-radius:9px;padding:10px 15px}
+.btp-panel form+form{margin-top:16px}
+@media(max-width:800px){.btp-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.btp-form-grid{grid-template-columns:1fr}.btp-banner{flex-direction:column;align-items:flex-start;padding:22px}.btp-panel{padding:16px}}
+@media(max-width:460px){.btp-stats{grid-template-columns:1fr}}

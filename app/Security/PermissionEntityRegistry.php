@@ -5,6 +5,7 @@ namespace App\Security;
 final class PermissionEntityRegistry
 {
     public const BTP_PROJECTS = 'btp_projets';
+    public const FEB_REQUESTS = 'feb_requests';
     public const USERS = 'users';
     public const PERMISSION_ENTITIES = 'permission_entities';
     public const USER_PERMISSIONS = 'user_permissions';
@@ -19,6 +20,10 @@ final class PermissionEntityRegistry
     public static function all(): array
     {
         return [
+            self::FEB_REQUESTS => [
+                'module' => 'Finance', 'name' => 'Fiches d’expression de besoin',
+                'description' => 'Créer, valider, consulter et payer les FEB.', 'sort_order' => 210,
+            ],
             self::BTP_PROJECTS => [
                 'module' => 'BTP',
                 'name' => 'Projets et chantiers',

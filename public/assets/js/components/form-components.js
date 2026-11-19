@@ -186,6 +186,7 @@
     input.addEventListener('change', show);
   }
 
+  window.FineaFormComponents = Object.assign(window.FineaFormComponents || {}, { enhanceSelect });
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('select[data-select-search]').forEach(enhanceSelect);
     document.querySelectorAll('[data-dropzone]').forEach(enhanceDropzone);

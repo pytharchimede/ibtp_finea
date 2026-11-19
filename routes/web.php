@@ -11,6 +11,8 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/portal.php';
 require __DIR__ . '/finance.php';
 require __DIR__ . '/btp.php';
+require __DIR__ . '/feb.php';
+require __DIR__ . '/procurement.php';
 require __DIR__ . '/rh.php';
 require __DIR__ . '/employee.php';
 require __DIR__ . '/logistique.php';
