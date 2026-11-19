@@ -9,10 +9,10 @@ use App\Services\Employee\EmployeeRequestCatalog;
 
 final class EmployeeRequestForms
 {
-    public static function render(string $csrfToken, string $selected = ''): string
+    public static function render(string $csrfToken, string $selected = '', string $febHtml = ''): string
     {
         $catalog = EmployeeRequestCatalog::all();
-        if (!isset($catalog[$selected])) $selected = (string) array_key_first($catalog);
+        if (!isset($catalog[$selected])) $selected = 'leave';
         $html = '<div class="employee-request-workspace" data-request-workspace>'
             . '<aside class="employee-request-catalog" aria-label="Types de demandes">';
         foreach ($catalog as $type => $config) {
@@ -23,7 +23,7 @@ final class EmployeeRequestForms
         }
         $html .= '</aside><div class="employee-request-panels">';
         foreach ($catalog as $type => $config) {
-            $html .= self::form($type, $config, $csrfToken, $selected === $type);
+            $html .= $type === 'feb' ? '<div class="finea-section-card employee-specialized-form'.($selected === 'feb' ? ' is-active' : '').'" data-request-panel="feb"'.($selected === 'feb' ? '' : ' hidden').'>'.$febHtml.'</div>' : self::form($type, $config, $csrfToken, $selected === $type);
         }
         return $html . '</div></div>';
     }
