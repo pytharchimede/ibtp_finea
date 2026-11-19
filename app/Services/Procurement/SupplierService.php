@@ -112,7 +112,7 @@ final class SupplierService {
   if(($file['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK||!is_uploaded_file($file['tmp_name']??''))throw new DomainException('Fichier non reçu.');
   $size=(int)($file['size']??0);
   if($size<1||$size>10*1024*1024)throw new DomainException('Fichier limité à 10 Mo.');
-  $mime=(new \\finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+  $mime=(new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
   $extensions=['application/pdf'=>'pdf','image/jpeg'=>'jpg','image/png'=>'png'];
   if(!isset($extensions[$mime]))throw new DomainException('Formats acceptés : PDF, JPG et PNG.');
   $folder=BASE_PATH.'/storage/private/suppliers/'.$id;
@@ -123,7 +123,7 @@ final class SupplierService {
   try{
    $q=$this->db->prepare("INSERT INTO procurement_supplier_documents(supplier_id,document_type,original_name,storage_name,mime_type,file_size,sha256,uploaded_by) VALUES(?,?,?,?,?,?,?,?)");
    $original=basename((string)($file['name']??'document'));$q->execute([$id,$type,mb_substr($original,0,255),$name,$mime,$size,hash_file('sha256',$path),$actor]);
-  }catch(\\Throwable $e){@unlink($path);throw $e;}
+  }catch(\Throwable $e){@unlink($path);throw $e;}
  }
  public function setRequirement(string $type,string $docType,bool $required,bool $active):void{
   if(!in_array($type,['physique','morale'],true))throw new DomainException('Nature juridique invalide.');
