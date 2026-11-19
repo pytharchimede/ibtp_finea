@@ -12,7 +12,15 @@ final class AdminFebController extends AdminBaseController {
  public function accessSave():void{$this->post();try{$roles=is_array($_POST['roles']??null)?array_keys($_POST['roles']):[];$this->service()->assignAccess((int)($_POST['chantier_id']??0),(int)($_POST['user_id']??0),$roles,(int)Auth::id());Session::flash('success','Affectations FEB remplacées.');}catch(\Throwable $e){Session::flash('error',$this->message($e));}$this->redirect('/admin/feb');}
  public function accessBulkSave():void{$this->post();try{$users=is_array($_POST['user_ids']??null)?$_POST['user_ids']:[];$roles=is_array($_POST['roles']??null)?array_keys($_POST['roles']):[];$count=$this->service()->assignAccessBulk((int)($_POST['chantier_id']??0),$users,$roles,(int)Auth::id());Session::flash('success',$count.' utilisateur(s) affecté(s) au chantier.');}catch(\Throwable $e){Session::flash('error',$this->message($e));}$this->redirect('/admin/feb');}
  public function budgetSave():void{$this->post();try{$this->service()->assignBudget((int)($_POST['chantier_id']??0),(int)($_POST['budget_id']??0),(int)Auth::id());Session::flash('success','Budget d’exécution rattaché.');}catch(\Throwable $e){Session::flash('error',$this->message($e));}$this->redirect('/admin/feb');}
- private function render(?int $workflowId=null):void{AdminMiddleware::check();$service=$this->service();$data=$service->dashboard();$selected=(int)($_GET['chantier']??0);$this->adminView('admin/feb/index','Administration FEB','feb',['page'=>new FebAdminPage($data['workflows'],$data['users'],$data['chantiers'],$data['accesses'],$data['budgets'],$data['history'],$workflowId!==null,$workflowId?$service->workflow($workflowId):null,$service->eligibleBudgets($selected),$selected)]);}
+ public function officeBudgetSave():void{
+  $this->post();
+  try{
+   $this->service()->createOfficeAllocation($_POST,(int)Auth::id());
+   Session::flash('success','Affectation budgétaire bureau créée.');
+  }catch(\Throwable $e){Session::flash('error',$this->message($e));}
+  $this->redirect('/admin/feb');
+ }
+ private function render(?int $workflowId=null):void{AdminMiddleware::check();$service=$this->service();$data=$service->dashboard();$selected=(int)($_GET['chantier']??0);$this->adminView('admin/feb/index','Administration FEB','feb',['page'=>new FebAdminPage($data['workflows'],$data['users'],$data['chantiers'],$data['accesses'],$data['budgets'],$data['history'],$workflowId!==null,$workflowId?$service->workflow($workflowId):null,$service->eligibleBudgets($selected),$selected,$data['officeServices'],$data['officeAllocations'])]);}
  private function post():void{AdminMiddleware::check();if(!Csrf::verify($_POST['_csrf_token']??null)){Session::flash('error','Jeton CSRF invalide.');$this->back();}}
  private function message(\Throwable $e):string{return $e instanceof \DomainException?$e->getMessage():'Opération FEB impossible.';}
 }
