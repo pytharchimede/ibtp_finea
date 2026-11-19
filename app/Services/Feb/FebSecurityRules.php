@@ -10,7 +10,7 @@ final class FebSecurityRules {
   if($amount<=0||$amount>$total-$paid+0.001)throw new DomainException('Le paiement dépasse le reliquat.');
  }
  /** @param array<int,float> $limits @param array<int,float> $requested @param array<int,float> $committed */
- public static function assertBudget(array $limits,array $requested,array $committed):void {
-  foreach($requested as $line=>$amount){if(!array_key_exists($line,$limits))throw new DomainException('Ligne hors budget d’exécution du chantier.');if($amount+($committed[$line]??0)>$limits[$line]+0.001)throw new DomainException('Budget insuffisant sur la ligne de déboursé #'.$line.'.');}
+ public static function assertBudget(array $limits,array $requested,array $committed,string $scope='chantier'):void {
+  foreach($requested as $line=>$amount){if(!array_key_exists($line,$limits))throw new DomainException($scope==='bureau'?'Affectation budgétaire bureau invalide.':'Ligne hors budget d’exécution du chantier.');if($amount+($committed[$line]??0)>$limits[$line]+0.001)throw new DomainException($scope==='bureau'?'Crédit insuffisant sur l’affectation bureau #'.$line.'.':'Budget insuffisant sur la ligne de déboursé #'.$line.'.');}
  }
 }
