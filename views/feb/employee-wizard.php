@@ -172,8 +172,8 @@ $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && co
  <section class="btp-panel btp-section" data-wizard-step="4" hidden>
   <h2><i class="fa-solid fa-flag-checkered"></i> Vérification finale</h2>
   <div id="feb-wizard-review" aria-live="polite"></div>
-  <p>Ce bouton enregistre un brouillon. La transmission au circuit d’approbation se fait ensuite depuis la FEB enregistrée.</p>
-  <button type="submit" class="feb-submit"><i class="fa-solid fa-floppy-disk"></i> Enregistrer le brouillon FEB</button>
+  <p>Choisissez d’enregistrer un brouillon ou de transmettre immédiatement votre FEB au circuit d’approbation.</p>
+  <button type="submit" name="submit_mode" value="draft" class="feb-submit"><i class="fa-solid fa-floppy-disk"></i> Enregistrer le brouillon</button><button type="submit" name="submit_mode" value="submit" class="feb-submit"><i class="fa-solid fa-paper-plane"></i> Créer et soumettre la FEB</button>
  </section>
  <div class="btp-wizard-controls">
   <button type="button" data-wizard-prev><i class="fa-solid fa-arrow-left"></i> Précédent</button>
