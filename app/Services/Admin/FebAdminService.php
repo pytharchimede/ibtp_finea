@@ -20,11 +20,11 @@ final class FebAdminService {
    $q=$pdo->prepare('INSERT INTO feb_office_budget_allocations(service_id,fiscal_year,code,label,budget_amount,created_by) VALUES(?,?,?,?,?,?)');
    $q->execute([$service,$year,$code,$label,$budget,$actor]);
    $id=(int)$pdo->lastInsertId();$pdo->commit();return $id;
-  }catch(\\PDOException $e){
+  }catch(\PDOException $e){
    if($pdo->inTransaction())$pdo->rollBack();
    if($e->getCode()==='23000')throw new DomainException('Cette affectation existe déjà pour ce service et cet exercice.',0,$e);
    throw $e;
-  }catch(\\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+  }catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
  }
  public function workflow(?int $id):?array{return $id?$this->repo->workflow($id):null;}
  public function eligibleBudgets(int $chantier):array{return $chantier?$this->repo->eligibleBudgets($chantier):[];}
