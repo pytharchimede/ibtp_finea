@@ -52,7 +52,7 @@ ob_start();
   <label>Pays (code ISO)<input name="country_code" value="CI" maxlength="2"></label>
   <label>Banque<input name="bank_name" maxlength="150"></label>
   <label>RIB / IBAN<input name="bank_iban" maxlength="120"></label>
- </div><p><button type="submit">Créer le dossier fournisseur</button></p>
+ <p><button type="submit">Créer le dossier fournisseur</button></p>
  </form>
 </div>
 <?php elseif($section==='circuits'): ?>
