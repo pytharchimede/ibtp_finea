@@ -8,14 +8,34 @@ ob_start();
 ?>
 <div class="finea-shell feb-employee-list"><div class="finea-container">
 <?=Ui::pageHeader('Mes fiches d’expression de besoin','Consultez vos demandes, leurs décisions et leur avancement jusqu’au paiement.',['eyebrow'=>'FINEA · Suivi des FEB','actions'=>$canCreate?[Ui::button('Nouvelle FEB',['href'=>'feb/nouvelle','variant'=>'primary','icon'=>'plus'])]:[]])?>
-<?php ob_start(); ?>
-<div class="finea-table-wrap"><table class="finea-table"><thead><tr><th>Référence</th><th>Chantier</th><th>Bénéficiaire</th><th>Montant</th><th>État</th><th>Consulter</th></tr></thead><tbody>
-<?php foreach($requests as $r):$state=$states[(string)$r['status']]??[(string)$r['status'],'neutral']; ?>
-<tr><td><strong><?=$e($r['reference']?:'#'.$r['id'])?></strong></td><td><?=$e($r['chantier_code'].' · '.$r['chantier_name'])?></td><td><?=$e($r['beneficiary_name'])?></td><td><?=number_format((float)$r['total_amount'],0,',',' ')?> FCFA</td><td><?=Ui::badge($state[0],$state[1])?></td><td><?=Ui::button('Détails',['href'=>'feb/'.(int)$r['id'],'variant'=>'secondary','icon'=>'search'])?></td></tr>
+<?php if(!$requests): ?><?= Ui::emptyState('Aucune FEB à afficher','Créez votre première demande depuis l’Espace employé.') ?><?php else: ?>
+<div class="feb-approval-cards">
+<?php foreach($requests as $r):
+ $state=$states[(string)$r['status']]??[(string)$r['status'],'neutral'];
+ $canAct=($canApprove??false)&&$r['status']==='soumis'&&(int)$r['requester_id']!==(int)($currentUserId??0);
+?>
+<article class="feb-approval-card">
+ <div class="feb-card-head"><div><small>FICHE DE BESOIN · <?= $e($r['reference']?:'#'.$r['id']) ?></small><h2><?= $e($r['reference']?:'FEB #'.$r['id']) ?></h2></div><?= Ui::badge($state[0],$state[1]) ?></div>
+ <div class="feb-card-meta"><span><i class="fa-solid fa-helmet-safety"></i> <?= $e($r['chantier_code'].' · '.$r['chantier_name']) ?></span><span><i class="fa-solid fa-user"></i> <?= $e($r['requester_name']) ?></span><span><i class="fa-solid fa-hand-holding-dollar"></i> <?= $e($r['beneficiary_name']) ?></span></div>
+ <div class="feb-card-amount"><span>Montant demandé</span><strong><?= number_format((float)$r['total_amount'],0,',',' ') ?> FCFA</strong></div>
+ <div class="feb-card-actions">
+  <?= Ui::button('Consulter',['href'=>'feb/'.(int)$r['id'],'variant'=>'secondary','icon'=>'search']) ?>
+  <?php if($canAct): ?>
+  <form method="post" action="<?= $e(View::url('feb/'.$r['id'].'/decision')) ?>"><input type="hidden" name="_csrf_token" value="<?= $e($csrf??'') ?>"><input type="hidden" name="decision" value="approuve"><button class="feb-action feb-action--approve" type="submit">Approuver</button></form>
+  <button type="button" class="feb-action feb-action--other" data-feb-decision="<?= (int)$r['id'] ?>" data-decision="complement">Demander complément</button>
+  <button type="button" class="feb-action feb-action--other" data-feb-decision="<?= (int)$r['id'] ?>" data-decision="reporte">Reporter</button>
+  <button type="button" class="feb-action feb-action--reject" data-feb-decision="<?= (int)$r['id'] ?>" data-decision="refuse">Refuser</button>
+  <?php endif; ?>
+ </div>
+</article>
 <?php endforeach; ?>
-<?php if(!$requests):?><tr><td colspan="6"><?=Ui::emptyState('Aucune FEB à afficher','Créez votre première demande depuis l’Espace employé.')?></td></tr><?php endif;?>
-</tbody></table></div>
-<?php echo Ui::section('Demandes et suivi',(string)ob_get_clean(),'Les FEB visibles dépendent de vos habilitations chantier.'); ?>
+</div>
+<?php endif; ?>
+<dialog id="feb-decision-dialog" class="feb-decision-dialog"><form method="post" id="feb-decision-form"><input type="hidden" name="_csrf_token" value="<?= $e($csrf??'') ?>"><input type="hidden" name="decision" id="feb-decision-value"><h2 id="feb-decision-title">Décision</h2><label>Motif obligatoire<textarea name="comment" required minlength="3" rows="4" placeholder="Précisez votre décision"></textarea></label><div class="feb-dialog-actions"><button type="button" id="feb-dialog-close">Annuler</button><button type="submit">Confirmer</button></div></form></dialog>
 </div></div>
-<style>.feb-employee-list .finea-section-card{border:1px solid #dbe4f0;border-radius:17px;padding:18px;margin:18px 0}.feb-employee-list .finea-table-wrap{overflow-x:auto}.feb-employee-list .finea-action-btn{display:inline-flex;align-items:center;justify-content:center}.feb-employee-list .finea-btn-content{display:inline-flex;align-items:center;justify-content:center;gap:8px}.feb-employee-list .finea-btn-icon{flex-shrink:0}</style>
+<style>.feb-employee-list .finea-section-card{border:1px solid #dbe4f0;border-radius:17px;padding:18px;margin:18px 0}.feb-employee-list .finea-table-wrap{overflow-x:auto}.feb-employee-list .finea-action-btn{display:inline-flex;align-items:center;justify-content:center}.feb-employee-list .finea-btn-content{display:inline-flex;align-items:center;justify-content:center;gap:8px}.feb-employee-list .finea-btn-icon{flex-shrink:0}.feb-approval-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,370px),1fr));gap:18px;margin:22px 0}.feb-approval-card{background:#fff;border:1px solid #dbe4f0;border-radius:18px;padding:23px;box-shadow:0 8px 24px #152d4c0a;display:flex;flex-direction:column;gap:18px}.feb-card-head{display:flex;justify-content:space-between;gap:12px;align-items:start}.feb-card-head small{font-size:11px;font-weight:800;color:#64748b}.feb-card-head h2{font-size:19px;margin:8px 0 0}.feb-card-meta{display:grid;gap:10px;color:#475569;font-size:13px}.feb-card-meta i{color:#0f766e;width:20px}.feb-card-amount{border-top:1px solid #e2e8f0;padding-top:16px;display:grid;gap:5px}.feb-card-amount span{font-size:12px;color:#64748b}.feb-card-amount strong{font-size:24px}.feb-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}.feb-card-actions form{margin:0}.feb-action{border:0;border-radius:9px;padding:10px 12px;font-weight:700;cursor:pointer;font-size:12px}.feb-action--approve{background:#dcfce7;color:#166534}.feb-action--other{background:#e0f2fe;color:#075985}.feb-action--reject{background:#fee2e2;color:#991b1b}.feb-decision-dialog{border:1px solid #dbe4f0;border-radius:17px;padding:25px;width:min(92vw,480px)}.feb-decision-dialog::backdrop{background:#0f172a88}.feb-decision-dialog label{display:grid;gap:10px}.feb-decision-dialog textarea{padding:12px;border:1px solid #cbd5e1;border-radius:10px}.feb-dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.feb-dialog-actions button{padding:10px 15px;border-radius:9px;border:1px solid #cbd5e1;cursor:pointer}.feb-dialog-actions button[type=submit]{background:#0f766e;color:#fff;border:0}
+</style>
+<script>
+(()=>{const dialog=document.querySelector('#feb-decision-dialog'),form=document.querySelector('#feb-decision-form');if(!dialog||!form)return;document.querySelectorAll('[data-feb-decision]').forEach(btn=>btn.addEventListener('click',()=>{form.action=<?= json_encode(View::url('feb/')) ?>+btn.dataset.febDecision+'/decision';form.querySelector('#feb-decision-value').value=btn.dataset.decision;form.querySelector('#feb-decision-title').textContent=btn.textContent;dialog.showModal();}));document.querySelector('#feb-dialog-close').addEventListener('click',()=>dialog.close());})();
+</script>
 <?php $content=ob_get_clean();require BASE_PATH.'/views/layouts/module.php';
