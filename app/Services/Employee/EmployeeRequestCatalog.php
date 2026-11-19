@@ -10,6 +10,11 @@ final class EmployeeRequestCatalog
     public static function all(): array
     {
         return [
+            'feb' => [
+                'label' => 'Fiche d’expression de besoin (FEB)', 'icon' => 'FEB', 'tone' => 'blue',
+                'description' => 'Exprimer un besoin lié à un chantier, joindre un justificatif et suivre sa validation.',
+                'fields' => ['chantier_id', 'workflow_id', 'beneficiary_name', 'needed_at', 'purpose', 'lines', 'attachment'],
+            ],
             'leave' => [
                 'label' => 'Demande de congé', 'icon' => 'CG', 'tone' => 'blue',
                 'description' => 'Planifier une période de congé et organiser la continuité.',
