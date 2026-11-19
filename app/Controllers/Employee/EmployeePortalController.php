@@ -48,6 +48,20 @@ final class EmployeePortalController extends EmployeeBaseController
         }
     }
 
+    public function listRequests(): void
+    {
+        AuthMiddleware::check();
+        try {
+            $dashboard = $this->dashboardService->dashboard(Auth::user());
+            $this->employeeView('employee/request-list', 'Mes demandes', 'requests', [
+                'requests' => $dashboard['requests'] ?? [],
+            ]);
+        } catch (RuntimeException $e) {
+            Session::flash('error', $e->getMessage());
+            $this->redirect('/espace-employe');
+        }
+    }
+
     public function createRequest(): void
     {
         AuthMiddleware::check();
