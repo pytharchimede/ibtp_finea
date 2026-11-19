@@ -65,7 +65,7 @@ final class EmployeePortalController extends EmployeeBaseController
     public function createRequest(): void
     {
         AuthMiddleware::check();
-        $this->employeeView('employee/request-form', 'Nouvelle demande RH', 'requests', [
+        $this->employeeView('employee/request-form', 'Nouvelle demande RH', 'new_request', [
             'page' => new RequestFormPage(Csrf::token(), (string) ($_GET['type'] ?? '')),
         ]);
     }
