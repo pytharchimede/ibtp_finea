@@ -29,12 +29,12 @@ final class SupplierController extends BaseController {
    'supplier'=>$supplier,'documents'=>$service->documents((int)$id),
    'requirements'=>$service->requirements($supplier['person_type']),
    'missing'=>$service->missingDocuments((int)$id),'csrf'=>Csrf::token(),
-   'canUpload'=>(int)$supplier['created_by']===(int)Auth::id()&&in_array($supplier['status'],['brouillon','complement_requis'],true)
+   'canUpload'=>$service->canUploadDocuments($supplier,(int)Auth::id(),(bool)(Auth::user()?->isAdmin??false))
   ]);
  }
  public function upload(string $id):void{
   $this->guard();$this->csrf();
-  try{$this->service()->uploadDocument((int)$id,(string)($_POST['document_type']??''),$_FILES['document']??[],(int)Auth::id());Session::flash('success','Document ajouté.');}
+  try{$this->service()->uploadDocument((int)$id,(string)($_POST['document_type']??''),$_FILES['document']??[],(int)Auth::id(),(bool)(Auth::user()?->isAdmin??false));Session::flash('success','Document ajouté.');}
   catch(\Throwable $e){Session::flash('error',$e instanceof \DomainException?$e->getMessage():'Envoi impossible.');}
   $this->redirect('/fournisseurs/'.$id);
  }
