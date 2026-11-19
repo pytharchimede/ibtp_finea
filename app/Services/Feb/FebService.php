@@ -18,7 +18,8 @@ final class FebService {
   $type=(string)($data['beneficiary_type']??'');
   $employee=$type==='beneficiaire'?$this->repo->employeeForUser($actor):null;
   if($type==='beneficiaire'&&!$employee)throw new DomainException('Votre compte doit être rattaché à une fiche salarié RH active.');
-  $name=$employee?(string)$employee['full_name']:trim((string)($data['beneficiary_name']??''));
+  $supplierId=$type==='fournisseur'?(int)($data['supplier_id']??0):0;
+  $name=$employee?(string)$employee['full_name']:($type==='fournisseur'?'En attente de vérification':'');
   $purpose=trim((string)($data['purpose']??''));
   $date=(string)($data['needed_at']??'');
   $parsedDate=\DateTimeImmutable::createFromFormat('!Y-m-d',$date);
@@ -30,6 +31,12 @@ final class FebService {
   $pdo=$this->repo->pdo();$uploads=[];$uploader=new FebUploadService();
   $pdo->beginTransaction();
   try{
+   $supplier=null;
+   if($type==='fournisseur'){
+    $supplier=$supplierId>0?$this->repo->approvedSupplier($supplierId,true):null;
+    if(!$supplier)throw new DomainException('Sélectionnez un fournisseur dont le dossier est approuvé.');
+    $name=(string)$supplier['legal_name'];
+   }
    if($scope==='chantier'){
     if(!$this->repo->hasChantierAccess($actor,$chantier,'demander',true))throw new DomainException('Vous n’êtes pas affecté à ce chantier pour créer une FEB.');
     $allowed=array_column($this->repo->budgetLines($chantier,true),null,'id');
@@ -42,8 +49,8 @@ final class FebService {
     if(!$this->repo->officeRoleAuthorized($actor,'demander'))throw new DomainException('Création de FEB bureau non autorisée.');
     if(!$this->repo->officeAllocation($allocation,$service,true))throw new DomainException('Affectation budgétaire bureau indisponible ou non validée.');
    }
-   $q=$pdo->prepare("INSERT INTO feb_requests(requester_id,chantier_id,workflow_id,beneficiary_type,beneficiary_name,beneficiary_details,purpose,needed_at,scope,service_id,office_allocation_id) SELECT ?,?,?,?,?,?,?,?,?,?,? FROM feb_workflows w WHERE w.id=? AND w.active=1");
-   $q->execute([$actor,$scope==='chantier'?$chantier:null,$workflow,$type,$name,($employee?('Matricule : '.$employee['employee_number'].' · Service : '.($employee['service_name']??'').' · Fonction : '.($employee['function_name']??'').' · '.($employee['email']??'').' · '.($employee['phone']??'')):trim((string)($data['beneficiary_details']??''))),$purpose,$date,$scope,$scope==='bureau'?$service:null,$scope==='bureau'?$allocation:null,$workflow]);
+   $q=$pdo->prepare("INSERT INTO feb_requests(requester_id,chantier_id,workflow_id,beneficiary_type,beneficiary_name,beneficiary_details,purpose,needed_at,scope,service_id,office_allocation_id,supplier_id) SELECT ?,?,?,?,?,?,?,?,?,?,?,? FROM feb_workflows w WHERE w.id=? AND w.active=1");
+   $q->execute([$actor,$scope==='chantier'?$chantier:null,$workflow,$type,$name,($employee?('Matricule : '.$employee['employee_number'].' · Service : '.($employee['service_name']??'').' · Fonction : '.($employee['function_name']??'').' · '.($employee['email']??'').' · '.($employee['phone']??'')):('Code : '.$supplier['supplier_code'].' · NCC : '.($supplier['tax_identifier']??'').' · '.($supplier['email']??'').' · '.($supplier['phone']??'')))),$purpose,$date,$scope,$scope==='bureau'?$service:null,$scope==='bureau'?$allocation:null,$supplierId?:null,$workflow]);
    if(!$q->rowCount())throw new DomainException('Workflow invalide.');$id=(int)$pdo->lastInsertId();
    $ins=$pdo->prepare('INSERT INTO feb_request_items(request_id,budget_line_id,office_allocation_id,description,quantity,unit,unit_amount,total_amount) VALUES(?,?,?,?,?,?,?,?)');
    foreach($lines as $line){
