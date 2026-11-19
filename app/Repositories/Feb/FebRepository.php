@@ -5,6 +5,11 @@ use PDO;
 final class FebRepository {
  public function __construct(private PDO $pdo){}
  public function pdo():PDO{return $this->pdo;}
+ public function quoteUnits():array{return $this->pdo->query("SELECT code,label FROM btp_quote_units WHERE active=1 ORDER BY sort_order,label")->fetchAll()?:[];}
+ public function employeeForUser(int $user):?array{
+  $q=$this->pdo->prepare("SELECT e.id,e.employee_number,e.full_name,e.email,e.phone,s.name service_name,f.name function_name FROM users u JOIN rh_employees e ON e.id=u.rh_employee_id AND e.is_active=1 LEFT JOIN rh_services s ON s.id=e.service_id LEFT JOIN rh_functions f ON f.id=e.function_id WHERE u.id=?");
+  $q->execute([$user]);return $q->fetch()?:null;
+ }
  public function workflows():array{return $this->pdo->query("SELECT * FROM feb_workflows WHERE active=1 ORDER BY id")->fetchAll();}
  public function chantiersFor(int $user,string $role):array{$q=$this->pdo->prepare("SELECT s.id,s.code,s.nom,p.intitule FROM feb_chantier_access a JOIN btp_chantier_starts s ON s.id=a.chantier_id JOIN feb_chantier_budgets cb ON cb.chantier_id=s.id JOIN btp_prestart_budgets b ON b.id=cb.budget_id AND b.status='valide' LEFT JOIN btp_projets p ON p.id=s.projet_id WHERE a.user_id=? AND a.access_role=? AND s.status<>'annule' ORDER BY s.nom");$q->execute([$user,$role]);return $q->fetchAll();}
 
