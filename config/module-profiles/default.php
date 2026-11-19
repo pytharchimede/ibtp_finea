@@ -7,6 +7,7 @@ return [
     'espace-employe' => true,
     'logistique' => true,
     'crm' => true,
+    'fournisseurs' => true,
     'tickets' => true,
     'site-admin' => true,
     'facturation' => true,
