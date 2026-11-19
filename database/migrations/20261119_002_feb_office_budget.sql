@@ -24,6 +24,7 @@ ALTER TABLE feb_requests MODIFY COLUMN chantier_id BIGINT UNSIGNED NULL;
 ALTER TABLE feb_request_items
  ADD COLUMN IF NOT EXISTS office_allocation_id BIGINT UNSIGNED NULL;
 ALTER TABLE feb_request_items MODIFY COLUMN budget_line_id BIGINT UNSIGNED NULL;
+ALTER TABLE feb_admin_history MODIFY COLUMN entity_type ENUM('workflow','workflow_step','chantier_access','chantier_budget','office_budget') NOT NULL;
 -- Pour rester compatible avec les donnees historiques, les contraintes ci-dessus
 -- restent optionnelles au niveau schema; FebService controle les correspondances.
 -- Verification apres migration:
