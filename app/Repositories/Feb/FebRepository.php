@@ -39,7 +39,7 @@ final class FebRepository {
   $q->execute([$user,$user]);return $q->fetchAll()?:[];
  }
  public function listFor(int $user,string $role,?int $requester=null):array{
-  $sql="SELECT r.*,COALESCE(s.code,CONCAT(\'BUR-\',r.service_id)) chantier_code,COALESCE(s.nom,CONCAT(\'Bureau · \',rs.name)) chantier_name,u.full_name requester_name,COALESCE(SUM(i.total_amount),0) total_amount FROM feb_requests r LEFT JOIN btp_chantier_starts s ON s.id=r.chantier_id LEFT JOIN rh_services rs ON rs.id=r.service_id JOIN users u ON u.id=r.requester_id LEFT JOIN feb_request_items i ON i.request_id=r.id WHERE ((r.scope='chantier' AND EXISTS(SELECT 1 FROM feb_chantier_access a WHERE a.chantier_id=r.chantier_id AND a.user_id=? AND a.access_role=?)) OR (r.scope='bureau' AND ".($role==='demander'?"r.requester_id=?":"1=1")."))";
+  $sql="SELECT r.*,COALESCE(s.code,CONCAT('BUR-',r.service_id)) chantier_code,COALESCE(s.nom,CONCAT('Bureau · ',rs.name)) chantier_name,u.full_name requester_name,COALESCE(SUM(i.total_amount),0) total_amount FROM feb_requests r LEFT JOIN btp_chantier_starts s ON s.id=r.chantier_id LEFT JOIN rh_services rs ON rs.id=r.service_id JOIN users u ON u.id=r.requester_id LEFT JOIN feb_request_items i ON i.request_id=r.id WHERE ((r.scope='chantier' AND EXISTS(SELECT 1 FROM feb_chantier_access a WHERE a.chantier_id=r.chantier_id AND a.user_id=? AND a.access_role=?)) OR (r.scope='bureau' AND ".($role==='demander'?"r.requester_id=?":"1=1")."))";
   $params=[$user,$role];if($role==='demander')$params[]=$user;
   if($requester!==null){$sql.=' AND r.requester_id=?';$params[]=$requester;}
   $sql.=' GROUP BY r.id ORDER BY r.id DESC LIMIT 500';$q=$this->pdo->prepare($sql);$q->execute($params);return $q->fetchAll()?:[];
