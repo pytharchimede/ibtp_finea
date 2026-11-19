@@ -77,6 +77,33 @@ document.addEventListener('DOMContentLoaded',()=>{
   clone.scrollIntoView({behavior:'smooth',block:'nearest'});
  });
  refreshTotal();
+ const attachmentInput=form.querySelector('#feb-attachments'),dropzone=form.querySelector('#feb-dropzone'),fileList=form.querySelector('#feb-file-list');
+ let attachments=[];
+ const renderAttachments=()=>{
+  if(!attachmentInput||!fileList)return;
+  const transfer=new DataTransfer();attachments.forEach(file=>transfer.items.add(file));attachmentInput.files=transfer.files;
+  fileList.replaceChildren();
+  attachments.forEach((file,index)=>{
+   const li=document.createElement('li'),name=document.createElement('span'),remove=document.createElement('button');
+   name.textContent=file.name+' · '+(file.size/1048576).toFixed(2)+' Mo';remove.type='button';remove.textContent='Retirer';
+   remove.addEventListener('click',()=>{attachments.splice(index,1);renderAttachments();});li.append(name,remove);fileList.append(li);
+  });
+ };
+ const addAttachments=files=>{
+  const allowed=['application/pdf','image/jpeg','image/png','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  for(const file of files){
+   if(!allowed.includes(file.type)||file.size<1||file.size>10485760){alert('Fichier non autorisé ou supérieur à 10 Mo : '+file.name);continue;}
+   if(attachments.length>=10){alert('Maximum 10 fichiers par FEB.');break;}
+   if(!attachments.some(f=>f.name===file.name&&f.size===file.size&&f.lastModified===file.lastModified))attachments.push(file);
+  }
+  renderAttachments();
+ };
+ attachmentInput?.addEventListener('change',()=>addAttachments([...attachmentInput.files]));
+ if(dropzone){
+  ['dragenter','dragover'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.add('is-dragover');}));
+  ['dragleave','drop'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.remove('is-dragover');}));
+  dropzone.addEventListener('drop',e=>addAttachments([...e.dataTransfer.files]));
+ }
  const show=i=>{
   current=Math.max(0,Math.min(steps.length-1,i));
   steps.forEach((el,j)=>el.hidden=j!==current);
@@ -98,6 +125,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  };
  const validate=i=>{
   const section=steps[i];if(!section)return false;
+  if(i===3&&attachments.length===0){alert('Ajoutez au moins un justificatif.');attachmentInput?.focus();return false;}
   if(i===1){
    let count=0;
    for(const row of rows()){
@@ -126,7 +154,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    ['Date souhaitée',field('needed_at')?.value||''],
    ['Motif',field('purpose')?.value||''],
    ['Montant estimé',money(refreshTotal())],
-   ['Document',field('attachment')?.files[0]?.name||'Absent'],
+   ['Documents',attachments.map(f=>f.name).join(', ')||'Absents'],
   ];
   if(scope==='bureau')entries.splice(2,0,['Service bénéficiaire',selectedText(field('service_id'))]);
   for(const [label,value] of entries){
