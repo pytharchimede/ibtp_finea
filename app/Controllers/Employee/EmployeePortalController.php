@@ -53,8 +53,10 @@ final class EmployeePortalController extends EmployeeBaseController
         AuthMiddleware::check();
         try {
             $dashboard = $this->dashboardService->dashboard(Auth::user());
+            $febRepository = new \App\Repositories\Feb\FebRepository(Database::getConnection());
             $this->employeeView('employee/request-list', 'Mes demandes', 'requests', [
                 'requests' => $dashboard['requests'] ?? [],
+                'febRequests' => $febRepository->listOwn((int) Auth::id()),
             ]);
         } catch (RuntimeException $e) {
             Session::flash('error', $e->getMessage());
