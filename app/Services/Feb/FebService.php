@@ -60,7 +60,46 @@ final class FebService {
  public function cancel(int $id,int $actor):void{$pdo=$this->repo->pdo();$pdo->beginTransaction();try{$r=$this->repo->find($id,true);if(!$r||(int)$r['requester_id']!==$actor||!in_array($r['status'],['brouillon','soumis','complement'],true)||!$this->repo->hasChantierAccess($actor,(int)$r['chantier_id'],'demander',true))throw new DomainException('Annulation non autorisée.');$q=$pdo->prepare("UPDATE feb_requests SET status='annule',current_step_id=NULL,cancelled_at=NOW(),version=version+1 WHERE id=? AND version=?");$q->execute([$id,$r['version']]);if(!$q->rowCount())throw new DomainException('Modification concurrente.');$this->history($id,$actor,'annulation',$r['status'],'annule');$pdo->commit();}catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}}
  public function decide(int $id,string $decision,string $comment,int $actor):void{if(!in_array($decision,['approuve','refuse','complement'],true))throw new DomainException('Décision invalide.');if($decision!=='approuve'&&trim($comment)==='')throw new DomainException('Un commentaire est obligatoire.');$pdo=$this->repo->pdo();$pdo->beginTransaction();try{$r=$this->repo->find($id,true);if(!$r||!$r['current_step_id']||!$this->repo->canActOnRequest($r,$actor,'valider'))throw new DomainException('FEB déjà traitée ou chantier non autorisé.');FebSecurityRules::assertDecidableStatus((string)$r['status']);$q=$pdo->prepare('SELECT * FROM feb_workflow_steps WHERE id=? AND active=1 FOR UPDATE');$q->execute([$r['current_step_id']]);$step=$q->fetch();if(!$step||($step['assigned_user_id']&&(int)$step['assigned_user_id']!==$actor))throw new DomainException('Cette décision ne vous est pas affectée.');if($decision==='approuve')$this->assertBudget($r);$q=$pdo->prepare('INSERT INTO feb_decisions(request_id,step_id,actor_id,decision,comment,request_version) VALUES(?,?,?,?,?,?)');$q->execute([$id,$step['id'],$actor,$decision,trim($comment),$r['version']]);$to=$decision==='refuse'?'refuse':($decision==='complement'?'complement':'soumis');$next=null;if($decision==='approuve'){$q=$pdo->prepare('SELECT id FROM feb_workflow_steps WHERE workflow_id=? AND step_order>? AND active=1 ORDER BY step_order LIMIT 1');$q->execute([$r['workflow_id'],$step['step_order']]);$next=$q->fetchColumn()?:null;if(!$next)$to='approuve';}$q=$pdo->prepare('UPDATE feb_requests SET status=?,current_step_id=?,approved_at=IF(?="approuve",NOW(),approved_at),version=version+1 WHERE id=? AND version=?');$q->execute([$to,$next,$to,$id,$r['version']]);if(!$q->rowCount())throw new DomainException('Décision concurrente détectée.');$this->history($id,$actor,'decision_'.$decision,$r['status'],$to,['comment'=>$comment]);$pdo->commit();}catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}}
  public function pay(int $id,array $data,int $actor):void{$amount=round((float)($data['amount']??0),2);$ref=trim((string)($data['payment_reference']??''));$method=trim((string)($data['method']??''));if($amount<=0||$ref===''||$method==='')throw new DomainException('Paiement incomplet.');$pdo=$this->repo->pdo();$pdo->beginTransaction();try{$r=$this->repo->find($id,true);if(!$r||!in_array($r['status'],['approuve','partiellement_paye'],true)||!$this->repo->canActOnRequest($r,$actor,'payer'))throw new DomainException('FEB non payable sur ce chantier.');$this->assertBudget($r);$total=array_sum(array_map(fn($x)=>(float)$x['total_amount'],$r['items']));$paid=array_sum(array_map(fn($x)=>(float)$x['amount'],$r['payments']));$q=$pdo->prepare('SELECT id FROM feb_payments WHERE payment_reference=? FOR UPDATE');$q->execute([$ref]);FebSecurityRules::assertPayment($total,$paid,$amount,(bool)$q->fetchColumn());$q=$pdo->prepare('INSERT INTO feb_payments(request_id,payment_reference,amount,method,paid_at,notes,recorded_by) VALUES(?,?,?,?,?,?,?)');$q->execute([$id,$ref,$amount,$method,(string)($data['paid_at']??date('Y-m-d H:i:s')),trim((string)($data['notes']??'')),$actor]);$to=abs(($paid+$amount)-$total)<0.01?'paye':'partiellement_paye';$q=$pdo->prepare('UPDATE feb_requests SET status=?,version=version+1 WHERE id=? AND version=?');$q->execute([$to,$id,$r['version']]);FebSecurityRules::assertUpdated($q->rowCount(),'Paiement concurrent détecté.');$this->history($id,$actor,'paiement',$r['status'],$to,['amount'=>$amount,'reference'=>$ref]);$pdo->commit();}catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();if($e instanceof \PDOException&&$e->getCode()==='23000')throw new DomainException('Cette référence de paiement existe déjà.',0,$e);throw $e;}}
- private function assertBudget(array $r):void{$pdo=$this->repo->pdo();$allowed=array_column($this->repo->budgetLines((int)$r['chantier_id'],true),null,'id');$requested=[];foreach($r['items'] as $i){$line=(int)$i['budget_line_id'];$requested[$line]=($requested[$line]??0)+(float)$i['total_amount'];}$limits=[];$committed=[];foreach($requested as $line=>$amount){if(isset($allowed[$line]))$limits[$line]=(float)$allowed[$line]['total_cost'];$q=$pdo->prepare("SELECT COALESCE(SUM(i.total_amount),0) FROM feb_request_items i JOIN feb_requests r ON r.id=i.request_id WHERE i.budget_line_id=? AND r.id<>? AND r.status NOT IN ('brouillon','refuse','annule')");$q->execute([$line,$r['id']]);$committed[$line]=(float)$q->fetchColumn();}FebSecurityRules::assertBudget($limits,$requested,$committed);}
- private function parseLines(array $raw):array{$out=[];foreach($raw as $x){if(!is_array($x))continue;$budget=(int)($x['budget_line_id']??0);$desc=trim((string)($x['description']??''));$rawAmount=trim((string)($x['unit_amount']??''));if(!$budget&&$desc===''&&$rawAmount==='')continue;$qty=round((float)($x['quantity']??0),3);$unit=trim((string)($x['unit']??'u'));$amount=round((float)$rawAmount,2);if(!$budget||$desc===''||$qty<=0||$amount<0)throw new DomainException('Ligne de besoin invalide.');$out[]=['budget_line_id'=>$budget,'description'=>$desc,'quantity'=>$qty,'unit'=>mb_substr($unit,0,30),'unit_amount'=>$amount,'total_amount'=>round($qty*$amount,2)];}return $out;}
+ private function assertBudget(array $request):void{
+  $pdo=$this->repo->pdo();
+  if(($request['scope']??'chantier')==='bureau'){
+   $allocationId=(int)($request['office_allocation_id']??0);$service=(int)($request['service_id']??0);
+   $allocation=$this->repo->officeAllocation($allocationId,$service,true);
+   if(!$allocation)throw new DomainException('Le budget bureau n’est plus actif.');
+   $requested=array_sum(array_map(static fn(array $line):float=>(float)$line['total_amount'],$request['items']));
+   foreach($request['items'] as $item)if((int)($item['office_allocation_id']??0)!==$allocationId || $item['budget_line_id']!==null)throw new DomainException('Poste bureau incohérent.');
+   $q=$pdo->prepare("SELECT COALESCE(SUM(i.total_amount),0) FROM feb_request_items i JOIN feb_requests r ON r.id=i.request_id WHERE i.office_allocation_id=? AND r.id<>? AND r.scope='bureau' AND r.status NOT IN ('brouillon','refuse','annule')");
+   $q->execute([$allocationId,(int)$request['id']]);
+   FebSecurityRules::assertBudget([$allocationId=>(float)$allocation['budget_amount']],[$allocationId=>$requested],[$allocationId=>(float)$q->fetchColumn()]);
+   return;
+  }
+  $allowed=array_column($this->repo->budgetLines((int)$request['chantier_id'],true),null,'id');
+  $requested=[];
+  foreach($request['items'] as $item){$line=(int)$item['budget_line_id'];$requested[$line]=($requested[$line]??0)+(float)$item['total_amount'];}
+  $limits=[];$committed=[];
+  foreach($requested as $line=>$amount){
+   if(isset($allowed[$line]))$limits[$line]=(float)$allowed[$line]['total_cost'];
+   $q=$pdo->prepare("SELECT COALESCE(SUM(i.total_amount),0) FROM feb_request_items i JOIN feb_requests r ON r.id=i.request_id WHERE i.budget_line_id=? AND r.id<>? AND r.status NOT IN ('brouillon','refuse','annule')");
+   $q->execute([$line,(int)$request['id']]);$committed[$line]=(float)$q->fetchColumn();
+  }
+  FebSecurityRules::assertBudget($limits,$requested,$committed);
+ }
+ private function parseLines(array $raw,string $scope='chantier'):array{
+  $out=[];
+  foreach($raw as $x){
+   if(!is_array($x))continue;
+   $budget=(int)($x['budget_line_id']??0);
+   $description=trim((string)($x['description']??''));
+   $rawAmount=trim((string)($x['unit_amount']??''));
+   if($budget===0&&$description===''&&$rawAmount==='')continue;
+   $qty=round((float)($x['quantity']??0),3);
+   $unit=trim((string)($x['unit']??'u'));
+   $amount=round((float)$rawAmount,2);
+   if(($scope==='chantier'&&$budget===0)||$description===''||$qty<=0||$amount<0||$rawAmount===''||!is_numeric($rawAmount)||!is_finite($amount)||!is_finite($qty))
+    throw new DomainException('Ligne de besoin invalide.');
+   $out[]=['budget_line_id'=>$budget,'quote_line_id'=>(int)($x['quote_line_id']??0),'debourse_id'=>(int)($x['debourse_id']??0),'description'=>$description,'quantity'=>$qty,'unit'=>mb_substr($unit,0,30),'unit_amount'=>$amount,'total_amount'=>round($qty*$amount,2)];
+  }
+  return $out;
+ }
  private function history(int $id,?int $actor,string $event,?string $from,?string $to,array $meta=[]):void{$q=$this->repo->pdo()->prepare('INSERT INTO feb_history(request_id,actor_id,event_type,from_status,to_status,metadata_json) VALUES(?,?,?,?,?,?)');$q->execute([$id,$actor,$event,$from,$to,$meta?json_encode($meta,JSON_UNESCAPED_UNICODE):null]);}
 }
