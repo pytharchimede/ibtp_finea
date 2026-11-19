@@ -67,7 +67,7 @@ final class EmployeePortalController extends EmployeeBaseController
     public function createRequest(): void
     {
         AuthMiddleware::check();
-        $febData = ['scope' => 'chantier', 'chantiers' => [], 'workflows' => [], 'selectedChantier' => 0, 'lines' => [], 'officeServices' => [], 'officeAllocations' => [], 'userId' => 0, 'quoteUnits' => [], 'selfEmployee' => null];
+        $febData = ['scope' => 'chantier', 'chantiers' => [], 'workflows' => [], 'selectedChantier' => 0, 'lines' => [], 'officeServices' => [], 'officeAllocations' => [], 'userId' => 0, 'quoteUnits' => [], 'selfEmployee' => null, 'approvedSuppliers' => []];
         if (($_GET['type'] ?? '') === 'feb') {
             $repository = new \App\Repositories\Feb\FebRepository(Database::getConnection());
             $userId = (int) Auth::id();
@@ -87,6 +87,7 @@ final class EmployeePortalController extends EmployeeBaseController
                 'userId' => $userId,
                 'quoteUnits' => $repository->quoteUnits(),
                 'selfEmployee' => $repository->employeeForUser($userId),
+                'approvedSuppliers' => $repository->approvedSuppliers(),
                 'setupError' => '',
             ];
             if ($scope === 'bureau') {
