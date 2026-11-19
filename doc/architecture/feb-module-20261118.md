@@ -21,3 +21,23 @@ L’administration est disponible sous `/admin/feb` pour les comptes administrat
 ## Déploiement contrôlé
 
 Après sauvegarde en recette, appliquer explicitement `database/migrations/20261118_001_create_feb_module.sql`, puis exécuter `php bin/migrate.php` afin d’enregistrer l’entité de permission déclarée dans le registre. Attribuer `view/create` aux employés, `update` aux validateurs et `delete` à la finance chargée des paiements. Aucun DDL FEB n’est exécuté lors d’une requête HTTP.
+
+
+## FEB Bureau et FEB Chantier (19/11/2026)
+
+Le même assistant employé (/espace-employe/demandes/nouvelle?type=feb) propose deux affectations distinctes :
+
+- **Chantier** : chantier autorisé via feb_chantier_access (rôle demander) → ligne de devis, représentée dans le périmètre BTP par btp_client_order_lines → déboursé validé (btp_prestart_budgets, relié par feb_chantier_budgets) → ligne de déboursé (btp_prestart_budget_lines). Les quatre identifiants sont recoupés côté serveur avant création. Une ligne de besoin ne peut pas être rattachée à un autre devis ou déboursé.
+- **Bureau** : service RH actif (rh_services) → ligne d'affectation financière annualisée dans feb_office_budget_allocations. Seul l'administrateur peut créer ces allocations ; le montant budgété constitue un plafond lors de la soumission et de chaque validation/paiement. La FEB bureau utilise scope='bureau', service_id et office_allocation_id avec chantier_id NULL et budget_line_id NULL.
+
+Les FEB Bureau restent protégées par les permissions FEB globales, le demandeur propriétaire et les validations ordonnées du workflow. Les FEB Chantier conservent en plus les restrictions chantier. Les deux sont conservées dans feb_requests et listées sous « Mes demandes » sans collision avec employee_legal_requests.
+
+### Déploiement en recette
+
+1. Sauvegarder la base MariaDB.
+2. Appliquer une seule fois **database/migrations/20261119_002_feb_office_budget.sql**, après la migration initiale 20261118_001.
+3. Vérifier les tables et colonnes ; créer les affectations bureau depuis **/admin/feb**.
+4. Tester un compte possédant un rôle demander sur le chantier 1, puis une FEB Bureau avec un service et une allocation de l'exercice.
+5. Valider les tests unitaires PHP et le parcours navigateur (création brouillon → envoi → décision → paiement).
+
+Cette évolution ne crée **aucune allocation financière fictive** à l'installation. L'affectation doit être saisie par un administrateur et contrôlée par le service avant d'être utilisée.
