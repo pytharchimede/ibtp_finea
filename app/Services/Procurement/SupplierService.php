@@ -41,6 +41,8 @@ final class SupplierService {
    $q=$this->db->prepare("SELECT * FROM procurement_suppliers WHERE id=? FOR UPDATE");$q->execute([$id]);$supplier=$q->fetch();
    if(!$supplier||!in_array($supplier['status'],['brouillon','complement_requis'],true))throw new DomainException('Dossier non soumettable.');
    if((int)$supplier['created_by']!==$actor)throw new DomainException('Seul le créateur peut soumettre ce dossier.');
+   $missing=$this->missingDocuments($id);
+   if($missing)throw new DomainException('Pièces obligatoires manquantes : '.implode(', ',$missing));
    $workflow=$this->db->query("SELECT id FROM procurement_supplier_workflows WHERE active=1 ORDER BY id LIMIT 1")->fetchColumn();
    if(!$workflow)throw new DomainException('Activez d’abord un circuit d’agrément.');
    $steps=$this->workflowSteps((int)$workflow);if(!$steps)throw new DomainException('Circuit sans étapes.');
@@ -73,6 +75,59 @@ final class SupplierService {
   }catch(\Throwable $e){$this->db->rollBack();throw $e;}
  }
  private function history(int $id,string $old,string $new,string $comment,int $actor):void{$q=$this->db->prepare("INSERT INTO procurement_supplier_reviews(supplier_id,previous_status,new_status,comment,actor_user_id) VALUES(?,?,?,?,?)");$q->execute([$id,$old,$new,$comment,$actor]);}
+
+ public function requirements(string $type):array{
+  $q=$this->db->prepare("SELECT document_type,label,required FROM procurement_supplier_document_requirements WHERE person_type=? AND active=1 ORDER BY sort_order,id");
+  $q->execute([$type]);return $q->fetchAll(PDO::FETCH_ASSOC)?:[];
+ }
+ public function documents(int $id):array{
+  $q=$this->db->prepare("SELECT id,document_type,original_name,file_size,uploaded_at FROM procurement_supplier_documents WHERE supplier_id=? ORDER BY uploaded_at DESC,id DESC");
+  $q->execute([$id]);return $q->fetchAll(PDO::FETCH_ASSOC)?:[];
+ }
+ public function dossier(int $id):?array{
+  $q=$this->db->prepare("SELECT * FROM procurement_suppliers WHERE id=?");$q->execute([$id]);return $q->fetch(PDO::FETCH_ASSOC)?:null;
+ }
+ public function documentRecord(int $id):?array{
+  $q=$this->db->prepare("SELECT d.*,s.created_by,s.status FROM procurement_supplier_documents d JOIN procurement_suppliers s ON s.id=d.supplier_id WHERE d.id=?");
+  $q->execute([$id]);return $q->fetch(PDO::FETCH_ASSOC)?:null;
+ }
+ public function missingDocuments(int $id):array{
+  $supplier=$this->dossier($id);if(!$supplier)throw new DomainException('Fournisseur introuvable.');
+  $q=$this->db->prepare("SELECT r.label FROM procurement_supplier_document_requirements r WHERE r.person_type=? AND r.active=1 AND r.required=1 AND NOT EXISTS (SELECT 1 FROM procurement_supplier_documents d WHERE d.supplier_id=? AND d.document_type=r.document_type) ORDER BY r.sort_order");
+  $q->execute([$supplier['person_type'],$id]);return $q->fetchAll(PDO::FETCH_COLUMN)?:[];
+ }
+ public function uploadDocument(int $id,string $type,array $file,int $actor):void{
+  $supplier=$this->dossier($id);
+  if(!$supplier||!in_array($supplier['status'],['brouillon','complement_requis'],true))throw new DomainException('Ce dossier ne peut plus être modifié.');
+  if((int)$supplier['created_by']!==$actor)throw new DomainException('Seul le créateur peut déposer des pièces.');
+  $requirements=$this->requirements($supplier['person_type']);
+  if(!in_array($type,array_column($requirements,'document_type'),true))throw new DomainException('Type de document non autorisé.');
+  if(($file['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK||!is_uploaded_file($file['tmp_name']??''))throw new DomainException('Fichier non reçu.');
+  $size=(int)($file['size']??0);
+  if($size<1||$size>10*1024*1024)throw new DomainException('Fichier limité à 10 Mo.');
+  $mime=(new \\finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+  $extensions=['application/pdf'=>'pdf','image/jpeg'=>'jpg','image/png'=>'png'];
+  if(!isset($extensions[$mime]))throw new DomainException('Formats acceptés : PDF, JPG et PNG.');
+  $folder=BASE_PATH.'/storage/private/suppliers/'.$id;
+  if(!is_dir($folder)&&!mkdir($folder,0700,true)&&!is_dir($folder))throw new DomainException('Stockage indisponible.');
+  $name=bin2hex(random_bytes(18)).'.'.$extensions[$mime];$path=$folder.'/'.$name;
+  if(!move_uploaded_file($file['tmp_name'],$path))throw new DomainException('Enregistrement du fichier impossible.');
+  chmod($path,0600);
+  try{
+   $q=$this->db->prepare("INSERT INTO procurement_supplier_documents(supplier_id,document_type,original_name,storage_name,mime_type,file_size,sha256,uploaded_by) VALUES(?,?,?,?,?,?,?,?)");
+   $original=basename((string)($file['name']??'document'));$q->execute([$id,$type,mb_substr($original,0,255),$name,$mime,$size,hash_file('sha256',$path),$actor]);
+  }catch(\\Throwable $e){@unlink($path);throw $e;}
+ }
+ public function setRequirement(string $type,string $docType,bool $required,bool $active):void{
+  if(!in_array($type,['physique','morale'],true))throw new DomainException('Nature juridique invalide.');
+  $q=$this->db->prepare("UPDATE procurement_supplier_document_requirements SET required=?,active=? WHERE person_type=? AND document_type=?");
+  $q->execute([(int)$required,(int)$active,$type,$docType]);
+  if(!$q->rowCount()){
+   $q=$this->db->prepare("SELECT COUNT(*) FROM procurement_supplier_document_requirements WHERE person_type=? AND document_type=?");$q->execute([$type,$docType]);
+   if(!(int)$q->fetchColumn())throw new DomainException('Exigence introuvable.');
+  }
+ }
+
  public function eligible():array{return $this->db->query("SELECT id,legal_name,person_type,supplier_code,email,phone,tax_identifier,address FROM procurement_suppliers WHERE status='approuve' ORDER BY legal_name")->fetchAll()?:[];}
  public function approved(int $id,bool $lock=false):?array{$q=$this->db->prepare("SELECT id,legal_name,person_type,supplier_code,email,phone,tax_identifier,address FROM procurement_suppliers WHERE id=? AND status='approuve'".($lock?' FOR UPDATE':''));$q->execute([$id]);return $q->fetch()?:null;}
 }
