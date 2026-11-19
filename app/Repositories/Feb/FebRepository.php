@@ -6,7 +6,7 @@ final class FebRepository {
  public function __construct(private PDO $pdo){}
  public function pdo():PDO{return $this->pdo;}
  public function workflows():array{return $this->pdo->query("SELECT * FROM feb_workflows WHERE active=1 ORDER BY id")->fetchAll();}
- public function chantiersFor(int $user,string $role):array{$q=$this->pdo->prepare("SELECT s.id,s.code,s.nom,p.intitule FROM feb_chantier_access a JOIN btp_chantier_starts s ON s.id=a.chantier_id JOIN feb_chantier_budgets cb ON cb.chantier_id=s.id JOIN btp_prestart_budgets b ON b.id=cb.budget_id AND b.status='valide' JOIN btp_projets p ON p.id=s.projet_id WHERE a.user_id=? AND a.access_role=? AND s.status<>'annule' ORDER BY s.nom");$q->execute([$user,$role]);return $q->fetchAll();}
+ public function chantiersFor(int $user,string $role):array{$q=$this->pdo->prepare("SELECT s.id,s.code,s.nom,p.intitule FROM feb_chantier_access a JOIN btp_chantier_starts s ON s.id=a.chantier_id JOIN feb_chantier_budgets cb ON cb.chantier_id=s.id JOIN btp_prestart_budgets b ON b.id=cb.budget_id AND b.status='valide' LEFT JOIN btp_projets p ON p.id=s.projet_id WHERE a.user_id=? AND a.access_role=? AND s.status<>'annule' ORDER BY s.nom");$q->execute([$user,$role]);return $q->fetchAll();}
 
  /** Un service RH actif peut porter un budget FEB bureau. */
  public function officeServices():array{
