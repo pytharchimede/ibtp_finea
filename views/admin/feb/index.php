@@ -45,6 +45,24 @@ $userOptions=[];foreach($page->users as $u)$userOptions[(string)$u['id']]=$u['fu
 <?php if($page->selectedChantier): ?><form method="post" action="<?=View::url('admin/feb/budgets')?>" class="admin-user-form"><?=Csrf::input()?><input type="hidden" name="chantier_id" value="<?=$page->selectedChantier?>"><label>Budget validé<select class="feb-enhanced-select" name="budget_id" required><option value="">Sélectionner</option><?php foreach($page->eligibleBudgets as $b): ?><option value="<?=$b['id']?>"><?=$e('Révision '.$b['revision'].' · '.$b['reference'].' · '.number_format((float)$b['total_cost'],0,',',' ').' FCFA')?></option><?php endforeach; ?></select></label><div class="admin-form-actions"><?=Ui::button('Rattacher le budget',['type'=>'submit','variant'=>'primary','icon'=>'check'])?></div></form><?php endif; ?>
 <div class="finea-table-wrap"><table class="finea-table"><thead><tr><th>Chantier</th><th>Budget</th><th>Montant</th><th>Utilisation</th></tr></thead><tbody><?php foreach($page->budgets as $b): ?><tr><td><?=$e($b['code'].' · '.$b['nom'])?></td><td>#<?=(int)$b['budget_id']?> · révision <?=(int)$b['revision']?></td><td><?=number_format((float)$b['total_cost'],0,',',' ')?> FCFA</td><td><?=(int)$b['usage_count']?> FEB</td></tr><?php endforeach; ?><?php if(!$page->budgets): ?><tr><td colspan="4"><?=Ui::emptyState('Aucun budget rattaché','Chaque chantier FEB exige un budget validé explicite.')?></td></tr><?php endif; ?></tbody></table></div><?php echo Ui::section('Budgets d’exécution',(string)ob_get_clean()); ?>
 
+<?php ob_start(); ?>
+<form method="post" action="<?=View::url('admin/feb/budgets-bureau')?>" class="admin-user-form">
+<?=Csrf::input()?>
+<div class="admin-form-grid">
+ <label>Service bénéficiaire<select class="feb-enhanced-select" name="service_id" required><option value="">Sélectionner un service RH actif</option><?php foreach($page->officeServices as $srv): ?><option value="<?=(int)$srv['id']?>"><?=$e($srv['name'])?></option><?php endforeach; ?></select></label>
+ <label>Exercice budgétaire<input type="number" name="fiscal_year" min="<?=date('Y')?>" max="<?=(int)date('Y')+1?>" value="<?=date('Y')?>" required></label>
+ <label>Code du poste<input type="text" name="code" required maxlength="50" pattern="[a-zA-Z0-9_-]{2,50}" placeholder="FOURNITURES"></label>
+ <label>Poste budgétaire<input type="text" name="label" required maxlength="180" placeholder="Fournitures et consommables"></label>
+ <label>Montant budgété (FCFA)<input type="number" name="budget_amount" min="1" step="0.01" required></label>
+</div>
+<div class="admin-form-actions"><?=Ui::button('Créer l’affectation',['type'=>'submit','variant'=>'primary','icon'=>'plus'])?></div>
+</form>
+<div class="finea-table-wrap"><table class="finea-table"><thead><tr><th>Exercice</th><th>Service</th><th>Affectation</th><th>Budget</th><th>État</th></tr></thead><tbody>
+<?php foreach($page->officeAllocations as $allocation): ?><tr><td><?=(int)$allocation['fiscal_year']?></td><td><?=$e($allocation['service_name'])?></td><td><strong><?=$e($allocation['label'])?></strong><small class="admin-table-subtitle"><?=$e($allocation['code'])?></small></td><td><?=number_format((float)$allocation['budget_amount'],0,',',' ')?> FCFA</td><td><?=$allocation['active']?'Actif':'Inactif'?></td></tr><?php endforeach; ?>
+<?php if(!$page->officeAllocations): ?><tr><td colspan="5"><?=Ui::emptyState('Aucun budget bureau','Créez une affectation financière pour débloquer les FEB Bureau.')?></td></tr><?php endif; ?>
+</tbody></table></div>
+<?php echo Ui::section('Budgets FEB Bureau',(string)ob_get_clean(),'Service RH → affectation annuelle → budget contrôlé à la soumission.'); ?>
+
 <?php ob_start(); ?><div class="finea-table-wrap"><table class="finea-table"><thead><tr><th>Date</th><th>Acteur</th><th>Objet</th><th>Action</th></tr></thead><tbody><?php foreach($page->history as $h): ?><tr><td><?=$e($h['created_at'])?></td><td><?=$e($h['actor_name'])?></td><td><?=$e($h['entity_type'].($h['entity_id']?' #'.$h['entity_id']:''))?></td><td><?=$e($h['action'])?></td></tr><?php endforeach; ?><?php if(!$page->history): ?><tr><td colspan="4"><?=Ui::emptyState('Aucun historique','Les changements administratifs apparaîtront ici.')?></td></tr><?php endif; ?></tbody></table></div><?php echo Ui::section('Historique administratif',(string)ob_get_clean()); ?>
 </div></div>
 <style>
