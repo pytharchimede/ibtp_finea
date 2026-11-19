@@ -13,7 +13,7 @@ ob_start();
         <?= Ui::pageHeader(
             'Quelle démarche souhaitez-vous effectuer ?',
             'Choisissez une catégorie : le formulaire affiche uniquement les informations nécessaires.',
-            ['eyebrow' => 'Self-service RH', 'class' => 'employee-hero']
+            ['eyebrow' => 'Self-service RH', 'class' => 'employee-hero', 'actions' => [Ui::button('Mes demandes', ['href' => 'espace-employe/demandes', 'variant' => 'secondary', 'icon' => 'arrow-left'])]]
         ) ?>
         <?= EmployeeRequestForms::render($page->csrfToken, $page->selectedType) ?>
     </div>
