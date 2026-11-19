@@ -77,6 +77,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   clone.scrollIntoView({behavior:'smooth',block:'nearest'});
  });
  refreshTotal();
+ const beneficiaryType=form.querySelector('#feb-beneficiary-type');
+ const syncBeneficiary=()=>{
+  const supplier=beneficiaryType?.value==='fournisseur';
+  const profile=form.querySelector('#feb-self-profile'),supplierFields=form.querySelector('#feb-supplier-fields');
+  if(profile)profile.hidden=supplier;
+  if(supplierFields)supplierFields.hidden=!supplier;
+  const name=form.querySelector('#feb-beneficiary-name');if(name)name.required=supplier;
+ };
+ beneficiaryType?.addEventListener('change',syncBeneficiary);syncBeneficiary();
  const attachmentInput=form.querySelector('#feb-attachments'),dropzone=form.querySelector('#feb-dropzone'),fileList=form.querySelector('#feb-file-list');
  let attachments=[];
  const renderAttachments=()=>{
@@ -125,6 +134,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  };
  const validate=i=>{
   const section=steps[i];if(!section)return false;
+  if(i===2&&beneficiaryType?.value==='beneficiaire'&&form.querySelector('#feb-self-available')?.value!=='1'){alert('Votre compte doit être lié à une fiche salarié RH active.');return false;}
   if(i===3&&attachments.length===0){alert('Ajoutez au moins un justificatif.');attachmentInput?.focus();return false;}
   if(i===1){
    let count=0;
@@ -150,7 +160,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    ['Périmètre',scope==='bureau'?'FEB Bureau':'FEB Chantier'],
    ['Affectation',scope==='bureau'?selectedText(field('office_allocation_id')): 'Chantier #'+field('chantier_id').value],
    ['Circuit','Circuit défini dans les paramètres FEB'],
-   ['Bénéficiaire',field('beneficiary_name')?.value||''],
+   ['Bénéficiaire',beneficiaryType?.value==='beneficiaire'?'Moi-même (salarié)':field('beneficiary_name')?.value||''],
    ['Date souhaitée',field('needed_at')?.value||''],
    ['Motif',field('purpose')?.value||''],
    ['Montant estimé',money(refreshTotal())],
