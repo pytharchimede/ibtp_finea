@@ -22,6 +22,7 @@ foreach($lines as $line){
 $ready = $scope === 'bureau' ? count($allocations)>0 : $selectedChantier>0 && count($lines)>0;
 ?>
 <div class="feb-employee-create btp-workspace btp-chantier-wizard">
+ <?php if(!empty($febData['setupError'])): ?><p class="feb-budget-warning" role="alert"><?= $e($febData['setupError']) ?></p><?php endif; ?>
  <div class="feb-scope-choice" aria-label="Type de fiche de besoin">
   <a class="<?= $scope==='chantier'?'is-selected':'' ?>" href="<?= $e(View::url('espace-employe/demandes/nouvelle?type=feb&scope=chantier')) ?>"><i class="fa-solid fa-helmet-safety"></i><strong>FEB Chantier</strong><small>Projet et déboursé d’exécution</small></a>
   <a class="<?= $scope==='bureau'?'is-selected':'' ?>" href="<?= $e(View::url('espace-employe/demandes/nouvelle?type=feb&scope=bureau')) ?>"><i class="fa-solid fa-building"></i><strong>FEB Bureau</strong><small>Service et budget administratif</small></a>
