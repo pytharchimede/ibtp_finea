@@ -6,11 +6,11 @@ document.addEventListener('DOMContentLoaded',()=>{
  const money=n=>new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(n)+' FCFA';
  const field=name=>form.querySelector('[name="'+name+'"]');
  const selectedText=el=>el?.selectedOptions?.[0]?.textContent.trim()||'';
- const rows=[...form.querySelectorAll('[data-feb-line]')];
+ const rows=()=>[...form.querySelectorAll('[data-feb-line]')];
  let current=0;
  const refreshTotal=()=>{
   let sum=0;
-  rows.forEach(row=>{
+  rows().forEach(row=>{
    const desc=row.querySelector('[name$="[description]"]')?.value.trim();
    const qty=Number(row.querySelector('.feb-quantity')?.value||0);
    const price=Number(row.querySelector('.feb-price')?.value||0);
@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   const output=form.querySelector('#feb-grand-total');if(output)output.textContent=money(sum);
   return sum;
  };
+ const lineBox=form.querySelector('#feb-lines');
+ const collapse=row=>{row.classList.add('is-collapsed');row.querySelector('[data-feb-line-body]').hidden=true;row.querySelector('[data-feb-toggle]').setAttribute('aria-expanded','false');};
+ const expand=row=>{rows().forEach(other=>{if(other!==row)collapse(other);});row.classList.remove('is-collapsed');row.querySelector('[data-feb-line-body]').hidden=false;row.querySelector('[data-feb-toggle]').setAttribute('aria-expanded','true');};
  const syncOffice=()=>{
   const service=form.querySelector('#feb-office-service'),allocation=form.querySelector('#feb-office-allocation');if(!service||!allocation)return;
   for(const option of [...allocation.options].slice(1)){
@@ -30,7 +33,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(allocation.selectedOptions[0]?.disabled)allocation.value='';
  };
  form.querySelector('#feb-office-service')?.addEventListener('change',syncOffice);syncOffice();
- for(const row of rows){
+ const initRow=row=>{
   const quote=row.querySelector('[data-quote-line]'),debourse=row.querySelector('[data-debourse]'),line=row.querySelector('[data-budget-line]');
   if(quote&&debourse&&line){
    const sync=(reset=false)=>{
@@ -49,7 +52,22 @@ document.addEventListener('DOMContentLoaded',()=>{
    sync(true);
   }
   row.addEventListener('input',refreshTotal);
- }
+  row.querySelector('[data-feb-toggle]')?.addEventListener('click',()=>row.classList.contains('is-collapsed')?expand(row):collapse(row));
+  row.querySelector('[data-feb-remove]')?.addEventListener('click',()=>{if(rows().length<=1)return;row.remove();rows().forEach((r,i)=>{r.querySelector('[data-feb-line-title]').textContent='Besoin '+(i+1);r.querySelectorAll('[name^="lines["]').forEach(el=>el.name=el.name.replace(/^lines\\[\\d+\\]/,'lines['+i+']'));});expand(rows()[rows().length-1]);refreshTotal();});
+ };
+ rows().forEach(initRow);
+ form.querySelector('#feb-add-line')?.addEventListener('click',()=>{
+  const first=rows()[0],index=rows().length;
+  if(index>=30){alert('Maximum 30 besoins par FEB.');return;}
+  const clone=first.cloneNode(true);
+  clone.querySelectorAll('[name^="lines["]').forEach(el=>{el.name=el.name.replace(/^lines\\[\\d+\\]/,'lines['+index+']');if(el.tagName==='SELECT')el.selectedIndex=0;else if(el.classList.contains('feb-quantity'))el.value='1';else if(el.classList.contains('feb-price')||el.name.endsWith('[description]'))el.value='';});
+  clone.querySelector('[data-feb-line-title]').textContent='Besoin '+(index+1);
+  clone.querySelector('[data-feb-remove]').hidden=false;
+  clone.querySelector('[data-feb-line-total]').textContent=money(0);
+  clone.querySelector('[data-feb-line-body]').hidden=false;
+  lineBox.append(clone);initRow(clone);expand(clone);refreshTotal();
+  clone.scrollIntoView({behavior:'smooth',block:'nearest'});
+ });
  refreshTotal();
  const show=i=>{
   current=Math.max(0,Math.min(steps.length-1,i));
@@ -74,14 +92,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   const section=steps[i];if(!section)return false;
   if(i===1){
    let count=0;
-   for(const row of rows){
+   for(const row of rows()){
     const description=row.querySelector('[name$="[description]"]'),qty=row.querySelector('.feb-quantity'),price=row.querySelector('.feb-price');
     const quote=row.querySelector('[data-quote-line]'),debourse=row.querySelector('[data-debourse]'),line=row.querySelector('[data-budget-line]');
     const filled=!!description.value.trim()||!!price.value||!!quote?.value||!!debourse?.value||!!line?.value;
     if(!filled)continue;
     count++;
-    if(!description.value.trim()||!qty.value||Number(qty.value)<=0||price.value===''||Number(price.value)<0||!Number.isFinite(Number(price.value))){description.focus();alert('Complétez la désignation, la quantité et le prix de chaque besoin.');return false;}
-    if(scope==='chantier'&&(!quote?.value||!debourse?.value||!line?.value)){(quote||description).focus();alert('Choisissez la ligne de devis, le déboursé puis la ligne de déboursé.');return false;}
+    if(!description.value.trim()||!qty.value||Number(qty.value)<=0||price.value===''||Number(price.value)<0||!Number.isFinite(Number(price.value))){expand(row);description.focus();alert('Complétez la désignation, la quantité et le prix de chaque besoin.');return false;}
+    if(scope==='chantier'&&(!quote?.value||!debourse?.value||!line?.value)){expand(row);(quote||description).focus();alert('Choisissez la ligne de devis, le déboursé puis la ligne de déboursé.');return false;}
    }
    if(!count){alert('Ajoutez au moins un besoin.');return false;}
    if(refreshTotal()<=0){alert('Le montant total doit être positif.');return false;}
@@ -95,7 +113,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const entries=[
    ['Périmètre',scope==='bureau'?'FEB Bureau':'FEB Chantier'],
    ['Affectation',scope==='bureau'?selectedText(field('office_allocation_id')): 'Chantier #'+field('chantier_id').value],
-   ['Circuit',selectedText(field('workflow_id'))],
+   ['Circuit','Circuit défini dans les paramètres FEB'],
    ['Bénéficiaire',field('beneficiary_name')?.value||''],
    ['Date souhaitée',field('needed_at')?.value||''],
    ['Motif',field('purpose')?.value||''],
