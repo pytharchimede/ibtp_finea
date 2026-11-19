@@ -18,6 +18,38 @@ final class SupplierController extends BaseController {
    'service'=>$s,'csrf'=>Csrf::token(),'isAdmin'=>Auth::user()?->isAdmin??false
   ]);
  }
+ public function dossier(string $id):void{
+  $this->guard();$service=$this->service();$supplier=$service->dossier((int)$id);
+  if(!$supplier){http_response_code(404);exit('Fournisseur introuvable');}
+  $m=(new ModuleDashboardService())->dashboard('fournisseurs');
+  $this->view('procurement/dossier',[
+   'pageTitle'=>'Dossier fournisseur','moduleName'=>$m['label'],'moduleCode'=>$m['code'],
+   'moduleTheme'=>$m,'moduleNavigation'=>$m['navigation'],'activeModule'=>'repertoire',
+   'supplier'=>$supplier,'documents'=>$service->documents((int)$id),
+   'requirements'=>$service->requirements($supplier['person_type']),
+   'missing'=>$service->missingDocuments((int)$id),'csrf'=>Csrf::token(),
+   'canUpload'=>(int)$supplier['created_by']===(int)Auth::id()&&in_array($supplier['status'],['brouillon','complement_requis'],true)
+  ]);
+ }
+ public function upload(string $id):void{
+  $this->guard();$this->csrf();
+  try{$this->service()->uploadDocument((int)$id,(string)($_POST['document_type']??''),$_FILES['document']??[],(int)Auth::id());Session::flash('success','Document ajouté.');}
+  catch(\\Throwable $e){Session::flash('error',$e instanceof \\DomainException?$e->getMessage():'Envoi impossible.');}
+  $this->redirect('/fournisseurs/'.$id);
+ }
+ public function download(string $id):void{
+  $this->guard();$doc=$this->service()->documentRecord((int)$id);
+  if(!$doc){http_response_code(404);exit('Document introuvable');}
+  $path=BASE_PATH.'/storage/private/suppliers/'.(int)$doc['supplier_id'].'/'.basename($doc['storage_name']);
+  if(!is_file($path)){http_response_code(404);exit('Fichier indisponible');}
+  header('Content-Type: '.$doc['mime_type']);header('X-Content-Type-Options: nosniff');
+  header('Content-Disposition: attachment; filename="document.'.(['application/pdf'=>'pdf','image/jpeg'=>'jpg','image/png'=>'png'][$doc['mime_type']]??'bin').'"');
+  header('Content-Length: '.filesize($path));readfile($path);exit;
+ }
+ public function requirement():void{
+  $this->guard(true);$this->csrf();
+  $this->run(fn()=> $this->service()->setRequirement((string)($_POST['person_type']??''),(string)($_POST['document_type']??''),isset($_POST['required']),isset($_POST['active'])),'Exigence documentaire actualisée.');
+ }
  public function index():void{$this->screen('repertoire');}
  public function dashboard():void{$this->screen('dashboard');}
  public function newSupplier():void{$this->screen('nouveau');}
