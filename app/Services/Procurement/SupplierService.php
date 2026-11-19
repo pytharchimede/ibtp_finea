@@ -103,10 +103,13 @@ final class SupplierService {
   $q=$this->db->prepare("SELECT r.label FROM procurement_supplier_document_requirements r WHERE r.person_type=? AND r.active=1 AND r.required=1 AND NOT EXISTS (SELECT 1 FROM procurement_supplier_documents d WHERE d.supplier_id=? AND d.document_type=r.document_type) ORDER BY r.sort_order");
   $q->execute([$supplier['person_type'],$id]);return $q->fetchAll(PDO::FETCH_COLUMN)?:[];
  }
- public function uploadDocument(int $id,string $type,array $file,int $actor):void{
+ public function canUploadDocuments(array $supplier,int $actor,bool $admin):bool{
+  if(!in_array($supplier['status'],['brouillon','complement_requis','soumis','approuve'],true))return false;
+  return $admin||(int)$supplier['created_by']===$actor;
+ }
+ public function uploadDocument(int $id,string $type,array $file,int $actor,bool $admin=false):void{
   $supplier=$this->dossier($id);
-  if(!$supplier||!in_array($supplier['status'],['brouillon','complement_requis'],true))throw new DomainException('Ce dossier ne peut plus être modifié.');
-  if((int)$supplier['created_by']!==$actor)throw new DomainException('Seul le créateur peut déposer des pièces.');
+  if(!$supplier||!$this->canUploadDocuments($supplier,$actor,$admin))throw new DomainException('Vous ne pouvez pas déposer de pièces sur ce dossier.');
   $requirements=$this->requirements($supplier['person_type']);
   if(!in_array($type,array_column($requirements,'document_type'),true))throw new DomainException('Type de document non autorisé.');
   if(($file['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK||!is_uploaded_file($file['tmp_name']??''))throw new DomainException('Fichier non reçu.');
