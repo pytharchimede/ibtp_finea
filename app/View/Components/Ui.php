@@ -107,18 +107,36 @@ final class Ui
             $customClass,
         ]);
 
+        $iconName = (string) ($options['icon'] ?? '');
+        $iconPosition = ($options['iconPosition'] ?? 'start') === 'end' ? 'end' : 'start';
+        $icons = [
+            'plus' => '<path d="M12 5v14M5 12h14"/>',
+            'check' => '<path d="m5 12 4 4L19 6"/>',
+            'save' => '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+            'x' => '<path d="M18 6 6 18M6 6l12 12"/>',
+            'ban' => '<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/>',
+            'power' => '<path d="M12 2v10M6.2 5.6a9 9 0 1 0 11.6 0"/>',
+            'users' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+            'search' => '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+            'pencil' => '<path d="m16 5 3 3M4 20l4-.8L20 7a2.1 2.1 0 0 0-3-3L5 16l-1 4Z"/>',
+            'arrow-left' => '<path d="m12 19-7-7 7-7M5 12h14"/>',
+        ];
+        $icon = isset($icons[$iconName]) ? '<svg class="finea-btn-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $icons[$iconName] . '</svg>' : '';
+        $buttonContent = '<span class="finea-btn-content">' . ($iconPosition === 'start' ? $icon : '') . '<span class="finea-btn-label">' . View::e($label) . '</span>' . ($iconPosition === 'end' ? $icon : '') . '</span>';
+        $class .= ' finea-btn-centered';
+
         if ($href !== '') {
-            return '<a class="' . View::e($class) . '" href="' . View::url(ltrim($href, '/')) . '">' . View::e($label) . '</a>';
+            return '<a class="' . View::e($class) . '" href="' . View::url(ltrim($href, '/')) . '">' . $buttonContent . '</a>';
         }
 
-        unset($options['href'], $options['variant'], $options['type'], $options['disabled'], $options['class']);
+        unset($options['href'], $options['variant'], $options['type'], $options['disabled'], $options['class'], $options['icon'], $options['iconPosition']);
         $buttonAttrs = array_merge([
             'class' => $class,
             'type' => $type,
             'disabled' => $disabled,
         ], $options);
 
-        return '<button' . Html::attrs($buttonAttrs) . '>' . View::e($label) . '</button>';
+        return '<button' . Html::attrs($buttonAttrs) . '>' . $buttonContent . '</button>';
     }
 
     /** @param array<string,mixed> $options */
