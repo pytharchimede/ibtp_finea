@@ -27,7 +27,7 @@ ob_start();
  ['label'=>'Justificatif','icon'=>'fa-solid fa-file-arrow-up'],
  ['label'=>'Récapitulatif','icon'=>'fa-solid fa-circle-check'],
 ],'Étapes de la fiche de besoin') ?>
-<form method="post" id="feb-wizard-form" enctype="multipart/form-data" action="<?=$e(View::url('feb'))?>" class="feb-create-form">
+<form method="post" id="feb-wizard-form" novalidate enctype="multipart/form-data" action="<?=$e(View::url('feb'))?>" class="feb-create-form">
 <input type="hidden" name="_csrf_token" value="<?=$e($csrf)?>">
 <input type="hidden" name="chantier_id" value="<?=(int)$selectedChantier?>">
 <?php ob_start(); ?>
